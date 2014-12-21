@@ -6,6 +6,9 @@
     'includes': [
       'filename_rules.gypi',
     ],
+    'include_dirs': [
+      '<(DEPTH)',
+    ],
     'default_configuration': 'Debug',
     'configurations': {
       'Release': {

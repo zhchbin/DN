@@ -6,4 +6,6 @@ compiler:
 notifications:
   email: false
 
-script: ./build/cibuild.sh
+script: ./build/ci_build.sh
+
+after_success: ./build/ci_run_test.sh
