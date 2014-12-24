@@ -1,3 +1,6 @@
 [submodule "testing/gtest"]
 	path = testing/gtest
 	url = https://chromium.googlesource.com/external/googletest.git
+[submodule "testing/gmock"]
+	path = testing/gmock
+	url = https://chromium.googlesource.com/external/googlemock.git

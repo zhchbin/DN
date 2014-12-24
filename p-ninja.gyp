@@ -20,6 +20,7 @@
       'dependencies': [
         'lib_foo',
         'testing/gtest.gyp:gtest_main',
+        'testing/gmock.gyp:gmock_main',
       ],
     },
 
