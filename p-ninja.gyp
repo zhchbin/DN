@@ -10,6 +10,9 @@
         'src/foo.cc',
         'src/foo.h',
       ],
+      'dependencies': [
+        'src/libevent/libevent.gyp:libevent',
+      ]
     },
     {
       'target_name': 'lib_foo_unittest',
