@@ -23,16 +23,18 @@
         'testing/gmock.gyp:gmock_main',
       ],
     },
-
     {
       'target_name': 'p_ninja',
       'type': 'executable',
       'sources': [
         'src/main.cc'
       ],
+      'include_dirs': [
+        'third_party/libevent/include',
+      ],
       'dependencies': [
         'lib_foo',
-      ]
+      ],
     },
   ],
 }

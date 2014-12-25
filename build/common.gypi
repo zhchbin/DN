@@ -56,14 +56,6 @@
                 },
               ],
               ['optimize=="max"', {
-                  # Disable Warning 4702 ("Unreachable code") for the WPO/PGO
-                  # builds. Probably anything that this would catch that
-                  # wouldn't be caught in a normal build isn't going to
-                  # actually be a bug, so the incremental value of C4702 for
-                  # PGO builds is likely very small.
-                  'msvs_disabled_warnings': [
-                    4702
-                  ],
                   'msvs_settings': {
                     'VCCLCompilerTool': {
                       # 2, optimizeMaxSpeed, Maximize Speed (/O2)
@@ -150,6 +142,7 @@
         'msvs_system_include_dirs': [
         ],
         'msvs_disabled_warnings': [
+          '4702',
         ],
         'msvs_settings': {
           'VCCLCompilerTool': {
@@ -171,18 +164,23 @@
           },
           'VCLinkerTool': {
             'AdditionalDependencies': [
-              # 'wininet.lib',
-              # 'dnsapi.lib',
-              # 'version.lib',
-              # 'msimg32.lib',
-              # 'ws2_32.lib',
-              # 'usp10.lib',
-              # 'psapi.lib',
-              # 'dbghelp.lib',
-              # 'winmm.lib',
-              # 'shlwapi.lib',
+              'Advapi32.lib',
+              'wininet.lib',
+              'dnsapi.lib',
+              'version.lib',
+              'msimg32.lib',
+              'ws2_32.lib',
+              'usp10.lib',
+              'psapi.lib',
+              'dbghelp.lib',
+              'winmm.lib',
+              'shlwapi.lib',
+              'libevent.lib',
+              'libevent_core.lib',
+              'libevent_extras.lib',
             ],
             'AdditionalLibraryDirectories': [
+              'third_party\\libevent\\libs',
             ],
             'GenerateDebugInformation': 'true',
             'MapFileName': '$(OutDir)\\$(TargetName).map',
