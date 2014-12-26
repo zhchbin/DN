@@ -119,6 +119,12 @@
           '-Wl,--as-needed',
           '-Wl,-z,noexecstack',
         ],
+        'link_settings': {
+          "libraries": [
+            '-L../../third_party/libevent/libs/',
+            "-levent",
+          ],
+        },
       }
     }], # OS==linux
 
