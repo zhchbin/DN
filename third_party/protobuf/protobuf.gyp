@@ -18,6 +18,9 @@
           'vsprojects',  # crafted for msvc.
       },
       'target_defaults': {
+        'cflags': [
+          '-Wno-sign-compare',
+        ],
         'msvs_disabled_warnings': [
           4018,  # signed/unsigned mismatch in comparison
           4100,
