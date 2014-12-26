@@ -119,12 +119,6 @@
           '-Wl,--as-needed',
           '-Wl,-z,noexecstack',
         ],
-        'link_settings': {
-          "libraries": [
-            '-L../../third_party/libevent/libs/',
-            "-levent",
-          ],
-        },
       }
     }], # OS==linux
 
@@ -181,12 +175,8 @@
               'dbghelp.lib',
               'winmm.lib',
               'shlwapi.lib',
-              'libevent.lib',
-              'libevent_core.lib',
-              'libevent_extras.lib',
             ],
             'AdditionalLibraryDirectories': [
-              'third_party\\libevent\\libs',
             ],
             'GenerateDebugInformation': 'true',
             'MapFileName': '$(OutDir)\\$(TargetName).map',

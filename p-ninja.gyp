@@ -34,6 +34,31 @@
       ],
       'dependencies': [
         'lib_foo',
+        'third_party/protobuf/protobuf.gyp:protobuf_lite',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'link_settings': {
+            "libraries": [
+              '-L../../third_party/libevent/libs/',
+              "-levent",
+            ],
+          },
+        }],
+        ['OS=="win"', {
+          'msvs_settings': {
+            'VCLinkerTool': {
+              'AdditionalDependencies': [
+                'libevent.lib',
+                'libevent_core.lib',
+                'libevent_extras.lib',
+              ],
+              'AdditionalLibraryDirectories': [
+                'third_party\\libevent\\libs',
+              ],
+            },
+          },
+        }],
       ],
     },
   ],
