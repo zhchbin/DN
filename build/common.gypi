@@ -108,6 +108,8 @@
           '-fvisibility-inlines-hidden',
           '-Wsign-compare',
           '-mfpmath=sse',
+          '-Wno-sign-compare',
+          '-Wno-deprecated',
         ],
         'defines': [
           '_FILE_OFFSET_BITS=64',
