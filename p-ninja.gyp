@@ -27,7 +27,8 @@
       'target_name': 'p_ninja',
       'type': 'executable',
       'sources': [
-        'src/main.cc'
+        'src/main.cc',
+        'src/person.proto',
       ],
       'include_dirs': [
         'third_party/libevent/include',
@@ -35,6 +36,13 @@
       'dependencies': [
         'lib_foo',
         'third_party/protobuf/protobuf.gyp:protobuf_lite',
+      ],
+      'variables': {
+        'proto_in_dir': 'src',
+        'proto_out_dir': 'message'
+      },
+      'includes': [
+        'build/protoc.gypi',
       ],
       'conditions': [
         ['OS=="linux"', {
