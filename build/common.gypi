@@ -98,7 +98,6 @@
           '-pipe',
           '-pthread',
           '-Wall',
-          '-Werror',
           '-Wextra',
           '-Wno-unused-parameter',
           '-Wno-missing-field-initializers',
@@ -152,7 +151,7 @@
             'EnableFunctionLevelLinking': 'true',
             'RuntimeTypeInfo': 'false',
             'WarningLevel': '4',
-            'WarnAsError': 'true',
+            'WarnAsError': 'false',
             'DebugInformationFormat': '3',
             # ExceptionHandling must match _HAS_EXCEPTIONS above.
             'ExceptionHandling': '0',
