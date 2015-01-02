@@ -4,3 +4,6 @@
 [submodule "testing/gmock"]
 	path = testing/gmock
 	url = https://chromium.googlesource.com/external/googlemock.git
+[submodule "base"]
+	path = base
+	url = https://github.com/zhchbin/chromium-base

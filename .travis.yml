@@ -8,4 +8,4 @@ notifications:
 
 script: ./build/ci_build.sh
 
-after_success: ./build/ci_run_test.sh
+# after_success: ./build/ci_run_test.sh
