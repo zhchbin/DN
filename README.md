@@ -1,4 +1,6 @@
 p-ninja
 =======
 
-[![Build Status](https://magnum.travis-ci.com/zhchbin/p-ninja.svg?token=2TJMJxbmdQJtzDxM1jPG)](https://magnum.travis-ci.com/zhchbin/p-ninja)
+[![Build Status](https://travis-ci.org/zhchbin/p-ninja.svg)](https://travis-ci.org/zhchbin/p-ninja)
+
+Maybe one day it will be useful.
