@@ -1,0 +1,18 @@
+package rpc;
+
+option cc_generic_services = true;
+
+message RpcMessage {
+  enum Type { 
+    REQUEST  = 1;
+    RESPONSE = 2;
+  }
+
+  required fixed64 id = 1;
+  required Type type = 2;
+
+  optional string service = 3;
+  optional string method = 4;
+  optional bytes request = 5;
+  optional bytes response = 6;
+}
