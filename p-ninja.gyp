@@ -25,11 +25,13 @@
         'src/net/tcp_socket_libevent.cc',
         'src/ninja_thread_impl.cc',
         'src/rpc/rpc_channel.cc',
+        'src/rpc/rpc_connection.cc',
         'src/rpc/rpc_message.proto',
+        'src/rpc/rpc_server.cc',
       ],
       'dependencies': [
-        'third_party/protobuf/protobuf.gyp:protobuf_lite',
         'base/base.gyp:base',
+        'third_party/protobuf/protobuf.gyp:protobuf_lite',
       ],
       'include_dirs': [
         'src',
@@ -51,6 +53,9 @@
       ],
       'includes': [
         'build/protoc.gypi',
+      ],
+      'include_dirs': [
+        'src',
       ],
     },
   ],
