@@ -9,7 +9,7 @@
 
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
-#include "completion_callback.h"
+#include "net/completion_callback.h"
 
 namespace net {
 

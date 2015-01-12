@@ -8,9 +8,9 @@
 #include "base/basictypes.h"
 #include "base/compiler_specific.h"
 #include "base/memory/scoped_ptr.h"
-#include "ip_endpoint.h"
-#include "server_socket.h"
-#include "tcp_socket.h"
+#include "net/ip_endpoint.h"
+#include "net/server_socket.h"
+#include "net/tcp_socket.h"
 
 namespace net {
 

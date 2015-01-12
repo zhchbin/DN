@@ -12,9 +12,9 @@
 #include "base/memory/scoped_ptr.h"
 #include "base/message_loop/message_loop.h"
 #include "base/threading/thread_checker.h"
-#include "completion_callback.h"
-#include "net_util.h"
-#include "socket_descriptor.h"
+#include "net/completion_callback.h"
+#include "net/net_util.h"
+#include "net/socket_descriptor.h"
 
 namespace net {
 

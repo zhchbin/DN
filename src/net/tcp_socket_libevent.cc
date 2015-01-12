@@ -16,11 +16,11 @@
 #include "base/posix/eintr_wrapper.h"
 #include "base/task_runner_util.h"
 #include "base/threading/worker_pool.h"
-#include "io_buffer.h"
-#include "ip_endpoint.h"
-#include "net_errors.h"
-#include "net_util.h"
-#include "socket_libevent.h"
+#include "net/io_buffer.h"
+#include "net/ip_endpoint.h"
+#include "net/net_errors.h"
+#include "net/net_util.h"
+#include "net/socket_libevent.h"
 
 // If we don't have a definition for TCPI_OPT_SYN_DATA, create one.
 #ifndef TCPI_OPT_SYN_DATA

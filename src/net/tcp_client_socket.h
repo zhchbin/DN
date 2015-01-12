@@ -5,13 +5,13 @@
 #ifndef NET_SOCKET_TCP_CLIENT_SOCKET_H_
 #define NET_SOCKET_TCP_CLIENT_SOCKET_H_
 
-#include "address_list.h"
 #include "base/basictypes.h"
 #include "base/compiler_specific.h"
 #include "base/memory/scoped_ptr.h"
-#include "completion_callback.h"
-#include "stream_socket.h"
-#include "tcp_socket.h"
+#include "net/address_list.h"
+#include "net/completion_callback.h"
+#include "net/stream_socket.h"
+#include "net/tcp_socket.h"
 
 namespace net {
 

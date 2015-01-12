@@ -5,7 +5,7 @@
 #ifndef NET_SOCKET_H_
 #define NET_SOCKET_H_
 
-#include "completion_callback.h"
+#include "net/completion_callback.h"
 
 namespace net {
 

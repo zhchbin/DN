@@ -8,9 +8,9 @@
 #include "build/build_config.h"
 
 #if defined(OS_WIN)
-#include "tcp_socket_win.h"
+#include "net/tcp_socket_win.h"
 #elif defined(OS_POSIX)
-#include "tcp_socket_libevent.h"
+#include "net/tcp_socket_libevent.h"
 #endif
 
 namespace net {

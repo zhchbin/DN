@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "socket_libevent.h"
+#include "net/socket_libevent.h"
 
 #include <errno.h>
 #include <netinet/in.h>
@@ -11,10 +11,10 @@
 #include "base/callback_helpers.h"
 #include "base/logging.h"
 #include "base/posix/eintr_wrapper.h"
-#include "io_buffer.h"
-#include "ip_endpoint.h"
-#include "net_errors.h"
-#include "net_util.h"
+#include "net/io_buffer.h"
+#include "net/ip_endpoint.h"
+#include "net/net_errors.h"
+#include "net/net_util.h"
 
 namespace net {
 

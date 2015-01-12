@@ -2,13 +2,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "server_socket.h"
+#include "net/server_socket.h"
 
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_split.h"
-#include "ip_endpoint.h"
-#include "net_errors.h"
-#include "net_util.h"
+#include "net/ip_endpoint.h"
+#include "net/net_errors.h"
+#include "net/net_util.h"
 
 namespace net {
 
@@ -28,7 +28,7 @@ bool ParseIPLiteralToNumber(const std::string& ip_literal,
     (*ip_number)[i] = r;
   }
 
-  return false;
+  return true;
 }
 
 } // namespace

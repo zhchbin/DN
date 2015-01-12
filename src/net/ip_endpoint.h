@@ -7,10 +7,10 @@
 
 #include <string>
 
-#include "address_family.h"
 #include "base/basictypes.h"
 #include "base/compiler_specific.h"
-#include "net_util.h"
+#include "net/address_family.h"
+#include "net/net_util.h"
 
 struct sockaddr;
 

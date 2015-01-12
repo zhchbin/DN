@@ -5,7 +5,7 @@
 #ifndef NET_SOCKET_STREAM_SOCKET_H_
 #define NET_SOCKET_STREAM_SOCKET_H_
 
-#include "socket.h"
+#include "net/socket.h"
 
 namespace net {
 

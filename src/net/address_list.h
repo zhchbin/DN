@@ -10,8 +10,8 @@
 
 #include "base/basictypes.h"
 #include "base/compiler_specific.h"
-#include "ip_endpoint.h"
-#include "net_util.h"
+#include "net/ip_endpoint.h"
+#include "net/net_util.h"
 
 struct addrinfo;
 

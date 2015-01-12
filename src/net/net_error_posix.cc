@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#include "net_errors.h"
+#include "net/net_errors.h"
 
 #include <errno.h>
 #include <stdlib.h>

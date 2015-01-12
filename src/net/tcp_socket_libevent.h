@@ -5,8 +5,8 @@
 #include "base/callback.h"
 #include "base/compiler_specific.h"
 #include "base/memory/scoped_ptr.h"
-#include "address_family.h"
-#include "completion_callback.h"
+#include "net/address_family.h"
+#include "net/completion_callback.h"
 
 namespace net {
 
