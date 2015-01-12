@@ -11,7 +11,7 @@ namespace {
 
 // Friendly names for the well-known threads.
 static const char* g_ninja_thread_names[NinjaThread::ID_COUNT] = {
-  "Main", "RPC_IO",  
+  "Main", "RPC",
 };
 
 struct NinjaThreadGlobals {
@@ -30,7 +30,7 @@ struct NinjaThreadGlobals {
   NinjaThreadDelegate* thread_delegates[NinjaThread::ID_COUNT];
 
   // This array is protected by |lock|. The threads are not owned by this
-  // array. Typically, the threads are owned on the Main thread. 
+  // array. Typically, the threads are owned on the Main thread.
   // NinjaThreadImpl objects remove themselves from this array upon
   // destruction.
   NinjaThreadImpl* threads[NinjaThread::ID_COUNT];
@@ -100,7 +100,7 @@ void NinjaThreadImpl::Run(base::MessageLoop* message_loop) {
   switch (thread_id) {
     case NinjaThread::MAIN:
       return MainThreadRun(message_loop);
-    case NinjaThread::RPC_IO:
+    case NinjaThread::RPC:
       return RpcIOThreadRun(message_loop);
     case NinjaThread::ID_COUNT:
       CHECK(false);  // This shouldn't actually be reached!

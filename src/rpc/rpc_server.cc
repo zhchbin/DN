@@ -105,8 +105,6 @@ void RpcServer::OnReadCompleted(int connection_id, int rv) {
 
 int RpcServer::HandleReadResult(RpcConnection* connection, int rv) {
   if (rv <= 0) {
-    LOG(INFO) << connection->read_buf()->GetSize();
-    LOG(INFO) << connection->read_buf()->StartOfBuffer();
     Close(connection->id());
     return rv == 0 ? net::ERR_CONNECTION_CLOSED : rv;
   }

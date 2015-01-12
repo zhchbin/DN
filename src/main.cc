@@ -1,30 +1,30 @@
 #include "base/at_exit.h"
-#include "base/location.h"
-#include "base/message_loop/message_loop.h"
+#include "base/command_line.h"
 #include "base/run_loop.h"
-#include "base/strings/string_number_conversions.h"
-#include "base/time/time.h"
-#include "base/logging.h"
+#include "net/tcp_server_socket.h"
+#include "ninja_thread_delegate.h"
+#include "ninja_thread_impl.h"
+#include "rpc/rpc_server.cc"
+#include "rpc/rpc_thread_delegate.h"
 
 int main(int argc, char* argv[]) {
+  base::CommandLine::Init(argc, argv);
   base::AtExitManager exit_manager;
-  if (argc <= 1) {
-    LOG(INFO) << argv[0] << ": missing operand";
-    return -1;
-  }
+  scoped_ptr<base::MessageLoop> message_loop(new base::MessageLoop());
+  scoped_ptr<NinjaThreadImpl> main_thread(
+      new NinjaThreadImpl(NinjaThread::MAIN, base::MessageLoop::current()));
+  scoped_ptr<NinjaThreadImpl> rpc_thread(
+      new NinjaThreadImpl(NinjaThread::RPC));
+  base::Thread::Options options(base::MessageLoop::TYPE_IO, 0);
+  scoped_ptr<rpc::RpcThreadDelegate> rpc_thread_delegate(
+      new rpc::RpcThreadDelegate());
 
-  int duration_seconds = 0;
-  if (!base::StringToInt(argv[1], &duration_seconds) ||
-      duration_seconds < 0) {
-    LOG(INFO) << argv[0] << ": invalid time interval '" << argv[1] << "'";
-    return -1;
-  }
+  NinjaThread::SetDelegate(NinjaThread::RPC, rpc_thread_delegate.get());
+  rpc_thread->StartWithOptions(options);
 
-  base::TimeDelta duration = base::TimeDelta::FromSeconds(duration_seconds);
-  base::MessageLoop main_loop;
   base::RunLoop run_loop;
-  main_loop.PostDelayedTask(FROM_HERE, run_loop.QuitClosure(), duration);
   run_loop.Run();
+  rpc_thread->Stop();
 
   return 0;
 }

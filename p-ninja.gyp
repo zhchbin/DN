@@ -28,6 +28,7 @@
         'src/rpc/rpc_connection.cc',
         'src/rpc/rpc_message.proto',
         'src/rpc/rpc_server.cc',
+        'src/rpc/rpc_thread_delegate.cc',
       ],
       'dependencies': [
         'base/base.gyp:base',

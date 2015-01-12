@@ -14,7 +14,7 @@ class NinjaThread {
     MAIN,
 
     // This is the thread that processes non-blocking IO for rpc.
-    RPC_IO,
+    RPC,
 
     // This identifier does not represent a thread.  Instead it counts the
     // number of well-known threads.  Insert new well-known threads before this
