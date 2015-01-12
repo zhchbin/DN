@@ -79,23 +79,20 @@ bool SetTCPKeepAlive(int fd, bool enable, int delay) {
 #if defined(OS_LINUX) || defined(OS_ANDROID)
 // Checks if the kernel supports TCP FastOpen.
 bool SystemSupportsTCPFastOpen() {
-  // FIXME
-  return false;
-  // const base::FilePath::CharType kTCPFastOpenProcFilePath[] =
-  //     "/proc/sys/net/ipv4/tcp_fastopen";
-  // std::string system_supports_tcp_fastopen;
+  const base::FilePath::CharType kTCPFastOpenProcFilePath[] =
+      "/proc/sys/net/ipv4/tcp_fastopen";
+  std::string system_supports_tcp_fastopen;
 
-  // FIXME
-  // if (!base::ReadFileToString(base::FilePath(kTCPFastOpenProcFilePath),
-  //                             &system_supports_tcp_fastopen)) {
-  //   return false;
-  // }
-  // // The read from /proc should return '1' if TCP FastOpen is enabled in the OS.
-  // if (system_supports_tcp_fastopen.empty() ||
-  //     (system_supports_tcp_fastopen[0] != '1')) {
-  //   return false;
-  // }
-  // return true;
+  if (!base::ReadFileToString(base::FilePath(kTCPFastOpenProcFilePath),
+                              &system_supports_tcp_fastopen)) {
+    return false;
+  }
+  // The read from /proc should return '1' if TCP FastOpen is enabled in the OS.
+  if (system_supports_tcp_fastopen.empty() ||
+      (system_supports_tcp_fastopen[0] != '1')) {
+    return false;
+  }
+  return true;
 }
 
 void RegisterTCPFastOpenIntentAndSupport(bool user_enabled,
