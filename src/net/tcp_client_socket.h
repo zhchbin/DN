@@ -4,8 +4,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE.chromium file and LICENSE file.
 
-#ifndef NET_SOCKET_TCP_CLIENT_SOCKET_H_
-#define NET_SOCKET_TCP_CLIENT_SOCKET_H_
+#ifndef NET_TCP_CLIENT_SOCKET_H_
+#define NET_TCP_CLIENT_SOCKET_H_
 
 #include "base/basictypes.h"
 #include "base/compiler_specific.h"
@@ -23,7 +23,7 @@ class TCPClientSocket : public StreamSocket {
   // The IP address(es) and port number to connect to.  The TCP socket will try
   // each IP address in the list until it succeeds in establishing a
   // connection.
-  TCPClientSocket(const AddressList& addresses);
+  explicit TCPClientSocket(const AddressList& addresses);
 
   // Adopts the given, connected socket and then acts as if Connect() had been
   // called. This function is used by TCPServerSocket and for testing.
@@ -108,4 +108,4 @@ class TCPClientSocket : public StreamSocket {
 
 }  // namespace net
 
-#endif  // NET_SOCKET_TCP_CLIENT_SOCKET_H_
+#endif  // NET_TCP_CLIENT_SOCKET_H_

@@ -10,9 +10,11 @@
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
 
-namespace net{
+namespace net {
+
 class ServerSocket;
 class StreamSocket;
+
 }  // namespace net
 
 namespace rpc {
@@ -21,7 +23,7 @@ class RpcConnection;
 
 class RpcServer {
  public:
-  RpcServer(scoped_ptr<net::ServerSocket> server_socket);
+  explicit RpcServer(scoped_ptr<net::ServerSocket> server_socket);
   ~RpcServer();
 
   void Close(int connection_id);

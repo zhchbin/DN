@@ -27,6 +27,7 @@
         'src/rpc/rpc_channel.cc',
         'src/rpc/rpc_connection.cc',
         'src/rpc/rpc_message.proto',
+        'src/rpc/rpc_options.cc',
         'src/rpc/rpc_server.cc',
         'src/rpc/rpc_thread_delegate.cc',
       ],

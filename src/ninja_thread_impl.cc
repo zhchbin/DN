@@ -2,14 +2,14 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#include "ninja_thread_impl.h"
+#include "ninja_thread_impl.h"    // NOLINT
 
 #include "base/bind.h"
 #include "base/callback.h"
 #include "base/compiler_specific.h"
 #include "base/lazy_instance.h"
 #include "base/synchronization/lock.h"
-#include "ninja_thread_delegate.h"
+#include "ninja_thread_delegate.h"  // NOLINT
 
 namespace {
 

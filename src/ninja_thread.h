@@ -13,7 +13,7 @@ class NinjaThreadDelegate;
 
 class NinjaThread {
  public:
-  // An enumeration of the well-known threads. 
+  // An enumeration of the well-known threads.
   enum ID {
     MAIN,
 

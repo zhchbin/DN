@@ -10,7 +10,6 @@
 #include "base/metrics/histogram.h"
 #include "base/strings/stringize_macros.h"
 
-
 namespace net {
 
 const char kErrorDomain[] = "net";
@@ -29,7 +28,7 @@ std::string ErrorToShortString(int error) {
   case ERR_ ## label: \
     error_string = # label; \
     break;
-#include "net_error_list.h"
+#include "net/net_error_list.h"
 #undef NET_ERROR
   default:
     NOTREACHED();

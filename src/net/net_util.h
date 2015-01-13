@@ -67,4 +67,4 @@ int ConvertAddressFamily(AddressFamily address_family);
 
 }  // namespace net
 
-#endif // NET_NET_UTIL_H_
+#endif  // NET_NET_UTIL_H_

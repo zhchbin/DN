@@ -13,7 +13,6 @@
 namespace rpc {
 
 RpcChannel::RpcChannel() {
-
 }
 
 RpcChannel::~RpcChannel() {

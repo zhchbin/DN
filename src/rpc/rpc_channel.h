@@ -34,11 +34,11 @@ class RpcChannel : public google::protobuf::RpcChannel {
   // are less strict in one important way:  the request and response objects
   // need not be of any specific class as long as their descriptors are
   // method->input_type() and method->output_type().
-  virtual void CallMethod(const pb::MethodDescriptor* method,
-                          pb::RpcController* controller,
-                          const pb::Message* request,
-                          pb::Message* response,
-                          pb::Closure* done) override;
+  void CallMethod(const pb::MethodDescriptor* method,
+                  pb::RpcController* controller,
+                  const pb::Message* request,
+                  pb::Message* response,
+                  pb::Closure* done) override;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(RpcChannel);

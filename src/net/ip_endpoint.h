@@ -4,8 +4,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE.chromium file and LICENSE file.
 
-#ifndef NET_BASE_IP_ENDPOINT_H_
-#define NET_BASE_IP_ENDPOINT_H_
+#ifndef NET_IP_ENDPOINT_H_
+#define NET_IP_ENDPOINT_H_
 
 #include <string>
 
@@ -72,4 +72,4 @@ class IPEndPoint {
 
 }  // namespace net
 
-#endif  // NET_BASE_IP_ENDPOINT_H_
+#endif  // NET_IP_ENDPOINT_H_

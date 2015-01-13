@@ -4,8 +4,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE.chromium file and LICENSE file.
 
-#ifndef  IO_BUFFER_H_
-#define  IO_BUFFER_H_
+#ifndef  NET_IO_BUFFER_H_
+#define  NET_IO_BUFFER_H_
 
 #include "base/memory/ref_counted.h"
 #include "base/memory/scoped_ptr.h"
@@ -68,4 +68,4 @@ class GrowableIOBuffer : public IOBuffer {
 
 }  // namespace net
 
-#endif  // IO_BUFFER_H_
+#endif  // NET_IO_BUFFER_H_

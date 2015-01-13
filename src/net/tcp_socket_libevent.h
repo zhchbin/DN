@@ -4,8 +4,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE.chromium file and LICENSE file.
 
-#ifndef  TCP_SOCKET_LIBEVENT_H
-#define  TCP_SOCKET_LIBEVENT_H
+#ifndef  NET_TCP_SOCKET_LIBEVENT_H_
+#define  NET_TCP_SOCKET_LIBEVENT_H_
 
 #include "base/basictypes.h"
 #include "base/callback.h"
@@ -190,4 +190,4 @@ class TCPSocketLibevent {
 
 }  // namespace net
 
-#endif  // TCP_SOCKET_LIBEVENT_H
+#endif  // NET_TCP_SOCKET_LIBEVENT_H_

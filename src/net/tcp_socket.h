@@ -4,8 +4,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE.chromium file and LICENSE file.
 
-#ifndef NET_SOCKET_TCP_SOCKET_H_
-#define NET_SOCKET_TCP_SOCKET_H_
+#ifndef NET_TCP_SOCKET_H_
+#define NET_TCP_SOCKET_H_
 
 #include "build/build_config.h"
 
@@ -42,4 +42,4 @@ void CheckSupportAndMaybeEnableTCPFastOpen(bool user_enabled);
 
 }  // namespace net
 
-#endif  // NET_SOCKET_TCP_SOCKET_H_
+#endif  // NET_TCP_SOCKET_H_

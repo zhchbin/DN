@@ -6,6 +6,8 @@
 
 #include "net/server_socket.h"
 
+#include <vector>
+
 #include "base/strings/string_number_conversions.h"
 #include "base/strings/string_split.h"
 #include "net/ip_endpoint.h"
@@ -33,7 +35,7 @@ bool ParseIPLiteralToNumber(const std::string& ip_literal,
   return true;
 }
 
-} // namespace
+}  // namespace
 
 ServerSocket::ServerSocket() {
 }

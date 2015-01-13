@@ -5,6 +5,7 @@
 #include "rpc/rpc_connection.h"
 
 #include "base/logging.h"
+#include "net/ip_endpoint.h"
 #include "net/stream_socket.h"
 
 namespace rpc {
@@ -153,6 +154,9 @@ RpcConnection::RpcConnection(int id, scoped_ptr<net::StreamSocket> socket)
       socket_(socket.Pass()),
       read_buf_(new ReadIOBuffer()),
       write_buf_(new QueuedWriteIOBuffer()) {
+  net::IPEndPoint peer;
+  socket_->GetPeerAddress(&peer);
+  LOG(INFO) << peer.ToString();
 }
 
 RpcConnection::~RpcConnection() {

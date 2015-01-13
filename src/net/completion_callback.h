@@ -4,8 +4,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE.chromium file and LICENSE file.
 
-#ifndef NET_COMPLETION_CALLBACK_H__
-#define NET_COMPLETION_CALLBACK_H__
+#ifndef NET_COMPLETION_CALLBACK_H_
+#define NET_COMPLETION_CALLBACK_H_
 
 #include "base/callback.h"
 #include "base/cancelable_callback.h"
@@ -24,4 +24,4 @@ typedef base::CancelableCallback<void(int)> CancelableCompletionCallback;
 
 }  // namespace net
 
-#endif  // NET_BASE_COMPLETION_CALLBACK_H__
+#endif  // NET_COMPLETION_CALLBACK_H_

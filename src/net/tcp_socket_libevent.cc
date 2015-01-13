@@ -4,12 +4,13 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE.chromium file and LICENSE file.
 
-#include "net/tcp_socket.h"
+#include "net/tcp_socket_libevent.h"
 
 #include <errno.h>
 #include <linux/in.h>
 #include <netinet/tcp.h>
 #include <sys/socket.h>
+#include <string>
 
 #include "base/bind.h"
 #include "base/logging.h"
@@ -416,7 +417,7 @@ void TCPSocketLibevent::EnableTCPFastOpenIfSupported() {
   // This check conservatively avoids middleboxes that may blackhole
   // TCP FastOpen SYN+Data packets; on such a failure, subsequent sockets
   // should not use TCP FastOpen.
-  if(!g_tcp_fastopen_has_failed)
+  if (!g_tcp_fastopen_has_failed)
     use_tcp_fastopen_ = true;
   else
     tcp_fastopen_status_ = TCP_FASTOPEN_PREVIOUSLY_FAILED;
@@ -486,7 +487,7 @@ int TCPSocketLibevent::HandleReadCompleted(IOBuffer* buf, int rv) {
     // succeeded, the socket is considered connected via TCP FastOpen.
     // If the read failed, TCP FastOpen is (conservatively) turned off for all
     // subsequent connections. TCP FastOpen status is recorded in both cases.
-    // TODO (jri): This currently results in conservative behavior, where TCP
+    // TODO(jri): This currently results in conservative behavior, where TCP
     // FastOpen is turned off on _any_ error. Implement optimizations,
     // such as turning off TCP FastOpen on more specific errors, and
     // re-attempting TCP FastOpen after a certain amount of time has passed.
@@ -517,7 +518,7 @@ int TCPSocketLibevent::HandleWriteCompleted(IOBuffer* buf, int rv) {
       // TCP FastOpen connect-with-write was attempted, and the write failed
       // for unknown reasons. Record status and (conservatively) turn off
       // TCP FastOpen for all subsequent connections.
-      // TODO (jri): This currently results in conservative behavior, where TCP
+      // TODO(jri): This currently results in conservative behavior, where TCP
       // FastOpen is turned off on _any_ error. Implement optimizations,
       // such as turning off TCP FastOpen on more specific errors, and
       // re-attempting TCP FastOpen after a certain amount of time has passed.
@@ -547,7 +548,7 @@ int TCPSocketLibevent::TcpFastOpenWrite(
   // since the caller should check for system support on startup, but
   // users may dynamically disable TCP FastOpen via sysctl.
   flags |= MSG_NOSIGNAL;
-#endif // defined(OS_LINUX) || defined(OS_ANDROID)
+#endif  // defined(OS_LINUX) || defined(OS_ANDROID)
   rv = HANDLE_EINTR(sendto(socket_->socket_fd(),
                            buf->data(),
                            buf_len,
@@ -578,7 +579,7 @@ int TCPSocketLibevent::TcpFastOpenWrite(
     // TCP FastOpen connect-with-write was attempted, and the write failed
     // since TCP FastOpen was not implemented or disabled in the OS.
     // Record status and turn off TCP FastOpen for all subsequent connections.
-    // TODO (jri): This is almost certainly too conservative, since it blanket
+    // TODO(jri): This is almost certainly too conservative, since it blanket
     // turns off TCP FastOpen on any write error. Two things need to be done
     // here: (i) record a histogram of write errors; in particular, record
     // occurrences of EOPNOTSUPP and EPIPE, and (ii) afterwards, consider

@@ -4,8 +4,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE.chromium file and LICENSE file.
 
-#ifndef NET_NET_ERRORS_H__
-#define NET_NET_ERRORS_H__
+#ifndef NET_NET_ERRORS_H_
+#define NET_NET_ERRORS_H_
 
 #include <string>
 #include <vector>
@@ -25,7 +25,7 @@ enum Error {
   OK = 0,
 
 #define NET_ERROR(label, value) ERR_ ## label = value,
-#include "net_error_list.h"
+#include "net/net_error_list.h"
 #undef NET_ERROR
 
   // The value of the first certificate error code.
@@ -47,4 +47,4 @@ Error FileErrorToNetError(base::File::Error file_error);
 
 }  // namespace net
 
-#endif  // NET_BASE_NET_ERRORS_H__
+#endif  // NET_NET_ERRORS_H_

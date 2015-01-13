@@ -5,7 +5,7 @@
 #ifndef  RPC_RPC_THREAD_DELEGATE_H_
 #define  RPC_RPC_THREAD_DELEGATE_H_
 
-#include "ninja_thread_delegate.h"
+#include "ninja_thread_delegate.h"  // NOLINT
 
 #include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
@@ -17,16 +17,16 @@ class RpcServer;
 class RpcThreadDelegate : public NinjaThreadDelegate {
  public:
   RpcThreadDelegate();
-  virtual ~RpcThreadDelegate() override;
+  virtual ~RpcThreadDelegate();
 
   // NinjaThreadDelegate implementations.
-  virtual void Init() override;
-  virtual void InitAsync() override;
-  virtual void CleanUp() override;
+  void Init() override;
+  void InitAsync() override;
+  void CleanUp() override;
 
  private:
-  DISALLOW_COPY_AND_ASSIGN(RpcThreadDelegate);
   scoped_ptr<rpc::RpcServer> rpc_server_;
+  DISALLOW_COPY_AND_ASSIGN(RpcThreadDelegate);
 };
 
 }  // namespace rpc

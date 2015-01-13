@@ -6,7 +6,7 @@
 #define  NINJA_THREAD_IMPL_H_
 
 #include "base/threading/thread.h"
-#include "ninja_thread.h"
+#include "ninja_thread.h"  // NOLINT
 
 class NinjaThreadImpl : public NinjaThread, public base::Thread {
  public:
@@ -18,7 +18,7 @@ class NinjaThreadImpl : public NinjaThread, public base::Thread {
   // |message_loop| is provied, we use a dummy thread here since the main
   // thread already exists.
   NinjaThreadImpl(NinjaThread::ID identifier, base::MessageLoop* message_loop);
-  virtual ~NinjaThreadImpl() override;
+  virtual ~NinjaThreadImpl();
 
  protected:
   // base::Thread implementation.

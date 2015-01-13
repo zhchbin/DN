@@ -25,5 +25,5 @@ class NinjaThreadDelegate {
   // Called just after the message loop ends.
   virtual void CleanUp() = 0;
 };
- 
+
 #endif  // NINJA_THREAD_DELEGATE_H_

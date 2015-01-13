@@ -4,8 +4,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE.chromium file and LICENSE file.
 
-#ifndef NET_BASE_ADDRESS_LIST_H_
-#define NET_BASE_ADDRESS_LIST_H_
+#ifndef NET_ADDRESS_LIST_H_
+#define NET_ADDRESS_LIST_H_
 
 #include <string>
 #include <vector>
@@ -77,4 +77,4 @@ class AddressList : private std::vector<IPEndPoint> {
 
 }  // namespace net
 
-#endif  // NET_BASE_ADDRESS_LIST_H_
+#endif  // NET_ADDRESS_LIST_H_

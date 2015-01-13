@@ -104,15 +104,19 @@ bool IPEndPoint::FromSockAddr(const struct sockaddr* sock_addr,
 }
 
 std::string IPEndPoint::ToString() const {
-  // FIXME
-  NOTIMPLEMENTED();
-  return "";
+  return ToStringWithoutPort() + ":" + base::UintToString(port_);
 }
 
 std::string IPEndPoint::ToStringWithoutPort() const {
-  // FIXME
-  NOTIMPLEMENTED();
-  return "";
+  CHECK(address_.size() == kIPv4AddressSize) << "Only support IPv4 address.";
+  std::string str;
+  for (size_t i = 0; i < address_.size(); ++i) {
+    str += base::UintToString(address_[i]);
+    if (i != kIPv4AddressSize - 1)
+      str += ".";
+  }
+
+  return str;
 }
 
 bool IPEndPoint::operator<(const IPEndPoint& that) const {
