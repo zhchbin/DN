@@ -1,3 +1,7 @@
+// Copyright (c) 2015 Chaobin Zhang. All rights reserved.
+// Use of this source code is governed by the BSD license that can be
+// found in the LICENSE file.
+
 #include "base/at_exit.h"
 #include "base/command_line.h"
 #include "base/run_loop.h"

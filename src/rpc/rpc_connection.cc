@@ -1,3 +1,7 @@
+// Copyright (c) 2015 Chaobin Zhang. All rights reserved.
+// Use of this source code is governed by the BSD license that can be
+// found in the LICENSE file.
+
 #include "rpc/rpc_connection.h"
 
 #include "base/logging.h"

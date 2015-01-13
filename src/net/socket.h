@@ -1,6 +1,8 @@
-// Copyright (c) 2011 The Chromium Authors. All rights reserved.
+// Copyright (c) 2015 The Chromium Authors. All rights reserved.
+// Copyright (c) 2015 Chaobin Zhang. All rights reserved.
+//
 // Use of this source code is governed by a BSD-style license that can be
-// found in the LICENSE file.
+// found in the LICENSE.chromium file and LICENSE file.
 
 #ifndef NET_SOCKET_H_
 #define NET_SOCKET_H_
