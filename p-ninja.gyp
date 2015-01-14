@@ -25,15 +25,16 @@
         'src/net/tcp_socket_libevent.cc',
         'src/ninja_thread_impl.cc',
         'src/rpc/rpc_channel.cc',
+        'src/rpc/rpc_client_main.cc',
         'src/rpc/rpc_connection.cc',
         'src/rpc/rpc_message.proto',
         'src/rpc/rpc_options.cc',
         'src/rpc/rpc_server.cc',
-        'src/rpc/rpc_thread_delegate.cc',
+        'src/rpc/rpc_server_main.cc',
       ],
       'dependencies': [
         'base/base.gyp:base',
-        'third_party/protobuf/protobuf.gyp:protobuf_lite',
+        'third_party/protobuf/protobuf.gyp:protobuf_full',
       ],
       'include_dirs': [
         'src',

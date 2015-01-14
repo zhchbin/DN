@@ -16,6 +16,7 @@ namespace switches {
 
 extern const char kBindIP[];
 extern const char kPort[];
+extern const char kServerIP[];
 
 }  // namespace switches
 

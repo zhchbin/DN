@@ -6,6 +6,9 @@
 
 #include "net/net_util.h"
 
+#include <string>
+#include <vector>
+
 #include "build/build_config.h"
 
 #if defined(OS_WIN)
@@ -21,8 +24,10 @@
 #include <unistd.h>
 #endif  // defined(OS_POSIX)
 
-#include "base/sys_byteorder.h"
 #include "base/logging.h"
+#include "base/strings/string_number_conversions.h"
+#include "base/strings/string_split.h"
+#include "base/sys_byteorder.h"
 
 namespace net {
 
@@ -120,6 +125,23 @@ int ConvertAddressFamily(AddressFamily address_family) {
   }
   NOTREACHED();
   return AF_UNSPEC;
+}
+
+bool ParseIPLiteralToNumber(const std::string& ip_literal,
+                            IPAddressNumber* ip_number) {
+  ip_number->resize(4);
+  std::vector<std::string> components;
+  base::SplitString(ip_literal, '.', &components);
+  if (components.size() != 4)
+    return false;
+  for (size_t i = 0; i < components.size(); ++i) {
+    uint32 r;
+    if (!base::StringToUint(components[i], &r) || r > 0xFF)
+      return false;
+    (*ip_number)[i] = r;
+  }
+
+  return true;
 }
 
 }  // namespace net

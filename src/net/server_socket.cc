@@ -8,34 +8,11 @@
 
 #include <vector>
 
-#include "base/strings/string_number_conversions.h"
-#include "base/strings/string_split.h"
 #include "net/ip_endpoint.h"
 #include "net/net_errors.h"
 #include "net/net_util.h"
 
 namespace net {
-
-namespace {
-
-bool ParseIPLiteralToNumber(const std::string& ip_literal,
-                            IPAddressNumber* ip_number) {
-  ip_number->resize(4);
-  std::vector<std::string> components;
-  base::SplitString(ip_literal, '.', &components);
-  if (components.size() != 4)
-    return false;
-  for (size_t i = 0; i < components.size(); ++i) {
-    uint32 r;
-    if (!base::StringToUint(components[i], &r) || r > 0xFF)
-      return false;
-    (*ip_number)[i] = r;
-  }
-
-  return true;
-}
-
-}  // namespace
 
 ServerSocket::ServerSocket() {
 }

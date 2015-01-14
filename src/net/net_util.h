@@ -65,6 +65,11 @@ bool GetIPAddressFromSockAddr(const struct sockaddr* sock_addr,
 // Maps the given AddressFamily to either AF_INET, AF_INET6 or AF_UNSPEC.
 int ConvertAddressFamily(AddressFamily address_family);
 
+// Parses an IP address literal (only IPv4) to its numeric value.
+// Returns true on success and fills |ip_number| with the numeric value.
+bool ParseIPLiteralToNumber(const std::string& ip_literal,
+                            IPAddressNumber* ip_number);
+
 }  // namespace net
 
 #endif  // NET_NET_UTIL_H_

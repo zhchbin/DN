@@ -2,22 +2,23 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  RPC_RPC_THREAD_DELEGATE_H_
-#define  RPC_RPC_THREAD_DELEGATE_H_
+#ifndef  RPC_RPC_SERVER_MAIN_H_
+#define  RPC_RPC_SERVER_MAIN_H_
 
-#include "ninja_thread_delegate.h"  // NOLINT
+#include <string>
 
 #include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
+#include "ninja_thread_delegate.h"  // NOLINT
 
 namespace rpc {
 
 class RpcServer;
 
-class RpcThreadDelegate : public NinjaThreadDelegate {
+class RpcServerMain : public NinjaThreadDelegate {
  public:
-  RpcThreadDelegate();
-  virtual ~RpcThreadDelegate();
+  RpcServerMain(const std::string& bind_ip, uint16 port);
+  virtual ~RpcServerMain();
 
   // NinjaThreadDelegate implementations.
   void Init() override;
@@ -25,10 +26,13 @@ class RpcThreadDelegate : public NinjaThreadDelegate {
   void CleanUp() override;
 
  private:
+  std::string bind_ip_;
+  uint16 port_;
   scoped_ptr<rpc::RpcServer> rpc_server_;
-  DISALLOW_COPY_AND_ASSIGN(RpcThreadDelegate);
+
+  DISALLOW_COPY_AND_ASSIGN(RpcServerMain);
 };
 
 }  // namespace rpc
 
-#endif  // RPC_RPC_THREAD_DELEGATE_H_
+#endif  // RPC_RPC_SERVER_MAIN_H_

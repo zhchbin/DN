@@ -15,5 +15,6 @@ namespace switches {
 
 const char kBindIP[] = "bind_ip";
 const char kPort[] = "port";
+const char kServerIP[] = "server_ip";
 
 }  // namespace switches

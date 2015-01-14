@@ -67,7 +67,7 @@
     #
     # DO NOT LINK AGAINST THIS TARGET IN CHROME CODE  --agl
     {
-      'target_name': 'protobuf_full_do_not_use',
+      'target_name': 'protobuf_full',
       'type': 'static_library',
       'toolsets': ['host','target'],
       'includes': [
@@ -193,7 +193,7 @@
         'src/google/protobuf/compiler/main.cc',
       ],
       'dependencies': [
-        'protobuf_full_do_not_use',
+        'protobuf_full',
       ],
       'include_dirs': [
         '<(config_h_dir)',

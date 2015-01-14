@@ -5,9 +5,11 @@
 #ifndef  RPC_RPC_CHANNEL_H_
 #define  RPC_RPC_CHANNEL_H_
 
-#include "google/protobuf/service.h"
+#include <string>
 
+#include "base/memory/scoped_ptr.h"
 #include "base/macros.h"
+#include "google/protobuf/service.h"
 
 namespace google {
 namespace protobuf {
@@ -20,13 +22,17 @@ class Closure;
 }  // namespace protobuf
 }  // namespace google
 
+namespace net {
+class TCPClientSocket;
+}  // namespace net
+
 namespace pb = google::protobuf;
 
 namespace rpc {
 
-class RpcChannel : public google::protobuf::RpcChannel {
+class RpcChannel : public pb::RpcChannel {
  public:
-  RpcChannel();
+  RpcChannel(const std::string& server_ip, uint16 port);
   virtual ~RpcChannel();
 
   // Call the given method of the remote service.  The signature of this
@@ -40,7 +46,14 @@ class RpcChannel : public google::protobuf::RpcChannel {
                   pb::Message* response,
                   pb::Closure* done) override;
 
+  void Connect();
+  void OnConnectComplete(int result);
+
  private:
+  std::string server_ip_;
+  uint16 port_;
+  scoped_ptr<net::TCPClientSocket> socket_;
+
   DISALLOW_COPY_AND_ASSIGN(RpcChannel);
 };
 

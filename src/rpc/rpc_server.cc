@@ -114,6 +114,7 @@ int RpcServer::HandleReadResult(RpcConnection* connection, int rv) {
   }
   RpcConnection::ReadIOBuffer* read_buf = connection->read_buf();
   read_buf->DidRead(rv);
+  LOG(INFO) << read_buf->StartOfBuffer();
 
   return net::OK;
 }
