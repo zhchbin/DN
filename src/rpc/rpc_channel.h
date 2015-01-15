@@ -5,11 +5,15 @@
 #ifndef  RPC_RPC_CHANNEL_H_
 #define  RPC_RPC_CHANNEL_H_
 
+#include <map>
 #include <string>
+#include <utility>
 
-#include "base/memory/scoped_ptr.h"
 #include "base/macros.h"
+#include "base/memory/scoped_ptr.h"
+#include "base/memory/weak_ptr.h"
 #include "google/protobuf/service.h"
+#include "rpc/rpc_connection.h"
 
 namespace google {
 namespace protobuf {
@@ -47,12 +51,29 @@ class RpcChannel : public pb::RpcChannel {
                   pb::Closure* done) override;
 
   void Connect();
-  void OnConnectComplete(int result);
+
+  void SendEcho();
 
  private:
+  // The first one is the response message pointer, the second is the callback
+  // closure.
+  typedef std::pair<pb::Message*, pb::Closure*> Response;
+  typedef std::map<int, Response> RequsetIdToResponseMap;
+
+  void OnConnectComplete(int result);
+  void OnWriteComplete(int result);
+
+  void OnReadCompleted(int result);
+
   std::string server_ip_;
   uint16 port_;
   scoped_ptr<net::TCPClientSocket> socket_;
+  scoped_refptr<RpcConnection::ReadIOBuffer> read_buffer_;
+  bool is_connected_;
+  uint32 last_id_;
+  RequsetIdToResponseMap request_id_to_response_map_;
+
+  base::WeakPtrFactory<RpcChannel> weak_ptr_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(RpcChannel);
 };

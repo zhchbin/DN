@@ -6,9 +6,13 @@
 #define  RPC_RPC_SERVER_H_
 
 #include <map>
+#include <string>
 
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "google/protobuf/descriptor.h"
+#include "google/protobuf/message.h"
+#include "google/protobuf/service.h"
 
 namespace net {
 
@@ -16,6 +20,8 @@ class ServerSocket;
 class StreamSocket;
 
 }  // namespace net
+
+namespace pb = google::protobuf;
 
 namespace rpc {
 
@@ -28,8 +34,41 @@ class RpcServer {
 
   void Close(int connection_id);
 
+  typedef std::map<std::string, pb::Service*> ServiceMap;
+  ServiceMap service_map_;
+
+  void RegisterService(pb::Service *service) {
+    // Don't Register same service twice.
+    DCHECK(service_map_.find(service->GetDescriptor()->full_name()) ==
+           service_map_.end());
+    service_map_[service->GetDescriptor()->full_name()] = service;
+  }
+
  private:
   typedef std::map<int, RpcConnection*> IdToConnectionMap;
+
+  struct RequestParameters {
+    RequestParameters(int connection_id,
+                      pb::Message* request,
+                      pb::Message* response,
+                      uint64 request_id,
+                      const std::string& service,
+                      const std::string& method)
+        : connection_id(connection_id),
+          request(request),
+          response(response),
+          request_id(request_id),
+          service(service),
+          method(method) {
+    }
+
+    int connection_id;
+    scoped_ptr<pb::Message> request;
+    scoped_ptr<pb::Message> response;
+    uint64 request_id;
+    std::string service;
+    std::string method;
+  };
 
   void DoAcceptLoop();
   void OnAcceptCompleted(int rv);
@@ -42,6 +81,8 @@ class RpcServer {
   void DoWriteLoop(RpcConnection* connection);
   void OnWriteCompleted(int connection_id, int rv);
   int HandleWriteResult(RpcConnection* connection, int rv);
+
+  void OnServiceDone(RequestParameters* parameters);
 
   RpcConnection* FindConnection(int connection_id);
 

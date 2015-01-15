@@ -34,11 +34,16 @@ void RpcServerMain::InitAsync() {
   CHECK(result == net::OK) << "Setup TCP server error.";
   rpc_server_.reset(new rpc::RpcServer(tcp_server_socket.Pass()));
   LOG(INFO) << "RPC Server is listening: " << bind_ip_ << ":" << port_;
+
+  RegisterServices();
 }
 
 void RpcServerMain::CleanUp() {
   rpc_server_.reset(NULL);
 }
 
-}  // namespace rpc
+void RpcServerMain::RegisterServices() {
+  // Register rpc service here.
+}
 
+}  // namespace rpc

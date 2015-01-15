@@ -26,6 +26,8 @@ class RpcServerMain : public NinjaThreadDelegate {
   void CleanUp() override;
 
  private:
+  void RegisterServices();
+
   std::string bind_ip_;
   uint16 port_;
   scoped_ptr<rpc::RpcServer> rpc_server_;

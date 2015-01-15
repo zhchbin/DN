@@ -1,12 +1,9 @@
 {
-  'variables': {
-    'proto_in_dir': 'src',
-    'proto_out_dir': 'proto'
-  },
   'targets': [
     {
       'variables': {
         'proto_in_dir': 'src/rpc',
+        'proto_out_dir': 'proto'
       },
       'target_name': 'pn',
       'type': 'static_library',
@@ -50,12 +47,8 @@
         'src/main.cc',
       ],
       'dependencies': [
-        #'third_party/protobuf/protobuf.gyp:protobuf_lite',
         'base/base.gyp:base',
         'pn',
-      ],
-      'includes': [
-        'build/protoc.gypi',
       ],
       'include_dirs': [
         'src',

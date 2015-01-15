@@ -4,13 +4,16 @@
 
 #include "rpc/rpc_server.h"
 
+#include "base/big_endian.h"
 #include "base/bind.h"
 #include "base/message_loop/message_loop_proxy.h"
 #include "base/stl_util.h"
 #include "base/tracked_objects.h"
+#include "google/protobuf/message.h"
 #include "net/net_errors.h"
 #include "net/server_socket.h"
 #include "net/stream_socket.h"
+#include "proto/rpc_message.pb.h"
 #include "rpc/rpc_connection.h"
 
 namespace rpc {
@@ -31,6 +34,8 @@ RpcServer::RpcServer(scoped_ptr<net::ServerSocket> server_socket)
 RpcServer::~RpcServer() {
   STLDeleteContainerPairSecondPointers(
       id_to_connection_.begin(), id_to_connection_.end());
+  STLDeleteContainerPairSecondPointers(
+      service_map_.begin(), service_map_.end());
 }
 
 void RpcServer::Close(int connection_id) {
@@ -114,7 +119,54 @@ int RpcServer::HandleReadResult(RpcConnection* connection, int rv) {
   }
   RpcConnection::ReadIOBuffer* read_buf = connection->read_buf();
   read_buf->DidRead(rv);
-  LOG(INFO) << read_buf->StartOfBuffer();
+
+  do {
+    static const int kSizeOfUint32 = 4;
+    if (read_buf->GetSize() <= kSizeOfUint32)
+      break;
+
+    uint32 message_length;
+    base::ReadBigEndian(read_buf->StartOfBuffer(), &message_length);
+    if (static_cast<uint32>(read_buf->GetSize()) <
+        (kSizeOfUint32 + message_length)) {
+      break;
+    }
+
+    rpc::RpcMessage message;
+    if (message.ParseFromArray(read_buf->StartOfBuffer() + kSizeOfUint32,
+                               message_length)) {
+      read_buf->DidConsume(kSizeOfUint32 + message_length);
+      ServiceMap::const_iterator it = service_map_.find(message.service());
+      if (it == service_map_.end()) {
+        LOG(ERROR) << "Unknown service: " << message.service();
+        break;
+      }
+
+      pb::Service* service = it->second;
+      const pb::MethodDescriptor* method_descriptor =
+          service->GetDescriptor()->FindMethodByName(message.method());
+      if (method_descriptor == NULL) {
+        LOG(ERROR) << "Unkonwn method: " << message.method();
+        break;
+      }
+
+      // |parameters| will be deleted when OnServiceDone is called.
+      RequestParameters* parameters = new RequestParameters(
+          connection->id(),
+          service->GetRequestPrototype(method_descriptor).New(),
+          service->GetResponsePrototype(method_descriptor).New(),
+          message.id(),
+          message.service(),
+          message.method());
+      parameters->request->ParseFromString(message.request());
+      service->CallMethod(
+          method_descriptor,
+          NULL,
+          parameters->request.get(),
+          parameters->response.get(),
+          pb::NewCallback(this, &RpcServer::OnServiceDone, parameters));
+    }
+  } while (true);
 
   return net::OK;
 }
@@ -151,6 +203,27 @@ int RpcServer::HandleWriteResult(RpcConnection* connection, int rv) {
 
   connection->write_buf()->DidConsume(rv);
   return net::OK;
+}
+
+void RpcServer::OnServiceDone(RequestParameters* raw_parameters) {
+  scoped_ptr<RequestParameters> parameters(raw_parameters);
+  RpcConnection* connection = FindConnection(parameters->connection_id);
+  if (connection == NULL)
+    return;
+
+  rpc::RpcMessage message;
+  message.set_id(parameters->request_id);
+  message.set_type(RpcMessage::RESPONSE);
+  message.set_service(parameters->service);
+  message.set_method(parameters->method);
+  message.set_response(parameters->response->SerializeAsString());
+  char message_length[4];
+  base::WriteBigEndian(message_length,
+                       static_cast<uint32>(message.ByteSize()));
+  std::string data(message_length, arraysize(message_length));
+  data.append(message.SerializeAsString());
+  connection->write_buf()->Append(data);
+  DoWriteLoop(connection);
 }
 
 RpcConnection* RpcServer::FindConnection(int connection_id) {

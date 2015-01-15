@@ -4,6 +4,7 @@
 
 #include "rpc/rpc_client_main.h"
 
+#include "base/bind.h"
 #include "base/logging.h"
 #include "net/net_errors.h"
 #include "rpc/rpc_channel.h"
