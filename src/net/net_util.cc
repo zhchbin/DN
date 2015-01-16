@@ -104,7 +104,7 @@ AddressFamily GetAddressFamily(const IPAddressNumber& address) {
 // Set socket to non-blocking mode
 int SetNonBlocking(int fd) {
 #if defined(OS_WIN)
-  unsigned long no_block = 1;
+  unsigned long no_block = 1;  // NOLINT
   return ioctlsocket(fd, FIONBIO, &no_block);
 #elif defined(OS_POSIX)
   int flags = fcntl(fd, F_GETFL, 0);

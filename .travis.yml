@@ -13,8 +13,7 @@ install:
   - sudo update-alternatives --install /usr/bin/g++ g++ /usr/bin/g++-4.8 90
 
 before_script:
-  - curl http://google-styleguide.googlecode.com/svn/trunk/cpplint/cpplint.py > cpplint.py
-  - find src -type f -regex ".*\.\(cc\|h\)" ! -name "net_error_list.h" | xargs python cpplint.py --root=src
+  - python script/cpplint_dir.py
 
 script: ./build/ci_build.sh
 

@@ -9,21 +9,16 @@
 
 #include "base/callback_helpers.h"
 #include "base/logging.h"
-//#include "base/metrics/stats_counters.h"
 #include "base/profiler/scoped_tracker.h"
 #include "base/win/windows_version.h"
 #include "net/address_list.h"
-//#include "net/base/connection_type_histograms.h"
 #include "net/io_buffer.h"
 #include "net/ip_endpoint.h"
 #include "net/net_errors.h"
 #include "net/net_util.h"
-//#include "net/base/network_activity_monitor.h"
-//#include "net/base/network_change_notifier.h"
 #include "net/winsock_init.h"
 #include "net/winsock_util.h"
 #include "net/socket_descriptor.h"
-//#include "net/socket/socket_net_log_params.h"
 
 namespace net {
 
@@ -110,12 +105,6 @@ int MapConnectError(int os_error) {
       int net_error = MapSystemError(os_error);
       if (net_error == ERR_FAILED)
         return ERR_CONNECTION_FAILED;  // More specific than ERR_FAILED.
-
-      // Give a more specific error when the user is offline.
-      //if (net_error == ERR_ADDRESS_UNREACHABLE &&
-          //NetworkChangeNotifier::IsOffline()) {
-        //return ERR_INTERNET_DISCONNECTED;
-      //}
 
       return net_error;
     }
@@ -288,14 +277,11 @@ TCPSocketWin::TCPSocketWin()
       waiting_read_(false),
       waiting_write_(false),
       connect_os_error_(0) {
-  //net_log_.BeginEvent(NetLog::TYPE_SOCKET_ALIVE,
-                      //source.ToEventParametersCallback());
   EnsureWinsockInit();
 }
 
 TCPSocketWin::~TCPSocketWin() {
   Close();
-  //net_log_.EndEvent(NetLog::TYPE_SOCKET_ALIVE);
 }
 
 int TCPSocketWin::Open(AddressFamily family) {
@@ -350,9 +336,6 @@ int TCPSocketWin::AdoptListenSocket(SOCKET socket) {
     return result;
   }
 
-  // |core_| is not needed for sockets that are used to accept connections.
-  // The operation here is more like Open but with an existing socket.
-
   return OK;
 }
 
@@ -403,8 +386,6 @@ int TCPSocketWin::Accept(scoped_ptr<TCPSocketWin>* socket,
   DCHECK(!callback.is_null());
   DCHECK(accept_callback_.is_null());
 
-  //net_log_.BeginEvent(NetLog::TYPE_TCP_ACCEPT);
-
   int result = AcceptInternal(socket, address);
 
   if (result == ERR_IO_PENDING) {
@@ -435,9 +416,6 @@ int TCPSocketWin::Connect(const IPEndPoint& address,
   // unspecified behavior according to POSIX. Therefore, we make it behave in
   // the same way as TCPSocketLibevent.
   DCHECK(!peer_address_ && !core_.get());
-
-  //if (!logging_multiple_connect_attempts_)
-    //LogConnectBegin(AddressList(address));
 
   peer_address_.reset(new IPEndPoint(address));
 
@@ -517,9 +495,6 @@ int TCPSocketWin::Write(IOBuffer* buf,
   DCHECK_GT(buf_len, 0);
   DCHECK(!core_->write_iobuffer_.get());
 
-  //base::StatsCounter writes("tcp.writes");
-  //writes.Increment();
-
   WSABUF write_buffer;
   write_buffer.len = buf_len;
   write_buffer.buf = buf->data();
@@ -539,19 +514,12 @@ int TCPSocketWin::Write(IOBuffer* buf,
                    << " bytes, but " << rv << " bytes reported.";
         return ERR_WINSOCK_UNEXPECTED_WRITTEN_BYTES;
       }
-      //base::StatsCounter write_bytes("tcp.write_bytes");
-      //write_bytes.Add(rv);
-      //net_log_.AddByteTransferEvent(NetLog::TYPE_SOCKET_BYTES_SENT, rv,
-                                    //buf->data());
-      //NetworkActivityMonitor::GetInstance()->IncrementBytesSent(rv);
       return rv;
     }
   } else {
     int os_error = WSAGetLastError();
     if (os_error != WSA_IO_PENDING) {
       int net_error = MapSystemError(os_error);
-      //net_log_.AddEvent(NetLog::TYPE_SOCKET_WRITE_ERROR,
-                        //CreateNetLogSocketErrorCallback(net_error, os_error));
       return net_error;
     }
   }
@@ -658,9 +626,6 @@ void TCPSocketWin::Close() {
   DCHECK(CalledOnValidThread());
 
   if (socket_ != INVALID_SOCKET) {
-    // Only log the close event if there's actually a socket to close.
-    //net_log_.AddEvent(NetLog::EventType::TYPE_SOCKET_CLOSED);
-
     // Note: don't use CancelIo to cancel pending IO because it doesn't work
     // when there is a Winsock layered service provider.
 
@@ -711,33 +676,12 @@ void TCPSocketWin::Close() {
   connect_os_error_ = 0;
 }
 
-//void TCPSocketWin::StartLoggingMultipleConnectAttempts(
-    //const AddressList& addresses) {
-  //if (!logging_multiple_connect_attempts_) {
-    //logging_multiple_connect_attempts_ = true;
-    //LogConnectBegin(addresses);
-  //} else {
-    //NOTREACHED();
-  //}
-//}
-
-//void TCPSocketWin::EndLoggingMultipleConnectAttempts(int net_error) {
-  //if (logging_multiple_connect_attempts_) {
-    //LogConnectEnd(net_error);
-    //logging_multiple_connect_attempts_ = false;
-  //} else {
-    //NOTREACHED();
-  //}
-//}
-
 int TCPSocketWin::AcceptInternal(scoped_ptr<TCPSocketWin>* socket,
                                  IPEndPoint* address) {
   SockaddrStorage storage;
   int new_socket = accept(socket_, storage.addr, &storage.addr_len);
   if (new_socket < 0) {
     int net_error = MapSystemError(WSAGetLastError());
-    //if (net_error != ERR_IO_PENDING)
-      //net_log_.EndEventWithNetErrorCode(NetLog::TYPE_TCP_ACCEPT, net_error);
     return net_error;
   }
 
@@ -747,19 +691,16 @@ int TCPSocketWin::AcceptInternal(scoped_ptr<TCPSocketWin>* socket,
     if (closesocket(new_socket) < 0)
       PLOG(ERROR) << "closesocket";
     int net_error = ERR_ADDRESS_INVALID;
-    //net_log_.EndEventWithNetErrorCode(NetLog::TYPE_TCP_ACCEPT, net_error);
     return net_error;
   }
   scoped_ptr<TCPSocketWin> tcp_socket(new TCPSocketWin());
   int adopt_result = tcp_socket->AdoptConnectedSocket(new_socket, ip_end_point);
   if (adopt_result != OK) {
-    //net_log_.EndEventWithNetErrorCode(NetLog::TYPE_TCP_ACCEPT, adopt_result);
     return adopt_result;
   }
+
   *socket = tcp_socket.Pass();
   *address = ip_end_point;
-  //net_log_.EndEvent(NetLog::TYPE_TCP_ACCEPT,
-                    //CreateNetLogIPEndPointCallback(&ip_end_point));
   return OK;
 }
 
@@ -784,7 +725,7 @@ void TCPSocketWin::OnObjectSignaled(HANDLE object) {
   } else {
     // This happens when a client opens a connection and closes it before we
     // have a chance to accept it.
-    DCHECK(ev.lNetworkEvents == 0);
+    DCHECK_EQ(ev.lNetworkEvents, 0);
 
     // Start watching the next FD_ACCEPT event.
     WSAEventSelect(socket_, accept_event_, FD_ACCEPT);
@@ -795,9 +736,6 @@ void TCPSocketWin::OnObjectSignaled(HANDLE object) {
 int TCPSocketWin::DoConnect() {
   DCHECK_EQ(connect_os_error_, 0);
   DCHECK(!core_.get());
-
-  //net_log_.BeginEvent(NetLog::TYPE_TCP_CONNECT_ATTEMPT,
-                      //CreateNetLogIPEndPointCallback(peer_address_.get()));
 
   core_ = new Core(this);
   // WSAEventSelect sets the socket to non-blocking mode as a side effect.
@@ -838,55 +776,7 @@ int TCPSocketWin::DoConnect() {
 }
 
 void TCPSocketWin::DoConnectComplete(int result) {
-  // Log the end of this attempt (and any OS error it threw).
-  // int os_error = connect_os_error_;
-  // connect_os_error_ = 0;
-  // if (result != OK) {
-  //   net_log_.EndEvent(NetLog::TYPE_TCP_CONNECT_ATTEMPT,
-  //                     NetLog::IntegerCallback("os_error", os_error));
-  // } else {
-  //   net_log_.EndEvent(NetLog::TYPE_TCP_CONNECT_ATTEMPT);
-  // }
-  // 
-  // if (!logging_multiple_connect_attempts_)
-  //   LogConnectEnd(result);
 }
-
-// void TCPSocketWin::LogConnectBegin(const AddressList& addresses) {
-//   base::StatsCounter connects("tcp.connect");
-//   connects.Increment();
-// 
-//   net_log_.BeginEvent(NetLog::TYPE_TCP_CONNECT,
-//                       addresses.CreateNetLogCallback());
-// }
-// 
-// void TCPSocketWin::LogConnectEnd(int net_error) {
-//   if (net_error == OK)
-//     UpdateConnectionTypeHistograms(CONNECTION_ANY);
-// 
-//   if (net_error != OK) {
-//     net_log_.EndEventWithNetErrorCode(NetLog::TYPE_TCP_CONNECT, net_error);
-//     return;
-//   }
-// 
-//   struct sockaddr_storage source_address;
-//   socklen_t addrlen = sizeof(source_address);
-//   int rv = getsockname(
-//       socket_, reinterpret_cast<struct sockaddr*>(&source_address), &addrlen);
-//   if (rv != 0) {
-//     LOG(ERROR) << "getsockname() [rv: " << rv
-//                << "] error: " << WSAGetLastError();
-//     NOTREACHED();
-//     net_log_.EndEventWithNetErrorCode(NetLog::TYPE_TCP_CONNECT, rv);
-//     return;
-//   }
-// 
-//   //net_log_.EndEvent(
-//       //NetLog::TYPE_TCP_CONNECT,
-//       //CreateNetLogSourceAddressCallback(
-//           //reinterpret_cast<const struct sockaddr*>(&source_address),
-//           //sizeof(source_address)));
-// }
 
 int TCPSocketWin::DoRead(IOBuffer* buf, int buf_len,
                          const CompletionCallback& callback) {
@@ -900,18 +790,9 @@ int TCPSocketWin::DoRead(IOBuffer* buf, int buf_len,
     int os_error = WSAGetLastError();
     if (os_error != WSAEWOULDBLOCK) {
       int net_error = MapSystemError(os_error);
-      //net_log_.AddEvent(
-          //NetLog::TYPE_SOCKET_READ_ERROR,
-          //CreateNetLogSocketErrorCallback(net_error, os_error));
       return net_error;
     }
   } else {
-    //base::StatsCounter read_bytes("tcp.read_bytes");
-    //if (rv > 0)
-      //read_bytes.Add(rv);
-    //net_log_.AddByteTransferEvent(NetLog::TYPE_SOCKET_BYTES_RECEIVED, rv,
-                                  //buf->data());
-    //NetworkActivityMonitor::GetInstance()->IncrementBytesReceived(rv);
     return rv;
   }
 
@@ -965,8 +846,6 @@ void TCPSocketWin::DidCompleteWrite() {
   if (!ok) {
     int os_error = WSAGetLastError();
     rv = MapSystemError(os_error);
-    //net_log_.AddEvent(NetLog::TYPE_SOCKET_WRITE_ERROR,
-                      //CreateNetLogSocketErrorCallback(rv, os_error));
   } else {
     rv = static_cast<int>(num_bytes);
     if (rv > core_->write_buffer_length_ || rv < 0) {
@@ -976,12 +855,6 @@ void TCPSocketWin::DidCompleteWrite() {
                  << core_->write_buffer_length_ << " bytes, but " << rv
                  << " bytes reported.";
       rv = ERR_WINSOCK_UNEXPECTED_WRITTEN_BYTES;
-    } else {
-      //base::StatsCounter write_bytes("tcp.write_bytes");
-      //write_bytes.Add(num_bytes);
-      //net_log_.AddByteTransferEvent(NetLog::TYPE_SOCKET_BYTES_SENT, num_bytes,
-                                    //core_->write_iobuffer_->data());
-      //NetworkActivityMonitor::GetInstance()->IncrementBytesSent(num_bytes);
     }
   }
 

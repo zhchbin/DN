@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef NET_BASE_WINSOCK_UTIL_H_
-#define NET_BASE_WINSOCK_UTIL_H_
+#ifndef NET_WINSOCK_UTIL_H_
+#define NET_WINSOCK_UTIL_H_
 
 #include <winsock2.h>
 
@@ -24,4 +24,4 @@ bool ResetEventIfSignaled(WSAEVENT hEvent);
 
 }  // namespace net
 
-#endif  // NET_BASE_WINSOCK_UTIL_H_
+#endif  // NET_WINSOCK_UTIL_H_

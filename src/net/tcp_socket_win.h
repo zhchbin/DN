@@ -2,8 +2,8 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-#ifndef NET_SOCKET_TCP_SOCKET_WIN_H_
-#define NET_SOCKET_TCP_SOCKET_WIN_H_
+#ifndef NET_TCP_SOCKET_WIN_H_
+#define NET_TCP_SOCKET_WIN_H_
 
 #include <winsock2.h>
 
@@ -85,16 +85,13 @@ class TCPSocketWin
   class Core;
 
   // base::ObjectWatcher::Delegate implementation.
-  virtual void OnObjectSignaled(HANDLE object) override;
+  void OnObjectSignaled(HANDLE object) override;
 
   int AcceptInternal(scoped_ptr<TCPSocketWin>* socket,
                      IPEndPoint* address);
 
   int DoConnect();
   void DoConnectComplete(int result);
-
-  //void LogConnectBegin(const AddressList& addresses);
-  //void LogConnectEnd(int net_error);
 
   int DoRead(IOBuffer* buf, int buf_len, const CompletionCallback& callback);
   void DidCompleteConnect();
@@ -135,4 +132,4 @@ class TCPSocketWin
 
 }  // namespace net
 
-#endif  // NET_SOCKET_TCP_SOCKET_WIN_H_
+#endif  // NET_TCP_SOCKET_WIN_H_

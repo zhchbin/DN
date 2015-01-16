@@ -5,8 +5,8 @@
 // Winsock initialization must happen before any Winsock calls are made.  The
 // EnsureWinsockInit method will make sure that WSAStartup has been called.
 
-#ifndef NET_BASE_WINSOCK_INIT_H_
-#define NET_BASE_WINSOCK_INIT_H_
+#ifndef NET_WINSOCK_INIT_H_
+#define NET_WINSOCK_INIT_H_
 
 namespace net {
 
@@ -15,4 +15,4 @@ void EnsureWinsockInit();
 
 }  // namespace net
 
-#endif  // NET_BASE_WINSOCK_INIT_H_
+#endif  // NET_WINSOCK_INIT_H_
