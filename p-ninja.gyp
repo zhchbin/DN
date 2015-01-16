@@ -1,4 +1,7 @@
 {
+  'includes': [
+    'build/win_precompile.gypi',
+  ],
   'targets': [
     {
       'variables': {
@@ -11,8 +14,9 @@
         'src/net/address_list.cc',
         'src/net/io_buffer.cc',
         'src/net/ip_endpoint.cc',
-        'src/net/net_error_posix.cc',
         'src/net/net_errors.cc',
+        'src/net/net_errors_posix.cc',
+        'src/net/net_errors_win.cc',
         'src/net/net_util.cc',
         'src/net/server_socket.cc',
         'src/net/socket_descriptor.cc',
@@ -20,6 +24,9 @@
         'src/net/tcp_client_socket.cc',
         'src/net/tcp_server_socket.cc',
         'src/net/tcp_socket_libevent.cc',
+        'src/net/tcp_socket_win.cc',
+        'src/net/winsock_init.cc',
+        'src/net/winsock_util.cc',
         'src/ninja_thread_impl.cc',
         'src/rpc/rpc_channel.cc',
         'src/rpc/rpc_client_main.cc',
@@ -38,6 +45,25 @@
       ],
       'includes': [
         'build/protoc.gypi',
+      ],
+      'conditions': [
+        [ 'OS == "win"', {
+            'sources!': [
+              'src/net/socket_libevent.cc',
+              'src/net/socket_libevent.h',
+              'src/net/tcp_socket_libevent.cc',
+              'src/net/tcp_socket_libevent.h',
+            ],
+            'msvs_disabled_warnings': [4267, 4125],
+          }, { # else: OS != "win"
+            'sources!': [
+              'src/net/winsock_init.cc',
+              'src/net/winsock_init.h',
+              'src/net/winsock_util.cc',
+              'src/net/winsock_util.h',
+            ],
+          },
+        ],
       ],
     },
     {

@@ -21,11 +21,17 @@
         'msvs_disabled_warnings': [
           4018,  # signed/unsigned mismatch in comparison
           4100,
+          4125,
           4127,
           4244,  # implicit conversion, possible loss of data
-          4355,  # 'this' used in base member initializer list
           4267,  # size_t to int truncation
           4291,  # no matching operator delete for a placement new
+          4355,  # 'this' used in base member initializer list
+          4389,
+          4510,
+          4610,
+          4701,
+          4703,
           4996,
         ],
         'defines!': [

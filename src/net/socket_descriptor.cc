@@ -16,7 +16,7 @@
 #if defined(OS_WIN)
 #include <ws2tcpip.h>
 #include "base/win/windows_version.h"
-#include "net/base/winsock_init.h"
+#include "net/winsock_init.h"
 #endif
 
 namespace net {

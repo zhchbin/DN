@@ -35,6 +35,10 @@ typedef std::vector<IPAddressNumber> IPAddressList;
 
 static const size_t kIPv4AddressSize = 4;
 static const size_t kIPv6AddressSize = 16;
+#if defined(OS_WIN)
+// Bluetooth address size. Windows Bluetooth is supported via winsock.
+static const size_t kBluetoothAddressSize = 6;
+#endif
 
 // Convenience struct for when you need a |struct sockaddr|.
 struct SockaddrStorage {
