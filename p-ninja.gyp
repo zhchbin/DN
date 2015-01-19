@@ -80,5 +80,22 @@
         'src',
       ],
     },
+
+    {
+      'target_name': 'p_ninja_unittest',
+      'type': 'executable',
+      'sources': [
+        'src/ninja_thread_unittest.cc',
+        'src/run_all_unittest.cc',
+      ],
+      'dependencies': [
+        'base/base.gyp:base',
+        'pn',
+        'testing/gtest.gyp:gtest',
+      ],
+      'include_dirs': [
+        'src',
+      ],
+    },
   ],
 }

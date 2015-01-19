@@ -20,4 +20,4 @@ script: ./build/ci_build.sh
 notifications:
   email: false
 
-# after_success: ./build/ci_run_test.sh
+after_success: ./build/ci_run_test.sh

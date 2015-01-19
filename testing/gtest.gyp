@@ -4,7 +4,6 @@
 
 {
   'includes': [
-    '../build/common.gypi',
     'gtest.gypi',
   ],
   'targets': [

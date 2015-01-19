@@ -56,6 +56,10 @@ class NinjaThread {
   // sets identifier to its ID.  Otherwise returns false.
   static bool GetCurrentThreadIdentifier(ID* identifier) WARN_UNUSED_RESULT;
 
+  // Callable on any thread.  Returns whether you're currently on a particular
+  // thread.
+  static bool CurrentlyOn(ID identifier) WARN_UNUSED_RESULT;
+
  private:
   friend class NinjaThreadImpl;
 

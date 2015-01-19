@@ -12,6 +12,6 @@ RunTest() {
   fi
 }
 
-RunTest ./lib_foo_unittest 
+RunTest ./p_ninja_unittest
 
 exit $exit_code

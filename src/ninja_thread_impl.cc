@@ -240,3 +240,17 @@ bool NinjaThread::GetCurrentThreadIdentifier(ID* identifier) {
 
   return false;
 }
+
+// static
+bool NinjaThread::CurrentlyOn(ID identifier) {
+  // We shouldn't use MessageLoop::current() since it uses LazyInstance which
+  // may be deleted by ~AtExitManager when a WorkerPool thread calls this
+  // function.
+  base::ThreadRestrictions::ScopedAllowSingleton allow_singleton;
+  NinjaThreadGlobals& globals = g_globals.Get();
+  base::AutoLock lock(globals.lock);
+  DCHECK(identifier >= 0 && identifier < ID_COUNT);
+  return globals.threads[identifier] &&
+         globals.threads[identifier]->message_loop() ==
+             base::MessageLoop::current();
+}
