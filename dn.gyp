@@ -75,6 +75,7 @@
       'dependencies': [
         'base/base.gyp:base',
         'libdn',
+        'third_party/ninja.gyp:libninja',
       ],
       'include_dirs': [
         'src',
