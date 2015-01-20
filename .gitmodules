@@ -7,3 +7,7 @@
 [submodule "base"]
 	path = base
 	url = https://github.com/zhchbin/chromium-base
+[submodule "third_party/ninja"]
+	path = third_party/ninja
+	url = https://github.com/zhchbin/ninja.git
+	branch = dn
