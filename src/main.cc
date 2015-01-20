@@ -31,7 +31,7 @@ int main(int argc, char* argv[]) {
 
   scoped_ptr<NinjaThreadDelegate> rpc_thread_delegate;
   const base::CommandLine* command_line =
-    base::CommandLine::ForCurrentProcess();
+      base::CommandLine::ForCurrentProcess();
   uint32 port = rpc::kDefaultPort;
   if (command_line->HasSwitch(switches::kPort)) {
     std::string port_str = command_line->GetSwitchValueASCII(switches::kPort);

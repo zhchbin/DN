@@ -1,6 +1,6 @@
-p-ninja
+Distributed Ninja
 =======
 
-[![Build Status](https://travis-ci.org/zhchbin/p-ninja.svg)](https://travis-ci.org/zhchbin/p-ninja)
+[![Build Status](https://travis-ci.org/zhchbin/DN.svg?branch=master)](https://travis-ci.org/zhchbin/DN)
 
 Maybe one day it will be useful.

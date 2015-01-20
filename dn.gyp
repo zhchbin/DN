@@ -8,7 +8,7 @@
         'proto_in_dir': 'src/rpc',
         'proto_out_dir': 'proto'
       },
-      'target_name': 'pn',
+      'target_name': 'libdn',
       'type': 'static_library',
       'sources': [
         'src/net/address_list.cc',
@@ -67,14 +67,14 @@
       ],
     },
     {
-      'target_name': 'p_ninja',
+      'target_name': 'dn',
       'type': 'executable',
       'sources': [
         'src/main.cc',
       ],
       'dependencies': [
         'base/base.gyp:base',
-        'pn',
+        'libdn',
       ],
       'include_dirs': [
         'src',
@@ -82,7 +82,7 @@
     },
 
     {
-      'target_name': 'p_ninja_unittest',
+      'target_name': 'dn_unittest',
       'type': 'executable',
       'sources': [
         'src/ninja_thread_unittest.cc',
@@ -90,7 +90,7 @@
       ],
       'dependencies': [
         'base/base.gyp:base',
-        'pn',
+        'libdn',
         'testing/gtest.gyp:gtest',
       ],
       'include_dirs': [

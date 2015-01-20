@@ -52,8 +52,6 @@ class RpcChannel : public pb::RpcChannel {
 
   void Connect();
 
-  void SendEcho();
-
  private:
   // The first one is the response message pointer, the second is the callback
   // closure.
