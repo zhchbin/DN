@@ -8,15 +8,12 @@
 #include "base/stl_util.h"
 #include "google/protobuf/descriptor.h"
 #include "google/protobuf/service.h"
-#include "thread/ninja_thread.h"
 
 namespace rpc {
 
 // static
 ServiceManager* ServiceManager::GetInstance() {
-  CHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
-  static ServiceManager* instance = new ServiceManager();
-  return instance;
+  return Singleton<ServiceManager>::get();
 }
 
 ServiceManager::ServiceManager() {

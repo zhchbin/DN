@@ -14,8 +14,7 @@ namespace rpc {
 
 RpcSocketClient::RpcSocketClient(const std::string& server_ip, uint16 port)
     : server_ip_(server_ip),
-      port_(port),
-      weak_ptr_factory_(this) {
+      port_(port) {
 }
 
 RpcSocketClient::~RpcSocketClient() {
@@ -25,23 +24,19 @@ void RpcSocketClient::Connect() {
   net::IPAddressNumber ip_number;
   net::ParseIPLiteralToNumber(server_ip_, &ip_number);
   net::AddressList address_list;
-  address_list = net::AddressList::CreateFromIPAddress(ip_number, 20015);
-  scoped_ptr<net::StreamSocket> socket;
-  socket.reset(new net::TCPClientSocket(address_list));
-  int result = socket->Connect(
-      base::Bind(&RpcSocketClient::OnConnectComplete,
-                 base::Unretained(this),
-                 base::Passed(&socket)));
+  address_list = net::AddressList::CreateFromIPAddress(ip_number, port_);
+  socket_.reset(new net::TCPClientSocket(address_list));
+  int result = socket_->Connect(
+      base::Bind(&RpcSocketClient::OnConnectComplete, base::Unretained(this)));
   if (result != net::ERR_IO_PENDING)
-    OnConnectComplete(socket.Pass(), result);
+    OnConnectComplete(result);
 }
 
-void RpcSocketClient::OnConnectComplete(scoped_ptr<net::StreamSocket> socket,
-                                        int result) {
+void RpcSocketClient::OnConnectComplete(int result) {
   CHECK(result == net::OK) << "Can't not connect to master.";
   static const int kOneMegabyte = 1024 * 1024;
-  socket->SetSendBufferSize(kOneMegabyte);
-  rpc_connection_.reset(new RpcConnection(0, socket.Pass()));
+  socket_->SetSendBufferSize(kOneMegabyte);
+  rpc_connection_.reset(new RpcConnection(0, socket_.Pass()));
   rpc_connection_->DoReadLoop();
 }
 

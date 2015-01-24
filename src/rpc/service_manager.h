@@ -11,6 +11,7 @@
 
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
+#include "base/memory/singleton.h"
 #include "google/protobuf/message.h"
 
 namespace google {
@@ -47,7 +48,6 @@ struct RequestParameters {
 
 class ServiceManager {
  public:
-  ~ServiceManager();
   typedef std::map<std::string, google::protobuf::Service*> ServiceMap;
 
   static ServiceManager* GetInstance();
@@ -56,7 +56,9 @@ class ServiceManager {
   google::protobuf::Service* FindService(const std::string& service_full_name);
 
  private:
+  friend struct DefaultSingletonTraits<ServiceManager>;
   ServiceManager();
+  ~ServiceManager();
 
   ServiceMap service_map_;
 

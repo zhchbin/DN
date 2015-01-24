@@ -2,12 +2,12 @@
   'includes': [
     'build/win_precompile.gypi',
   ],
+  'variables': {
+    'proto_in_dir': 'src/rpc',
+    'proto_out_dir': 'proto'
+  },
   'targets': [
     {
-      'variables': {
-        'proto_in_dir': 'src/rpc',
-        'proto_out_dir': 'proto'
-      },
       'target_name': 'libdn',
       'type': 'static_library',
       'sources': [
@@ -29,7 +29,6 @@
         'src/net/winsock_util.cc',
         'src/ninja/master_main.cc',
         'src/ninja/slave_main.cc',
-        'src/rpc/echo.proto',
         'src/rpc/rpc_connection.cc',
         'src/rpc/rpc_message.proto',
         'src/rpc/rpc_options.cc',
@@ -88,16 +87,22 @@
       'target_name': 'dn_unittest',
       'type': 'executable',
       'sources': [
-        'src/thread/ninja_thread_unittest.cc',
+        'src/rpc/echo.proto',
+        'src/rpc/rpc_socket_unittest.cc',
         'src/run_all_unittest.cc',
+        'src/thread/ninja_thread_unittest.cc',
       ],
       'dependencies': [
         'base/base.gyp:base',
         'libdn',
         'testing/gtest.gyp:gtest',
+        'testing/gmock.gyp:gmock',
       ],
       'include_dirs': [
         'src',
+      ],
+      'includes': [
+        'build/protoc.gypi',
       ],
     },
   ],

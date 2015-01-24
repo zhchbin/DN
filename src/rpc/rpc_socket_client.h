@@ -9,7 +9,6 @@
 
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
-#include "base/memory/weak_ptr.h"
 #include "rpc/rpc_connection.h"
 
 namespace net {
@@ -28,13 +27,12 @@ class RpcSocketClient {
   RpcConnection* connection() { return rpc_connection_.get(); }
 
  private:
-  void OnConnectComplete(scoped_ptr<net::StreamSocket> socket, int result);
+  void OnConnectComplete(int result);
 
   std::string server_ip_;
   uint16 port_;
+  scoped_ptr<net::StreamSocket> socket_;
   scoped_ptr<RpcConnection> rpc_connection_;
-
-  base::WeakPtrFactory<RpcSocketClient> weak_ptr_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(RpcSocketClient);
 };

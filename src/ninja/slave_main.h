@@ -32,9 +32,6 @@ class SlaveMain : public NinjaThreadDelegate {
   void InitAsync() override;
   void CleanUp() override;
 
-  // Remove
-  void Echo();
-
  private:
   std::string master_ip_;
   uint16 port_;

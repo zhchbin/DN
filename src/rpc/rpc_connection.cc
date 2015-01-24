@@ -11,8 +11,6 @@
 #include "base/big_endian.h"
 #include "net/net_errors.h"
 
-#include "proto/echo.pb.h"
-
 namespace rpc {
 
 RpcConnection::ReadIOBuffer::ReadIOBuffer()
@@ -162,7 +160,7 @@ RpcConnection::RpcConnection(int id, scoped_ptr<net::StreamSocket> socket)
       weak_ptr_factory_(this) {
   net::IPEndPoint peer;
   socket_->GetPeerAddress(&peer);
-  LOG(INFO) << peer.ToString();
+  DLOG(INFO) << peer.ToString();
 }
 
 RpcConnection::~RpcConnection() {

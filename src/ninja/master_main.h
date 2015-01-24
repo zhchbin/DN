@@ -35,8 +35,6 @@ class MasterMain : public NinjaThreadDelegate {
   void InitAsync() override;
   void CleanUp() override;
 
-  void Echo();
-
  private:
   std::string bind_ip_;
   uint16 port_;
