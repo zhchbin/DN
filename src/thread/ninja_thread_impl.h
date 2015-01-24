@@ -2,11 +2,11 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  NINJA_THREAD_IMPL_H_
-#define  NINJA_THREAD_IMPL_H_
+#ifndef  THREAD_NINJA_THREAD_IMPL_H_
+#define  THREAD_NINJA_THREAD_IMPL_H_
 
 #include "base/threading/thread.h"
-#include "ninja_thread.h"  // NOLINT
+#include "thread/ninja_thread.h"
 
 class NinjaThreadImpl : public NinjaThread, public base::Thread {
  public:
@@ -49,4 +49,4 @@ class NinjaThreadImpl : public NinjaThread, public base::Thread {
   ID identifier_;
 };
 
-#endif  // NINJA_THREAD_IMPL_H_
+#endif  // THREAD_NINJA_THREAD_IMPL_H_

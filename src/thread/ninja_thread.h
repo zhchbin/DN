@@ -2,8 +2,8 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  NINJA_THREAD_H_
-#define  NINJA_THREAD_H_
+#ifndef  THREAD_NINJA_THREAD_H_
+#define  THREAD_NINJA_THREAD_H_
 
 #include "base/callback.h"
 #include "base/location.h"
@@ -68,4 +68,4 @@ class NinjaThread {
   DISALLOW_COPY_AND_ASSIGN(NinjaThread);
 };
 
-#endif  // NINJA_THREAD_H_
+#endif  // THREAD_NINJA_THREAD_H_

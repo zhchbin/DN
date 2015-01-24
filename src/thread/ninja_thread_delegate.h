@@ -2,8 +2,8 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  NINJA_THREAD_DELEGATE_H_
-#define  NINJA_THREAD_DELEGATE_H_
+#ifndef  THREAD_NINJA_THREAD_DELEGATE_H_
+#define  THREAD_NINJA_THREAD_DELEGATE_H_
 
 // A class with this type may be registered via NinjaThread::SetDelegate.
 //
@@ -26,4 +26,4 @@ class NinjaThreadDelegate {
   virtual void CleanUp() = 0;
 };
 
-#endif  // NINJA_THREAD_DELEGATE_H_
+#endif  // THREAD_NINJA_THREAD_DELEGATE_H_

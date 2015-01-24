@@ -10,6 +10,13 @@
 
 #include "base/memory/scoped_ptr.h"
 #include "net/io_buffer.h"
+#include "google/protobuf/service.h"
+#include "rpc/service_manager.h"
+#include "base/memory/weak_ptr.h"
+
+namespace rpc {
+class RpcMessage;
+}
 
 namespace net {
 class StreamSocket;
@@ -19,7 +26,7 @@ namespace rpc {
 
 // A container which has all information of a rpc connection. It includes
 // id, underlying socket, and pending read/write data.
-class RpcConnection {
+class RpcConnection : public google::protobuf::RpcChannel {
  public:
   // IOBuffer for data read.  It's a wrapper around GrowableIOBuffer, with more
   // functions for buffer management.  It moves unconsumed data to the start of
@@ -109,6 +116,13 @@ class RpcConnection {
     DISALLOW_COPY_AND_ASSIGN(QueuedWriteIOBuffer);
   };
 
+  class MessageDelegate {
+   public:
+    virtual ~MessageDelegate() {}
+    virtual void OnMessage(int connection_id,
+                           const rpc::RpcMessage& message) = 0;
+  };
+
   RpcConnection(int id, scoped_ptr<net::StreamSocket> socket);
   ~RpcConnection();
 
@@ -117,11 +131,45 @@ class RpcConnection {
   ReadIOBuffer* read_buf() const { return read_buf_.get(); }
   QueuedWriteIOBuffer* write_buf() const { return write_buf_.get(); }
 
+  // google::protobuf::RpcChannel implementations.
+  //
+  // Call the given method of the remote service.  The signature of this
+  // procedure looks the same as Service::CallMethod(), but the requirements
+  // are less strict in one important way:  the request and response objects
+  // need not be of any specific class as long as their descriptors are
+  // method->input_type() and method->output_type().
+  void CallMethod(const google::protobuf::MethodDescriptor* method,
+                  google::protobuf::RpcController* controller,
+                  const google::protobuf::Message* request,
+                  google::protobuf::Message* response,
+                  google::protobuf::Closure* done) override;
+
+  void DoReadLoop();
+  void DoWriteLoop();
+  void SetDelegate(MessageDelegate* delegate) { message_delegate_ = delegate; }
+
  private:
+  void OnReadCompleted(int rv);
+  int HandleReadResult(int rv);
+
+  void OnWriteCompleted(int rv);
+  int HandleWriteResult(int rv);
+
+  void OnRequestMessage(const rpc::RpcMessage& message);
+  void OnReponseMessage(const rpc::RpcMessage& message);
+  void OnServiceDone(RequestParameters* parameters);
+
   int id_;
   const scoped_ptr<net::StreamSocket> socket_;
   const scoped_refptr<ReadIOBuffer> read_buf_;
   const scoped_refptr<QueuedWriteIOBuffer> write_buf_;
+
+  uint32 last_request_id_;
+  rpc::RequsetIdToResponseMap request_id_to_response_map_;
+
+  base::WeakPtrFactory<RpcConnection> weak_ptr_factory_;
+
+  MessageDelegate* message_delegate_;
 
   DISALLOW_COPY_AND_ASSIGN(RpcConnection);
 };

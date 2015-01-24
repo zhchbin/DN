@@ -7,12 +7,12 @@
 #include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
 #include "net/tcp_server_socket.h"
-#include "ninja_thread_delegate.h"  // NOLINT
-#include "ninja_thread_impl.h"      // NOLINT
-#include "rpc/rpc_client_main.h"
 #include "rpc/rpc_options.h"
-#include "rpc/rpc_server.h"
-#include "rpc/rpc_server_main.h"
+#include "thread/ninja_thread_delegate.h"
+#include "thread/ninja_thread_impl.h"
+
+#include "ninja/master_main.h"
+#include "ninja/slave_main.h"
 
 namespace {
 const int kMinPort = 1024;
@@ -41,21 +41,20 @@ int main(int argc, char* argv[]) {
         << "Port should be in range [" << kMinPort << ", " << kMaxPort << "].";
   }
 
-  // Setup whether rpc thread running as client or server.
-  if (command_line->HasSwitch(switches::kServerIP)) {
-    LOG(INFO) << "Running as rpc client.";
-    std::string server_ip;
-    server_ip = command_line->GetSwitchValueASCII(switches::kServerIP);
-    DCHECK(!server_ip.empty());
-    rpc_thread_delegate.reset(new rpc::RpcClientMain(server_ip, port));
+  // Setup whether rpc thread running as master or slave.
+  if (command_line->HasSwitch(switches::kMaster)) {
+    LOG(INFO) << "Running as slave.";
+    std::string master = command_line->GetSwitchValueASCII(switches::kMaster);
+    DCHECK(!master.empty());
+    rpc_thread_delegate.reset(new ninja::SlaveMain(master, port));
   } else {
-    LOG(INFO) << "Running as rpc server.";
+    LOG(INFO) << "Running as master.";
     std::string bind_ip = rpc::kDefaultBindIP;
     if (command_line->HasSwitch(switches::kBindIP)) {
       bind_ip = command_line->GetSwitchValueASCII(switches::kBindIP);
       DCHECK(!bind_ip.empty());
     }
-    rpc_thread_delegate.reset(new rpc::RpcServerMain(bind_ip, port));
+    rpc_thread_delegate.reset(new ninja::MasterMain(bind_ip, port));
   }
 
   NinjaThread::SetDelegate(NinjaThread::RPC, rpc_thread_delegate.get());
