@@ -116,13 +116,6 @@ class RpcConnection : public google::protobuf::RpcChannel {
     DISALLOW_COPY_AND_ASSIGN(QueuedWriteIOBuffer);
   };
 
-  class MessageDelegate {
-   public:
-    virtual ~MessageDelegate() {}
-    virtual void OnMessage(int connection_id,
-                           const rpc::RpcMessage& message) = 0;
-  };
-
   RpcConnection(int id, scoped_ptr<net::StreamSocket> socket);
   ~RpcConnection();
 
@@ -146,7 +139,6 @@ class RpcConnection : public google::protobuf::RpcChannel {
 
   void DoReadLoop();
   void DoWriteLoop();
-  void SetDelegate(MessageDelegate* delegate) { message_delegate_ = delegate; }
 
  private:
   void OnReadCompleted(int rv);
@@ -163,13 +155,9 @@ class RpcConnection : public google::protobuf::RpcChannel {
   const scoped_ptr<net::StreamSocket> socket_;
   const scoped_refptr<ReadIOBuffer> read_buf_;
   const scoped_refptr<QueuedWriteIOBuffer> write_buf_;
-
   uint32 last_request_id_;
   rpc::RequsetIdToResponseMap request_id_to_response_map_;
-
   base::WeakPtrFactory<RpcConnection> weak_ptr_factory_;
-
-  MessageDelegate* message_delegate_;
 
   DISALLOW_COPY_AND_ASSIGN(RpcConnection);
 };

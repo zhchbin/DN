@@ -15,7 +15,6 @@ namespace rpc {
 RpcSocketClient::RpcSocketClient(const std::string& server_ip, uint16 port)
     : server_ip_(server_ip),
       port_(port),
-      message_delegate_(NULL),
       weak_ptr_factory_(this) {
 }
 
@@ -43,9 +42,6 @@ void RpcSocketClient::OnConnectComplete(scoped_ptr<net::StreamSocket> socket,
   static const int kOneMegabyte = 1024 * 1024;
   socket->SetSendBufferSize(kOneMegabyte);
   rpc_connection_.reset(new RpcConnection(0, socket.Pass()));
-  if (message_delegate_)
-    rpc_connection_->SetDelegate(message_delegate_);
-
   rpc_connection_->DoReadLoop();
 }
 

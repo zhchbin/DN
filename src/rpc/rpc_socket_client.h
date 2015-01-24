@@ -18,8 +18,6 @@ class StreamSocket;
 
 namespace rpc {
 
-class RpcMessage;
-
 class RpcSocketClient {
  public:
   explicit RpcSocketClient(const std::string& server_ip, uint16 port);
@@ -35,7 +33,6 @@ class RpcSocketClient {
   std::string server_ip_;
   uint16 port_;
   scoped_ptr<RpcConnection> rpc_connection_;
-  RpcConnection::MessageDelegate* message_delegate_;
 
   base::WeakPtrFactory<RpcSocketClient> weak_ptr_factory_;
 
