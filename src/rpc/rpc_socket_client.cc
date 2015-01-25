@@ -18,26 +18,40 @@ RpcSocketClient::RpcSocketClient(const std::string& server_ip, uint16 port)
 }
 
 RpcSocketClient::~RpcSocketClient() {
+  Disconnect();
 }
 
 void RpcSocketClient::Connect() {
+  Connect(net::CompletionCallback());
+}
+
+void RpcSocketClient::Connect(const net::CompletionCallback& callback) {
   net::IPAddressNumber ip_number;
   net::ParseIPLiteralToNumber(server_ip_, &ip_number);
   net::AddressList address_list;
   address_list = net::AddressList::CreateFromIPAddress(ip_number, port_);
   socket_.reset(new net::TCPClientSocket(address_list));
   int result = socket_->Connect(
-      base::Bind(&RpcSocketClient::OnConnectComplete, base::Unretained(this)));
+      base::Bind(&RpcSocketClient::OnConnectComplete,
+                 base::Unretained(this),
+                 callback));
   if (result != net::ERR_IO_PENDING)
-    OnConnectComplete(result);
+    OnConnectComplete(callback, result);
 }
 
-void RpcSocketClient::OnConnectComplete(int result) {
+void RpcSocketClient::Disconnect() {
+  rpc_connection_->socket()->Disconnect();
+}
+
+void RpcSocketClient::OnConnectComplete(const net::CompletionCallback& callback,
+                                        int result) {
   CHECK(result == net::OK) << "Can't not connect to master.";
   static const int kOneMegabyte = 1024 * 1024;
   socket_->SetSendBufferSize(kOneMegabyte);
   rpc_connection_.reset(new RpcConnection(0, socket_.Pass()));
   rpc_connection_->DoReadLoop();
+  if (!callback.is_null())
+    callback.Run(result);
 }
 
 }   // namespace rpc

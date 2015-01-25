@@ -12,11 +12,103 @@
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 #include "proto/echo.pb.h"
+#include "net/net_errors.h"
 
 using ::testing::_;
 
 namespace rpc {
-namespace {
+
+namespace internal {
+
+class TestCompletionCallbackBaseInternal {
+ public:
+  bool have_result() const { return have_result_; }
+
+ protected:
+  TestCompletionCallbackBaseInternal()
+      : have_result_(false),
+        waiting_for_result_(false) {
+  }
+
+  virtual ~TestCompletionCallbackBaseInternal() {}
+
+  void DidSetResult() {
+    have_result_ = true;
+    if (waiting_for_result_)
+      base::MessageLoop::current()->Quit();
+  }
+
+  void WaitForResult() {
+    DCHECK(!waiting_for_result_);
+    while (!have_result_) {
+      waiting_for_result_ = true;
+      base::MessageLoop::current()->Run();
+      waiting_for_result_ = false;
+    }
+    have_result_ = false;  // Auto-reset for next callback.
+  }
+
+  bool have_result_;
+  bool waiting_for_result_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TestCompletionCallbackBaseInternal);
+};
+
+template <typename R>
+class TestCompletionCallbackTemplate
+    : public TestCompletionCallbackBaseInternal {
+ public:
+  virtual ~TestCompletionCallbackTemplate() {}
+
+  R WaitForResult() {
+    TestCompletionCallbackBaseInternal::WaitForResult();
+    return result_;
+  }
+
+  R GetResult(R result) {
+    if (net::ERR_IO_PENDING != result)
+      return result;
+    return WaitForResult();
+  }
+
+ protected:
+  // Override this method to gain control as the callback is running.
+  virtual void SetResult(R result) {
+    result_ = result;
+    DidSetResult();
+  }
+
+  TestCompletionCallbackTemplate() : result_(R()) {}
+  R result_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(TestCompletionCallbackTemplate);
+};
+
+}  // namespace internal
+
+// Base class overridden by custom implementations of TestCompletionCallback.
+typedef internal::TestCompletionCallbackTemplate<int>
+    TestCompletionCallbackBase;
+
+class TestCompletionCallback : public TestCompletionCallbackBase {
+ public:
+  TestCompletionCallback()
+      : callback_(base::Bind(&TestCompletionCallback::SetResult,
+                  base::Unretained(this))) {
+  }
+
+  ~TestCompletionCallback() override {
+  }
+
+  const net::CompletionCallback& callback() const { return callback_; }
+
+ private:
+  const net::CompletionCallback callback_;
+
+  DISALLOW_COPY_AND_ASSIGN(TestCompletionCallback);
+};
 
 static const char kLocalhost[] = "127.0.0.1";
 static const uint16 kPort = 20010;
@@ -37,18 +129,6 @@ void CallService(RpcConnection* connection) {
   stub.Echo(NULL, &request, &response, NULL);
 }
 
-void CallServerService(RpcSocketClient* client) {
-  CallService(client->connection());
-}
-
-void CallClientService(RpcSocketServer* server) {
-  CallService(server->FindConnection(0));
-
-  base::MessageLoop::current()->PostTask(
-      FROM_HERE,
-      base::MessageLoop::current()->QuitClosure());
-}
-
 TEST(RpcSocketTest, CallServiceBidirectionally) {
   base::MessageLoopForIO message_loop;
   RpcSocketServer server(kLocalhost, kPort);
@@ -57,20 +137,16 @@ TEST(RpcSocketTest, CallServiceBidirectionally) {
   EXPECT_CALL(*service, Echo(_, _, _, _)).Times(2);
   ServiceManager::GetInstance()->RegisterService(service);
 
-  client.Connect();
+  TestCompletionCallback connect_callback;
+  client.Connect(connect_callback.callback());
+  EXPECT_EQ(net::OK, connect_callback.WaitForResult());
+  CallService(client.connection());
+  CallService(server.FindConnection(0));
 
-  // Maybe I should expose the connection completed callback, instead of using
-  // this tricky way to wait for the connection established.
-  base::MessageLoop::current()->PostDelayedTask(
+  base::MessageLoop::current()->PostTask(
       FROM_HERE,
-      base::Bind(CallServerService, &client),
-      base::TimeDelta::FromMilliseconds(5));
-  base::MessageLoop::current()->PostDelayedTask(
-      FROM_HERE,
-      base::Bind(CallClientService, &server),
-      base::TimeDelta::FromMilliseconds(5));
+      base::MessageLoop::current()->QuitClosure());
   message_loop.Run();
 }
 
-}  // namespace
 }  // namespace rpc
