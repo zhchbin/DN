@@ -5,6 +5,7 @@
 #include "rpc/service_manager.h"
 
 #include "base/logging.h"
+#include "base/message_loop/message_loop.h"
 #include "base/stl_util.h"
 #include "google/protobuf/descriptor.h"
 #include "google/protobuf/service.h"
@@ -13,12 +14,11 @@ namespace rpc {
 
 // static
 ServiceManager* ServiceManager::GetInstance() {
+  DCHECK_EQ(base::MessageLoop::current()->type(), base::MessageLoop::TYPE_IO);
   return Singleton<ServiceManager>::get();
 }
 
 ServiceManager::ServiceManager() {
-  STLDeleteContainerPairSecondPointers(
-      service_map_.begin(), service_map_.end());
 }
 
 ServiceManager::~ServiceManager() {
@@ -27,9 +27,8 @@ ServiceManager::~ServiceManager() {
 }
 
 void ServiceManager::RegisterService(google::protobuf::Service* service) {
-  // Don't Register same service twice.
-  DCHECK(service_map_.find(service->GetDescriptor()->full_name()) ==
-         service_map_.end());
+  // Don't register same service twice.
+  DCHECK(FindService(service->GetDescriptor()->full_name()) == NULL);
   service_map_[service->GetDescriptor()->full_name()] = service;
 }
 

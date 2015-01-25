@@ -7,12 +7,12 @@
 #include "base/basictypes.h"
 #include "base/bind.h"
 #include "base/message_loop/message_loop.h"
+#include "net/net_errors.h"
+#include "proto/echo.pb.h"
 #include "rpc/rpc_socket_client.h"
 #include "rpc/rpc_socket_server.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
-#include "proto/echo.pb.h"
-#include "net/net_errors.h"
 
 using ::testing::_;
 
