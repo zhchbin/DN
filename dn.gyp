@@ -88,7 +88,7 @@
       'target_name': 'dn_unittest',
       'type': 'executable',
       'sources': [
-        'src/rpc/echo.proto',
+        'src/rpc/echo_unittest.proto',
         'src/rpc/rpc_socket_unittest.cc',
         'src/run_all_unittest.cc',
         'src/thread/ninja_thread_unittest.cc',
