@@ -7,12 +7,11 @@
 #include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
 #include "net/tcp_server_socket.h"
+#include "ninja/master_main.h"
+#include "ninja/slave_main.h"
 #include "rpc/rpc_options.h"
 #include "thread/ninja_thread_delegate.h"
 #include "thread/ninja_thread_impl.h"
-
-#include "ninja/master_main.h"
-#include "ninja/slave_main.h"
 
 namespace {
 const int kMinPort = 1024;
@@ -32,6 +31,17 @@ int main(int argc, char* argv[]) {
   scoped_ptr<NinjaThreadDelegate> rpc_thread_delegate;
   const base::CommandLine* command_line =
       base::CommandLine::ForCurrentProcess();
+
+  static const char kWorkingDir[] = "working_dir";
+  if (command_line->HasSwitch(kWorkingDir)) {
+    std::string working_dir = command_line->GetSwitchValueASCII(kWorkingDir);
+    if (!working_dir.empty()) {
+      LOG(INFO) << "dn: Entering directory " << working_dir;
+      int ret = chdir(working_dir.c_str());
+      CHECK(ret == 0) << "chdir to " << working_dir << " -" << strerror(errno);
+    }
+  }
+
   uint32 port = rpc::kDefaultPort;
   if (command_line->HasSwitch(switches::kPort)) {
     std::string port_str = command_line->GetSwitchValueASCII(switches::kPort);
