@@ -314,7 +314,8 @@ void RpcConnection::OnReponseMessage(const rpc::RpcMessage& message) {
   Response response = it->second;
   DCHECK_EQ(message.type(), RpcMessage::RESPONSE);
 
-  response.first->ParseFromString(message.response());
+  if (!message.response().empty())
+    response.first->ParseFromString(message.response());
   if (response.second)
     response.second->Run();
   request_id_to_response_map_.erase(it);

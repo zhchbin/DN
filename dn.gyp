@@ -36,6 +36,7 @@
         'src/rpc/rpc_socket_client.cc',
         'src/rpc/rpc_socket_server.cc',
         'src/rpc/service_manager.cc',
+        'src/rpc/slave_services.proto',
         'src/thread/ninja_thread_impl.cc',
       ],
       'dependencies': [

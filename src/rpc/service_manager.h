@@ -53,6 +53,7 @@ class ServiceManager {
   static ServiceManager* GetInstance();
 
   void RegisterService(google::protobuf::Service* service);
+  void UnregisterService(google::protobuf::Service* service);
   google::protobuf::Service* FindService(const std::string& service_full_name);
 
  private:

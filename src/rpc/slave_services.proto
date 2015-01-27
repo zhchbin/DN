@@ -1,0 +1,30 @@
+package slave;
+
+option cc_generic_services = true;
+
+message RunCommandRequest {
+  required string command = 1;
+  required string target = 2;
+};
+
+message RunCommandResponse {
+  enum ExitStatus {
+    kExitSuccess = 0;
+    kExitFailure = 1;
+    kExitInterrupted = 2;
+  };
+
+  required ExitStatus status = 1;
+  required string output = 2;
+};
+
+message FinishRequest {
+};
+
+message FinishResponse {
+};
+
+service SlaveService {
+  rpc RunCommand(RunCommandRequest) returns (RunCommandResponse);
+  rpc Finish(FinishRequest) returns (FinishResponse);
+};

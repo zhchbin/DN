@@ -32,6 +32,11 @@ void ServiceManager::RegisterService(google::protobuf::Service* service) {
   service_map_[service->GetDescriptor()->full_name()] = service;
 }
 
+void ServiceManager::UnregisterService(google::protobuf::Service* service) {
+  DCHECK(FindService(service->GetDescriptor()->full_name()) != NULL);
+  service_map_.erase(service->GetDescriptor()->full_name());
+}
+
 google::protobuf::Service* ServiceManager::FindService(
     const std::string& service_full_name) {
   ServiceMap::iterator it = service_map_.find(service_full_name);

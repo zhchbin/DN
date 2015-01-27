@@ -18,7 +18,6 @@ RpcSocketClient::RpcSocketClient(const std::string& server_ip, uint16 port)
 }
 
 RpcSocketClient::~RpcSocketClient() {
-  Disconnect();
 }
 
 void RpcSocketClient::Connect() {

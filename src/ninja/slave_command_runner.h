@@ -6,8 +6,10 @@
 #define  NINJA_SLAVE_COMMAND_RUNNER_H_
 
 #include <string>
+#include <queue>
 
 #include "base/memory/ref_counted.h"
+#include "third_party/ninja/src/build.h"
 #include "third_party/ninja/src/subprocess.h"
 
 namespace ninja {
@@ -17,12 +19,19 @@ class SlaveCommandRunner
  public:
   SlaveCommandRunner();
 
-  void StartCommand(const std::string& command);
-  void WaitForCommand();
+  void AppendCommand(const std::string& command);
+  void CleanUp();
 
  private:
   friend class base::RefCountedThreadSafe<SlaveCommandRunner>;
   virtual ~SlaveCommandRunner();
+
+  void StartCommand();
+  bool WaitForCommand(CommandRunner::Result* result);
+  bool CanRunMore();
+
+  typedef std::queue<std::string> IncomingCommandQueue;
+  IncomingCommandQueue incoming_command_queue_;
 
   // A set of async subprocess.
   SubprocessSet subprocs_;

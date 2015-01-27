@@ -4,6 +4,7 @@
 
 #include "ninja/slave_command_runner.h"
 
+#include "base/bind.h"
 #include "base/logging.h"
 #include "thread/ninja_thread.h"
 
@@ -13,27 +14,60 @@ SlaveCommandRunner::SlaveCommandRunner() {}
 
 SlaveCommandRunner::~SlaveCommandRunner() {}
 
-void SlaveCommandRunner::StartCommand(const std::string& command) {
-  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
-  Subprocess* subproc = subprocs_.Add(command, true /*use console*/);
-  CHECK(subproc != NULL);
-  return;
+void SlaveCommandRunner::AppendCommand(const std::string& command) {
+  incoming_command_queue_.push(command);
+  StartCommand();
 }
 
-void SlaveCommandRunner::WaitForCommand() {
-  Subprocess* subproc;
-  while ((subproc = subprocs_.NextFinished()) == NULL) {
-    bool interrupted = subprocs_.DoWork();
-    if (interrupted) {
-      return;
+void SlaveCommandRunner::CleanUp() {
+  subprocs_.Clear();
+}
+
+int pending_commands = 0;
+
+void SlaveCommandRunner::StartCommand() {
+  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
+  if (!incoming_command_queue_.empty() && CanRunMore()) {
+    std::string command = incoming_command_queue_.front();
+    incoming_command_queue_.pop();
+    Subprocess* subproc = subprocs_.Add(command, true /*use console*/);
+    CHECK(subproc != NULL);
+    pending_commands++;
+  } else {
+    CommandRunner::Result result;
+    while (pending_commands) {
+      WaitForCommand(&result);
+      pending_commands--;
     }
   }
 
-  LOG(INFO) << subproc->Finish();
-  LOG(INFO) << subproc->GetOutput();
+  if (incoming_command_queue_.empty())
+    return;
 
-  delete subproc;
+  // Start commands in the next message loop if possible.
+  NinjaThread::PostTask(
+      NinjaThread::MAIN,
+      FROM_HERE,
+      base::Bind(&SlaveCommandRunner::StartCommand, this));
   return;
+}
+
+bool SlaveCommandRunner::WaitForCommand(CommandRunner::Result* result) {
+  Subprocess* subproc;
+  while ((subproc = subprocs_.NextFinished()) == NULL)
+    subprocs_.DoWork();
+
+  result->status = subproc->Finish();
+  result->output = subproc->GetOutput();
+  delete subproc;
+  return true;
+}
+
+bool SlaveCommandRunner::CanRunMore() {
+  size_t subproc_number =
+      subprocs_.running_.size() + subprocs_.finished_.size();
+
+  return subproc_number < 4;
 }
 
 }  // namespace ninja
