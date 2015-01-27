@@ -6,6 +6,7 @@
 
 #include "base/bind.h"
 #include "base/message_loop/message_loop.h"
+#include "base/strings/string_util.h"
 #include "proto/rpc_message.pb.h"
 #include "rpc/rpc_connection.h"
 #include "rpc/rpc_socket_client.h"
@@ -13,12 +14,25 @@
 
 namespace {
 
+static const std::string kWhitelistCommands[] = {
+  "g++", "c++", "ninja"
+};
+
 void QuitMainThreadHelper() {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
       base::MessageLoop::current()->QuitClosure());
+}
+
+bool IsWhitelistCommand(const std::string& command) {
+  for (size_t i = 0; i < arraysize(kWhitelistCommands); ++i) {
+    if (StartsWithASCII(command, kWhitelistCommands[i], false))
+      return true;
+  }
+
+  return false;
 }
 
 }  // namespace
@@ -55,6 +69,12 @@ void SlaveMain::RunCommand(::google::protobuf::RpcController* /* controller */,
                            ::slave::RunCommandResponse* response,
                            ::google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
+  if (!IsWhitelistCommand(request->command())) {
+    response->set_status(slave::RunCommandResponse::kExitFailure);
+    response->set_output("This command is NOT ALLOWED to run.");
+    done->Run();
+  }
+
   NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
