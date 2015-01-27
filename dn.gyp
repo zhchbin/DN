@@ -28,6 +28,7 @@
         'src/net/winsock_init.cc',
         'src/net/winsock_util.cc',
         'src/ninja/master_main.cc',
+        'src/ninja/slave_command_runner.cc',
         'src/ninja/slave_main.cc',
         'src/rpc/rpc_connection.cc',
         'src/rpc/rpc_message.proto',

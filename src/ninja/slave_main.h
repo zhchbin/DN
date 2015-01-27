@@ -15,6 +15,7 @@
 #include "rpc/service_manager.h"
 #include "rpc/rpc_connection.h"
 #include "thread/ninja_thread_delegate.h"
+#include "ninja/slave_command_runner.h"
 
 namespace rpc {
 class RpcSocketClient;
@@ -36,6 +37,7 @@ class SlaveMain : public NinjaThreadDelegate {
   std::string master_ip_;
   uint16 port_;
   scoped_ptr<rpc::RpcSocketClient> rpc_socket_client_;
+  scoped_refptr<SlaveCommandRunner> command_runner_;
 
   DISALLOW_COPY_AND_ASSIGN(SlaveMain);
 };

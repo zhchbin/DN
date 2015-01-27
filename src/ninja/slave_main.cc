@@ -15,7 +15,8 @@ namespace ninja {
 
 SlaveMain::SlaveMain(const std::string& master_ip, uint16 port)
     : master_ip_(master_ip),
-      port_(port) {
+      port_(port),
+      command_runner_(new SlaveCommandRunner()) {
 }
 
 SlaveMain::~SlaveMain() {
