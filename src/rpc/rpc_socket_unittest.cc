@@ -8,7 +8,7 @@
 #include "base/bind.h"
 #include "base/message_loop/message_loop.h"
 #include "net/net_errors.h"
-#include "proto/echo.pb.h"
+#include "proto/echo_unittest.pb.h"
 #include "rpc/rpc_socket_client.h"
 #include "rpc/rpc_socket_server.h"
 #include "testing/gmock/include/gmock/gmock.h"
@@ -112,6 +112,7 @@ class TestCompletionCallback : public TestCompletionCallbackBase {
 
 static const char kLocalhost[] = "127.0.0.1";
 static const uint16 kPort = 20010;
+static const uint32 kCallTimes = 10;
 
 class MockEchoService : public echo::EchoService {
  public:
@@ -122,11 +123,13 @@ class MockEchoService : public echo::EchoService {
 };
 
 void CallService(RpcConnection* connection) {
-  echo::EchoService::Stub stub(connection);
-  echo::EchoRequest request;
-  echo::EchoResponse response;
-  request.set_message("hello");
-  stub.Echo(NULL, &request, &response, NULL);
+  for (size_t i = 0; i < kCallTimes; ++i) {
+    echo::EchoService::Stub stub(connection);
+    echo::EchoRequest request;
+    echo::EchoResponse response;
+    request.set_message("hello");
+    stub.Echo(NULL, &request, &response, NULL);
+  }
 }
 
 TEST(RpcSocketTest, CallServiceBidirectionally) {
@@ -134,7 +137,7 @@ TEST(RpcSocketTest, CallServiceBidirectionally) {
   RpcSocketServer server(kLocalhost, kPort);
   RpcSocketClient client(kLocalhost, kPort);
   MockEchoService* service = new MockEchoService();
-  EXPECT_CALL(*service, Echo(_, _, _, _)).Times(2);
+  EXPECT_CALL(*service, Echo(_, _, _, _)).Times(2 * kCallTimes);
   ServiceManager::GetInstance()->RegisterService(service);
 
   TestCompletionCallback connect_callback;

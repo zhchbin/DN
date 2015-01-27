@@ -203,6 +203,7 @@ void RpcConnection::DoReadLoop() {
                                   weak_ptr_factory_.GetWeakPtr()));
     if (rv == net::ERR_IO_PENDING)
       return;
+    rv = HandleReadResult(rv);
   } while (rv == net::OK);
 }
 
