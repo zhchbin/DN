@@ -2,7 +2,7 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#include "slave/slave_command_runner.h"
+#include "slave/command_executor.h"
 
 #include "base/bind.h"
 #include "base/logging.h"
@@ -10,22 +10,22 @@
 
 namespace ninja {
 
-SlaveCommandRunner::SlaveCommandRunner() {}
+CommandExecutor::CommandExecutor() : weak_factory_(this) {}
 
-SlaveCommandRunner::~SlaveCommandRunner() {}
+CommandExecutor::~CommandExecutor() {}
 
-void SlaveCommandRunner::AppendCommand(const std::string& command) {
+void CommandExecutor::AppendCommand(const std::string& command) {
   incoming_command_queue_.push(command);
   StartCommand();
 }
 
-void SlaveCommandRunner::CleanUp() {
+void CommandExecutor::CleanUp() {
   subprocs_.Clear();
 }
 
 int pending_commands = 0;
 
-void SlaveCommandRunner::StartCommand() {
+void CommandExecutor::StartCommand() {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   if (!incoming_command_queue_.empty() && CanRunMore()) {
     std::string command = incoming_command_queue_.front();
@@ -48,11 +48,11 @@ void SlaveCommandRunner::StartCommand() {
   NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
-      base::Bind(&SlaveCommandRunner::StartCommand, this));
+      base::Bind(&CommandExecutor::StartCommand, weak_factory_.GetWeakPtr()));
   return;
 }
 
-bool SlaveCommandRunner::WaitForCommand(CommandRunner::Result* result) {
+bool CommandExecutor::WaitForCommand(CommandRunner::Result* result) {
   Subprocess* subproc;
   while ((subproc = subprocs_.NextFinished()) == NULL)
     subprocs_.DoWork();
@@ -63,7 +63,7 @@ bool SlaveCommandRunner::WaitForCommand(CommandRunner::Result* result) {
   return true;
 }
 
-bool SlaveCommandRunner::CanRunMore() {
+bool CommandExecutor::CanRunMore() {
   size_t subproc_number =
       subprocs_.running_.size() + subprocs_.finished_.size();
 

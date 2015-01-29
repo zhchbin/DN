@@ -10,7 +10,7 @@
 #include "proto/rpc_message.pb.h"
 #include "rpc/rpc_connection.h"
 #include "rpc/rpc_socket_client.h"
-#include "slave/slave_command_runner.h"
+#include "slave/slave_main_runner.h"
 #include "thread/ninja_thread.h"
 
 namespace {
@@ -40,10 +40,12 @@ bool IsWhitelistCommand(const std::string& command) {
 
 namespace ninja {
 
-SlaveRPC::SlaveRPC(const std::string& master_ip, uint16 port)
+SlaveRPC::SlaveRPC(const std::string& master_ip,
+                   uint16 port,
+                   scoped_refptr<SlaveMainRunner> main_runner)
     : master_ip_(master_ip),
       port_(port),
-      command_runner_(new SlaveCommandRunner()) {
+      slave_main_runner_(main_runner) {
   NinjaThread::SetDelegate(NinjaThread::RPC, this);
 }
 
@@ -62,7 +64,6 @@ void SlaveRPC::InitAsync() {
 
 void SlaveRPC::CleanUp() {
   rpc::ServiceManager::GetInstance()->UnregisterService(this);
-  command_runner_->CleanUp();
   rpc_socket_client_->Disconnect();
   rpc_socket_client_.reset();
 }
@@ -81,8 +82,8 @@ void SlaveRPC::RunCommand(::google::protobuf::RpcController* /* controller */,
   NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
-      base::Bind(&SlaveCommandRunner::AppendCommand,
-                 command_runner_,
+      base::Bind(&SlaveMainRunner::RunCommand,
+                 slave_main_runner_,
                  request->command()));
 }
 

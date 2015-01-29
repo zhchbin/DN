@@ -2,30 +2,28 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  SLAVE_SLAVE_COMMAND_RUNNER_H_
-#define  SLAVE_SLAVE_COMMAND_RUNNER_H_
+#ifndef  SLAVE_COMMAND_EXECUTOR_H_
+#define  SLAVE_COMMAND_EXECUTOR_H_
 
 #include <string>
 #include <queue>
 
-#include "base/memory/ref_counted.h"
+#include "base/macros.h"
+#include "base/memory/weak_ptr.h"
 #include "third_party/ninja/src/build.h"
 #include "third_party/ninja/src/subprocess.h"
 
 namespace ninja {
 
-class SlaveCommandRunner
-    : public base::RefCountedThreadSafe<SlaveCommandRunner> {
+class CommandExecutor {
  public:
-  SlaveCommandRunner();
+  CommandExecutor();
+  ~CommandExecutor();
 
   void AppendCommand(const std::string& command);
   void CleanUp();
 
  private:
-  friend class base::RefCountedThreadSafe<SlaveCommandRunner>;
-  virtual ~SlaveCommandRunner();
-
   void StartCommand();
   bool WaitForCommand(CommandRunner::Result* result);
   bool CanRunMore();
@@ -35,9 +33,12 @@ class SlaveCommandRunner
 
   // A set of async subprocess.
   SubprocessSet subprocs_;
-  DISALLOW_COPY_AND_ASSIGN(SlaveCommandRunner);
+
+  base::WeakPtrFactory<CommandExecutor> weak_factory_;
+
+  DISALLOW_COPY_AND_ASSIGN(CommandExecutor);
 };
 
 }  // namespace ninja
 
-#endif  // SLAVE_SLAVE_COMMAND_RUNNER_H_
+#endif  // SLAVE_COMMAND_EXECUTOR_H_
