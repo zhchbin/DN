@@ -2,22 +2,14 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  NINJA_MASTER_MAIN_H_
-#define  NINJA_MASTER_MAIN_H_
+#ifndef  MASTER_MASTER_RPC_H_
+#define  MASTER_MASTER_RPC_H_
 
 #include <string>
 
 #include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
-#include "rpc/service_manager.h"
-#include "rpc/rpc_connection.h"
 #include "thread/ninja_thread_delegate.h"
-
-namespace google {
-namespace protobuf {
-class Message;
-}
-}
 
 namespace rpc {
 class RpcSocketServer;
@@ -25,10 +17,10 @@ class RpcSocketServer;
 
 namespace ninja {
 
-class MasterMain : public NinjaThreadDelegate {
+class MasterRPC : public NinjaThreadDelegate {
  public:
-  MasterMain(const std::string& bind_ip, uint16 port);
-  virtual ~MasterMain();
+  MasterRPC(const std::string& bind_ip, uint16 port);
+  virtual ~MasterRPC();
 
   // NinjaThreadDelegate implementations.
   void Init() override;
@@ -40,9 +32,9 @@ class MasterMain : public NinjaThreadDelegate {
   uint16 port_;
   scoped_ptr<rpc::RpcSocketServer> rpc_socket_server_;
 
-  DISALLOW_COPY_AND_ASSIGN(MasterMain);
+  DISALLOW_COPY_AND_ASSIGN(MasterRPC);
 };
 
 }  // namespace ninja
 
-#endif  // NINJA_MASTER_MAIN_H_
+#endif  // MASTER_MASTER_RPC_H_

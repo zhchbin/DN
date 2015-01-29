@@ -2,7 +2,7 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#include "ninja/slave_main.h"
+#include "slave/slave_rpc.h"
 
 #include "base/bind.h"
 #include "base/message_loop/message_loop.h"
@@ -39,35 +39,37 @@ bool IsWhitelistCommand(const std::string& command) {
 
 namespace ninja {
 
-SlaveMain::SlaveMain(const std::string& master_ip, uint16 port)
+SlaveRPC::SlaveRPC(const std::string& master_ip, uint16 port)
     : master_ip_(master_ip),
       port_(port),
       command_runner_(new SlaveCommandRunner()) {
+  NinjaThread::SetDelegate(NinjaThread::RPC, this);
 }
 
-SlaveMain::~SlaveMain() {
+SlaveRPC::~SlaveRPC() {
+  NinjaThread::SetDelegate(NinjaThread::RPC, NULL);
 }
 
-void SlaveMain::Init() {
+void SlaveRPC::Init() {
   rpc::ServiceManager::GetInstance()->RegisterService(this);
 }
 
-void SlaveMain::InitAsync() {
+void SlaveRPC::InitAsync() {
   rpc_socket_client_.reset(new rpc::RpcSocketClient(master_ip_, port_));
   rpc_socket_client_->Connect();
 }
 
-void SlaveMain::CleanUp() {
+void SlaveRPC::CleanUp() {
   rpc::ServiceManager::GetInstance()->UnregisterService(this);
   command_runner_->CleanUp();
   rpc_socket_client_->Disconnect();
   rpc_socket_client_.reset();
 }
 
-void SlaveMain::RunCommand(::google::protobuf::RpcController* /* controller */,
-                           const ::slave::RunCommandRequest* request,
-                           ::slave::RunCommandResponse* response,
-                           ::google::protobuf::Closure* done) {
+void SlaveRPC::RunCommand(::google::protobuf::RpcController* /* controller */,
+                          const ::slave::RunCommandRequest* request,
+                          ::slave::RunCommandResponse* response,
+                          ::google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
   if (!IsWhitelistCommand(request->command())) {
     response->set_status(slave::RunCommandResponse::kExitFailure);
@@ -83,10 +85,10 @@ void SlaveMain::RunCommand(::google::protobuf::RpcController* /* controller */,
                  request->command()));
 }
 
-void SlaveMain::Finish(::google::protobuf::RpcController* /*controller*/,
-                       const ::slave::FinishRequest* /* request */,
-                       ::slave::FinishResponse* /* response */,
-                       ::google::protobuf::Closure* done) {
+void SlaveRPC::Finish(::google::protobuf::RpcController* /*controller*/,
+                      const ::slave::FinishRequest* /* request */,
+                      ::slave::FinishResponse* /* response */,
+                      ::google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
   if (done)
     done->Run();

@@ -2,8 +2,8 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  NINJA_SLAVE_MAIN_H_
-#define  NINJA_SLAVE_MAIN_H_
+#ifndef  SLAVE_SLAVE_RPC_H_
+#define  SLAVE_SLAVE_RPC_H_
 
 #include <string>
 #include <map>
@@ -24,10 +24,10 @@ class RpcSocketClient;
 
 namespace ninja {
 
-class SlaveMain : public NinjaThreadDelegate, public slave::SlaveService {
+class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
  public:
-  SlaveMain(const std::string& master_ip, uint16 port);
-  virtual ~SlaveMain();
+  SlaveRPC(const std::string& master_ip, uint16 port);
+  virtual ~SlaveRPC();
 
   // NinjaThreadDelegate implementations.
   void Init() override;
@@ -50,9 +50,9 @@ class SlaveMain : public NinjaThreadDelegate, public slave::SlaveService {
   scoped_ptr<rpc::RpcSocketClient> rpc_socket_client_;
   scoped_refptr<SlaveCommandRunner> command_runner_;
 
-  DISALLOW_COPY_AND_ASSIGN(SlaveMain);
+  DISALLOW_COPY_AND_ASSIGN(SlaveRPC);
 };
 
 }  // namespace ninja
 
-#endif  // NINJA_SLAVE_MAIN_H_
+#endif  // SLAVE_SLAVE_RPC_H_
