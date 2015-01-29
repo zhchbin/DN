@@ -4,12 +4,13 @@
 
 #include "rpc/rpc_connection.h"
 
+#include "base/big_endian.h"
 #include "base/logging.h"
 #include "net/ip_endpoint.h"
+#include "net/net_errors.h"
 #include "net/stream_socket.h"
 #include "proto/rpc_message.pb.h"
-#include "base/big_endian.h"
-#include "net/net_errors.h"
+#include "rpc/service_manager.h"
 
 namespace rpc {
 
@@ -285,7 +286,7 @@ void RpcConnection::OnRequestMessage(const rpc::RpcMessage& message) {
   }
 
   // |parameters| will be deleted when OnServiceDone is called.
-  rpc::RequestParameters* parameters = new rpc::RequestParameters(
+  RequestParameters* parameters = new RequestParameters(
       id_,
       service->GetRequestPrototype(method_descriptor).New(),
       service->GetResponsePrototype(method_descriptor).New(),
@@ -323,7 +324,7 @@ void RpcConnection::OnReponseMessage(const rpc::RpcMessage& message) {
 
 void RpcConnection::OnServiceDone(RequestParameters* raw_parameters) {
   DCHECK_EQ(raw_parameters->connection_id, id_);
-  scoped_ptr<rpc::RequestParameters> parameters(raw_parameters);
+  scoped_ptr<RequestParameters> parameters(raw_parameters);
   rpc::RpcMessage message;
   message.set_id(parameters->request_id);
   message.set_type(rpc::RpcMessage::RESPONSE);

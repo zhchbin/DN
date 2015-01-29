@@ -11,6 +11,7 @@
 #include "proto/echo_unittest.pb.h"
 #include "rpc/rpc_socket_client.h"
 #include "rpc/rpc_socket_server.h"
+#include "rpc/service_manager.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 

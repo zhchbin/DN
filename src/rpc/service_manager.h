@@ -7,12 +7,10 @@
 
 #include <map>
 #include <string>
-#include <utility>
 
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/singleton.h"
-#include "google/protobuf/message.h"
 
 namespace google {
 namespace protobuf {
@@ -22,29 +20,6 @@ class Closure;
 }  // namespace google
 
 namespace rpc {
-
-struct RequestParameters {
-  RequestParameters(int connection_id,
-                    google::protobuf::Message* request,
-                    google::protobuf::Message* response,
-                    uint64 request_id,
-                    const std::string& service,
-                    const std::string& method)
-      : connection_id(connection_id),
-        request(request),
-        response(response),
-        request_id(request_id),
-        service(service),
-        method(method) {
-  }
-
-  int connection_id;
-  scoped_ptr<google::protobuf::Message> request;
-  scoped_ptr<google::protobuf::Message> response;
-  uint64 request_id;
-  std::string service;
-  std::string method;
-};
 
 class ServiceManager {
  public:
@@ -65,12 +40,6 @@ class ServiceManager {
 
   DISALLOW_COPY_AND_ASSIGN(ServiceManager);
 };
-
-// The first one is the response message pointer, the second is the callback
-// closure.
-typedef std::pair<google::protobuf::Message*,
-                  google::protobuf::Closure*> Response;
-typedef std::map<uint32, Response> RequsetIdToResponseMap;
 
 }  // namespace rpc
 

@@ -5,14 +5,16 @@
 #ifndef  RPC_RPC_CONNECTION_H_
 #define  RPC_RPC_CONNECTION_H_
 
+#include <map>
 #include <queue>
 #include <string>
+#include <utility>
 
 #include "base/memory/scoped_ptr.h"
-#include "net/io_buffer.h"
-#include "google/protobuf/service.h"
-#include "rpc/service_manager.h"
 #include "base/memory/weak_ptr.h"
+#include "google/protobuf/message.h"
+#include "google/protobuf/service.h"
+#include "net/io_buffer.h"
 
 namespace rpc {
 class RpcMessage;
@@ -141,6 +143,35 @@ class RpcConnection : public google::protobuf::RpcChannel {
   void DoWriteLoop();
 
  private:
+  // The first one is the response message pointer, the second is the callback
+  // closure.
+  typedef std::pair<google::protobuf::Message*,
+                    google::protobuf::Closure*> Response;
+  typedef std::map<uint32, Response> RequsetIdToResponseMap;
+
+  struct RequestParameters {
+    RequestParameters(int connection_id,
+                      google::protobuf::Message* request,
+                      google::protobuf::Message* response,
+                      uint64 request_id,
+                      const std::string& service,
+                      const std::string& method)
+        : connection_id(connection_id),
+          request(request),
+          response(response),
+          request_id(request_id),
+          service(service),
+          method(method) {
+    }
+
+    int connection_id;
+    scoped_ptr<google::protobuf::Message> request;
+    scoped_ptr<google::protobuf::Message> response;
+    uint64 request_id;
+    std::string service;
+    std::string method;
+  };
+
   void OnReadCompleted(int rv);
   int HandleReadResult(int rv);
 
@@ -156,7 +187,7 @@ class RpcConnection : public google::protobuf::RpcChannel {
   const scoped_refptr<ReadIOBuffer> read_buf_;
   const scoped_refptr<QueuedWriteIOBuffer> write_buf_;
   uint32 last_request_id_;
-  rpc::RequsetIdToResponseMap request_id_to_response_map_;
+  RequsetIdToResponseMap request_id_to_response_map_;
   base::WeakPtrFactory<RpcConnection> weak_ptr_factory_;
 
   DISALLOW_COPY_AND_ASSIGN(RpcConnection);
