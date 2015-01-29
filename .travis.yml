@@ -15,9 +15,9 @@ install:
 before_script:
   - python script/cpplint_dir.py
 
-script: ./build/ci_build.sh
+script: ./script/ci_build.sh
 
 notifications:
   email: false
 
-after_success: ./build/ci_run_test.sh
+after_success: ./script/ci_run_test.sh
