@@ -8,6 +8,7 @@
 #include "base/strings/string_number_conversions.h"
 #include "net/tcp_server_socket.h"
 #include "ninja/master_main.h"
+#include "ninja/ninja_builder.h"
 #include "ninja/slave_main.h"
 #include "rpc/rpc_options.h"
 #include "thread/ninja_thread_delegate.h"
@@ -25,8 +26,9 @@ int main(int argc, char* argv[]) {
   scoped_ptr<base::MessageLoop> message_loop(new base::MessageLoop());
   scoped_ptr<NinjaThreadImpl> main_thread(
       new NinjaThreadImpl(NinjaThread::MAIN, base::MessageLoop::current()));
-
   scoped_ptr<NinjaThreadImpl> rpc_thread(new NinjaThreadImpl(NinjaThread::RPC));
+  BuildConfig config;
+  ninja::NinjaBuilder ninja_builder(config);
 
   scoped_ptr<NinjaThreadDelegate> rpc_thread_delegate;
   const base::CommandLine* command_line =
@@ -41,6 +43,10 @@ int main(int argc, char* argv[]) {
       CHECK(ret == 0) << "chdir to " << working_dir << " -" << strerror(errno);
     }
   }
+
+  std::string error;
+  static const char kDefaultManifest[] = "build.ninja";
+  CHECK(ninja_builder.InitFromManifest(kDefaultManifest, &error)) << error;
 
   uint32 port = rpc::kDefaultPort;
   if (command_line->HasSwitch(switches::kPort)) {
