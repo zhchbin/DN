@@ -9,6 +9,19 @@
 int main(int argc, char* argv[]) {
   base::CommandLine::Init(argc, argv);
   base::AtExitManager exit_manager;
+
+  const base::CommandLine* command_line =
+      base::CommandLine::ForCurrentProcess();
+  static const char kWorkingDir[] = "working_dir";
+  if (command_line->HasSwitch(kWorkingDir)) {
+    std::string working_dir = command_line->GetSwitchValueASCII(kWorkingDir);
+    if (!working_dir.empty()) {
+      LOG(INFO) << "dn: Entering directory " << working_dir;
+      int ret = chdir(working_dir.c_str());
+      CHECK(ret == 0) << "chdir to " << working_dir << " -" << strerror(errno);
+    }
+  }
+
   scoped_ptr<common::MainRunner> main_runner(common::MainRunner::Create());
   main_runner->CreateThreads();
   CHECK(main_runner->PostCreateThreads()) << "PostCreateThreads return false";
