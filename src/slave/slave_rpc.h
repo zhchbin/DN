@@ -12,7 +12,6 @@
 #include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
 #include "google/protobuf/service.h"
-#include "ninja/slave_command_runner.h"
 #include "proto/slave_services.pb.h"
 #include "rpc/rpc_connection.h"
 #include "rpc/service_manager.h"
@@ -23,6 +22,8 @@ class RpcSocketClient;
 }
 
 namespace ninja {
+
+class SlaveCommandRunner;
 
 class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
  public:

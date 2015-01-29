@@ -2,8 +2,8 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  NINJA_SLAVE_COMMAND_RUNNER_H_
-#define  NINJA_SLAVE_COMMAND_RUNNER_H_
+#ifndef  SLAVE_SLAVE_COMMAND_RUNNER_H_
+#define  SLAVE_SLAVE_COMMAND_RUNNER_H_
 
 #include <string>
 #include <queue>
@@ -40,4 +40,4 @@ class SlaveCommandRunner
 
 }  // namespace ninja
 
-#endif  // NINJA_SLAVE_COMMAND_RUNNER_H_
+#endif  // SLAVE_SLAVE_COMMAND_RUNNER_H_

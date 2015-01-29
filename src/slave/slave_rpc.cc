@@ -10,6 +10,7 @@
 #include "proto/rpc_message.pb.h"
 #include "rpc/rpc_connection.h"
 #include "rpc/rpc_socket_client.h"
+#include "slave/slave_command_runner.h"
 #include "thread/ninja_thread.h"
 
 namespace {

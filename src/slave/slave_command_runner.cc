@@ -2,7 +2,7 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#include "ninja/slave_command_runner.h"
+#include "slave/slave_command_runner.h"
 
 #include "base/bind.h"
 #include "base/logging.h"
