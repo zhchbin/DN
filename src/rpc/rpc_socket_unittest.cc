@@ -153,4 +153,25 @@ TEST(RpcSocketTest, CallServiceBidirectionally) {
   message_loop.Run();
 }
 
+class MockRpcSocketServerObserver : public RpcSocketServer::Observer {
+ public:
+  MOCK_METHOD1(OnConnect, void(RpcConnection* connection));
+};
+
+TEST(RpcSocketTest, ServerObserver) {
+  base::MessageLoopForIO message_loop;
+  RpcSocketServer server(kLocalhost, kPort);
+  RpcSocketClient client(kLocalhost, kPort);
+  MockRpcSocketServerObserver observer;
+  server.AddObserver(&observer);
+  EXPECT_CALL(observer, OnConnect(_)).Times(1);
+  TestCompletionCallback connect_callback;
+  client.Connect(connect_callback.callback());
+  EXPECT_EQ(net::OK, connect_callback.WaitForResult());
+  base::MessageLoop::current()->PostTask(
+      FROM_HERE,
+      base::MessageLoop::current()->QuitClosure());
+  message_loop.Run();
+}
+
 }  // namespace rpc

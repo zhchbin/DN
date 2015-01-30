@@ -4,17 +4,15 @@
 
 #include "rpc/rpc_socket_server.h"
 
+#include "base/big_endian.h"
 #include "base/message_loop/message_loop_proxy.h"
 #include "base/stl_util.h"
 #include "base/tracked_objects.h"
-#include "base/big_endian.h"
 #include "net/net_errors.h"
 #include "net/server_socket.h"
 #include "net/stream_socket.h"
 #include "net/tcp_server_socket.h"
 #include "rpc/rpc_connection.h"
-
-#include "google/protobuf/message.h"
 
 namespace {
 const int kBackLog = 10;
@@ -33,6 +31,14 @@ RpcSocketServer::RpcSocketServer(const std::string& bind_ip, uint16 port)
 RpcSocketServer::~RpcSocketServer() {
   STLDeleteContainerPairSecondPointers(
       id_to_connection_.begin(), id_to_connection_.end());
+}
+
+void RpcSocketServer::AddObserver(Observer *obs) {
+  observer_list_.AddObserver(obs);
+}
+
+void RpcSocketServer::RemoveObserver(Observer *obs) {
+  observer_list_.RemoveObserver(obs);
 }
 
 void RpcSocketServer::Init() {
@@ -77,6 +83,7 @@ int RpcSocketServer::HandleAcceptResult(int rv) {
       new RpcConnection(last_id_++, accepted_socket_.Pass());
   id_to_connection_[connection->id()] = connection;
   connection->DoReadLoop();
+  FOR_EACH_OBSERVER(Observer, observer_list_, OnConnect(connection));
   return net::OK;
 }
 

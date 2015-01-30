@@ -11,6 +11,7 @@
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "base/observer_list.h"
 
 namespace net {
 
@@ -25,8 +26,17 @@ class RpcConnection;
 
 class RpcSocketServer {
  public:
+  class Observer {
+   public:
+    virtual ~Observer() {}
+    virtual void OnConnect(RpcConnection* connection) = 0;
+  };
+
   explicit RpcSocketServer(const std::string& bind_ip, uint16 port);
   ~RpcSocketServer();
+  void AddObserver(Observer *obs);
+  void RemoveObserver(Observer *obs);
+
   RpcConnection* FindConnection(int connection_id);
 
  private:
@@ -43,6 +53,8 @@ class RpcSocketServer {
   IdToConnectionMap id_to_connection_;
   std::string bind_ip_;
   uint16 port_;
+
+  ObserverList<Observer> observer_list_;
 
   base::WeakPtrFactory<RpcSocketServer> weak_ptr_factory_;
 
