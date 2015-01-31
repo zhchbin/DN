@@ -11,3 +11,6 @@
 	path = third_party/ninja
 	url = https://github.com/zhchbin/ninja.git
 	branch = dn
+[submodule "third_party/mongoose"]
+	path = third_party/mongoose
+	url = https://github.com/cesanta/mongoose.git

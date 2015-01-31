@@ -46,6 +46,8 @@
       'dependencies': [
         'base/base.gyp:base',
         'third_party/protobuf/protobuf.gyp:protobuf_full',
+        'third_party/mongoose.gyp:libmongoose',
+        'third_party/ninja.gyp:libninja',
       ],
       'include_dirs': [
         'src',
@@ -82,7 +84,6 @@
       'dependencies': [
         'base/base.gyp:base',
         'libdn',
-        'third_party/ninja.gyp:libninja',
       ],
       'include_dirs': [
         'src',
