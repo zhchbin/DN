@@ -159,12 +159,13 @@ RpcConnection::RpcConnection(int id, scoped_ptr<net::StreamSocket> socket)
       write_buf_(new QueuedWriteIOBuffer()),
       last_request_id_(0),
       weak_ptr_factory_(this) {
-  net::IPEndPoint peer;
-  socket_->GetPeerAddress(&peer);
-  DLOG(INFO) << peer.ToString();
 }
 
 RpcConnection::~RpcConnection() {
+}
+
+int RpcConnection::GetPeerAddress(net::IPEndPoint* address) {
+  return socket_->GetPeerAddress(address);
 }
 
 void RpcConnection::CallMethod(const google::protobuf::MethodDescriptor* method,

@@ -21,6 +21,7 @@ class RpcMessage;
 }
 
 namespace net {
+class IPEndPoint;
 class StreamSocket;
 }  // namespace net
 
@@ -122,6 +123,7 @@ class RpcConnection : public google::protobuf::RpcChannel {
   ~RpcConnection();
 
   int id() const { return id_; }
+  int GetPeerAddress(net::IPEndPoint* address);
   net::StreamSocket* socket() { return socket_.get(); }
   ReadIOBuffer* read_buf() const { return read_buf_.get(); }
   QueuedWriteIOBuffer* write_buf() const { return write_buf_.get(); }
