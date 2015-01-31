@@ -4,6 +4,7 @@
 
 #include "master/master_main_runner.h"
 
+#include "base/bind.h"
 #include "master/master_rpc.h"
 
 MasterMainRunner::MasterMainRunner(const std::string& bind_ip, uint16 port)
@@ -15,7 +16,7 @@ MasterMainRunner::~MasterMainRunner() {
 }
 
 bool MasterMainRunner::PostCreateThreads() {
-  master_rpc_.reset(new ninja::MasterRPC(bind_ip_, port_));
+  master_rpc_ = make_scoped_refptr(new ninja::MasterRPC(bind_ip_, port_));
   return true;
 }
 

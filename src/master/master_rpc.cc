@@ -4,7 +4,8 @@
 
 #include "master/master_rpc.h"
 
-#include "rpc/rpc_socket_server.h"
+#include "proto/slave_services.pb.h"
+#include "rpc/rpc_connection.h"
 #include "thread/ninja_thread.h"
 
 namespace ninja {
@@ -24,10 +25,15 @@ void MasterRPC::Init() {
 
 void MasterRPC::InitAsync() {
   rpc_socket_server_.reset(new rpc::RpcSocketServer(bind_ip_, port_));
+  rpc_socket_server_->AddObserver(this);
 }
 
 void MasterRPC::CleanUp() {
+  rpc_socket_server_->RemoveObserver(this);
   rpc_socket_server_.reset(NULL);
+}
+
+void MasterRPC::OnConnect(rpc::RpcConnection* connection) {
 }
 
 }  // namespace ninja

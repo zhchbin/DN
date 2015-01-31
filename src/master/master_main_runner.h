@@ -6,19 +6,22 @@
 #define  MASTER_MASTER_MAIN_RUNNER_H_
 
 #include <string>
+#include <vector>
 
 #include "base/macros.h"
 #include "common/main_runner.h"
+#include "thread/ninja_thread_delegate.h"
 
 namespace ninja {
 class MasterRPC;
-}
+}  // namespace ninja
 
 class MasterMainRunner : public common::MainRunner {
  public:
   MasterMainRunner(const std::string& bind_ip, uint16 port);
   ~MasterMainRunner() override;
 
+  // common::MainRunner implementations.
   bool PostCreateThreads() override;
   void Shutdown() override;
 
@@ -26,8 +29,7 @@ class MasterMainRunner : public common::MainRunner {
   std::string bind_ip_;
   uint16 port_;
 
-  scoped_ptr<ninja::MasterRPC> master_rpc_;
-
+  scoped_refptr<ninja::MasterRPC> master_rpc_;
   DISALLOW_COPY_AND_ASSIGN(MasterMainRunner);
 };
 
