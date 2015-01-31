@@ -2,6 +2,8 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
+#include <string>
+
 #include "base/at_exit.h"
 #include "base/command_line.h"
 #include "common/main_runner.h"
@@ -23,6 +25,9 @@ int main(int argc, char* argv[]) {
   }
 
   scoped_ptr<common::MainRunner> main_runner(common::MainRunner::Create());
+  std::string error;
+  static const char kDefaultManifest[] = "build.ninja";
+  CHECK(main_runner->InitFromManifest(kDefaultManifest, &error)) << error;
   main_runner->CreateThreads();
   CHECK(main_runner->PostCreateThreads()) << "PostCreateThreads return false";
   main_runner->Run();
