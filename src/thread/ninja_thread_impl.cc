@@ -8,6 +8,7 @@
 #include "base/callback.h"
 #include "base/compiler_specific.h"
 #include "base/lazy_instance.h"
+#include "base/message_loop/message_loop_proxy.h"
 #include "base/synchronization/lock.h"
 #include "thread/ninja_thread_delegate.h"
 
@@ -17,6 +18,56 @@ namespace {
 static const char* g_ninja_thread_names[NinjaThread::ID_COUNT] = {
   "Main", "RPC", "FILE"
 };
+
+// An implementation of MessageLoopProxy to be used in conjunction
+// with NinjaThread.
+class NinjaThreadMessageLoopProxy : public base::MessageLoopProxy {
+ public:
+  explicit NinjaThreadMessageLoopProxy(NinjaThread::ID identifier)
+      : id_(identifier) {
+  }
+
+  // MessageLoopProxy implementation.
+  bool PostDelayedTask(const tracked_objects::Location& from_here,
+                       const base::Closure& task,
+                       base::TimeDelta delay) override {
+    return NinjaThread::PostDelayedTask(id_, from_here, task, delay);
+  }
+
+  bool PostNonNestableDelayedTask(const tracked_objects::Location& from_here,
+                                  const base::Closure& task,
+                                  base::TimeDelta delay) override {
+    return NinjaThread::PostNonNestableDelayedTask(id_, from_here, task,
+                                                   delay);
+  }
+
+  bool RunsTasksOnCurrentThread() const override {
+    return NinjaThread::CurrentlyOn(id_);
+  }
+
+ protected:
+  ~NinjaThreadMessageLoopProxy() override {}
+
+ private:
+  NinjaThread::ID id_;
+  DISALLOW_COPY_AND_ASSIGN(NinjaThreadMessageLoopProxy);
+};
+
+// A separate helper is used just for the proxies, in order to avoid needing
+// to initialize the globals to create a proxy.
+struct NinjaThreadProxies {
+  NinjaThreadProxies() {
+    for (int i = 0; i < NinjaThread::ID_COUNT; ++i) {
+      proxies[i] =
+          new NinjaThreadMessageLoopProxy(static_cast<NinjaThread::ID>(i));
+    }
+  }
+
+  scoped_refptr<base::MessageLoopProxy> proxies[NinjaThread::ID_COUNT];
+};
+
+base::LazyInstance<NinjaThreadProxies>::Leaky
+    g_proxies = LAZY_INSTANCE_INITIALIZER;
 
 struct NinjaThreadGlobals {
   NinjaThreadGlobals() {
@@ -214,6 +265,33 @@ bool NinjaThread::PostNonNestableTask(
     const base::Closure& task) {
   return NinjaThreadImpl::PostTaskHelper(
       identifier, from_here, task, base::TimeDelta(), false);
+}
+
+// static
+bool NinjaThread::PostNonNestableDelayedTask(
+    ID identifier,
+    const tracked_objects::Location& from_here,
+    const base::Closure& task,
+    base::TimeDelta delay) {
+  return NinjaThreadImpl::PostTaskHelper(
+      identifier, from_here, task, delay, false);
+}
+
+// static
+bool NinjaThread::PostTaskAndReply(
+    ID identifier,
+    const tracked_objects::Location& from_here,
+    const base::Closure& task,
+    const base::Closure& reply) {
+  return GetMessageLoopProxyForThread(identifier)->PostTaskAndReply(from_here,
+                                                                    task,
+                                                                    reply);
+}
+
+// static
+scoped_refptr<base::MessageLoopProxy>
+NinjaThread::GetMessageLoopProxyForThread(ID identifier) {
+  return g_proxies.Get().proxies[identifier];
 }
 
 // static

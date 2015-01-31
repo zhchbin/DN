@@ -9,6 +9,10 @@
 #include "base/location.h"
 #include "base/time/time.h"
 
+namespace base {
+class MessageLoopProxy;
+}
+
 class NinjaThreadDelegate;
 
 class NinjaThread {
@@ -44,6 +48,17 @@ class NinjaThread {
   static bool PostNonNestableTask(ID identifier,
                                   const tracked_objects::Location& from_here,
                                   const base::Closure& task);
+  static bool PostNonNestableDelayedTask(
+      ID identifier,
+      const tracked_objects::Location& from_here,
+      const base::Closure& task,
+      base::TimeDelta delay);
+
+  static bool PostTaskAndReply(
+      ID identifier,
+      const tracked_objects::Location& from_here,
+      const base::Closure& task,
+      const base::Closure& reply);
 
   // Sets the delegate for the specified NinjaThread.
   //
@@ -58,6 +73,11 @@ class NinjaThread {
   // If the current message loop is one of the known threads, returns true and
   // sets identifier to its ID.  Otherwise returns false.
   static bool GetCurrentThreadIdentifier(ID* identifier) WARN_UNUSED_RESULT;
+
+  // Callers can hold on to a refcounted MessageLoopProxy beyond the lifetime
+  // of the thread.
+  static scoped_refptr<base::MessageLoopProxy> GetMessageLoopProxyForThread(
+      ID identifier);
 
   // Callable on any thread.  Returns whether you're currently on a particular
   // thread.
