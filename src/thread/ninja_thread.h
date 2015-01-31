@@ -20,6 +20,9 @@ class NinjaThread {
     // This is the thread that processes non-blocking IO for rpc.
     RPC,
 
+    // This is the thread that processing file sending/receiving.
+    FILE,
+
     // This identifier does not represent a thread.  Instead it counts the
     // number of well-known threads.  Insert new well-known threads before this
     // identifier.

@@ -36,6 +36,7 @@ class NinjaThreadImpl : public NinjaThread, public base::Thread {
   // the thread id from the callstack alone in crash dumps.
   void MainThreadRun(base::MessageLoop* message_loop);
   void RpcIOThreadRun(base::MessageLoop* message_loop);
+  void FileThreadRun(base::MessageLoop* message_loop);
 
   static bool PostTaskHelper(
       NinjaThread::ID identifier,

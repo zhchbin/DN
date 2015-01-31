@@ -23,6 +23,7 @@ namespace common {
 
 MainRunner::~MainRunner() {
   rpc_thread_->Stop();
+  file_thread_->Stop();
 }
 
 bool MainRunner::InitFromManifest(const std::string& input_file,
@@ -36,11 +37,13 @@ void MainRunner::CreateThreads() {
   main_thread_.reset(
       new NinjaThreadImpl(NinjaThread::MAIN, base::MessageLoop::current()));
   rpc_thread_.reset(new NinjaThreadImpl(NinjaThread::RPC));
+  file_thread_.reset(new NinjaThreadImpl(NinjaThread::FILE));
 }
 
 void MainRunner::Run() {
   base::Thread::Options options(base::MessageLoop::TYPE_IO, 0);
   rpc_thread_->StartWithOptions(options);
+  file_thread_->Start();
   base::RunLoop run_loop;
   run_loop.Run();
 }

@@ -10,6 +10,7 @@
 #include "base/hash.h"
 #include "base/stl_util.h"
 #include "proto/slave_services.pb.h"
+#include "slave/slave_file_thread.h"
 #include "slave/slave_rpc.h"
 
 namespace {
@@ -62,6 +63,8 @@ void SlaveMainRunner::OnCommandFinished(const std::string& command,
 
 bool SlaveMainRunner::PostCreateThreads() {
   slave_rpc_.reset(new ninja::SlaveRPC(master_, port_, this));
+  slave_file_thread_.reset(new ninja::SlaveFileThread());
+
   std::vector<std::string> commands;
   ninja_builder()->GetAllCommands(&commands);
   for (std::vector<std::string>::iterator it = commands.begin();

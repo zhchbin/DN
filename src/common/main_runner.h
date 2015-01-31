@@ -36,6 +36,7 @@ class MainRunner {
  private:
   scoped_ptr<NinjaThreadImpl> main_thread_;
   scoped_ptr<NinjaThreadImpl> rpc_thread_;
+  scoped_ptr<NinjaThreadImpl> file_thread_;
   scoped_ptr<ninja::NinjaBuilder> ninja_builder_;
 
   base::MessageLoop message_loop_;

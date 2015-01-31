@@ -15,7 +15,7 @@ namespace {
 
 // Friendly names for the well-known threads.
 static const char* g_ninja_thread_names[NinjaThread::ID_COUNT] = {
-  "Main", "RPC",
+  "Main", "RPC", "FILE"
 };
 
 struct NinjaThreadGlobals {
@@ -106,6 +106,8 @@ void NinjaThreadImpl::Run(base::MessageLoop* message_loop) {
       return MainThreadRun(message_loop);
     case NinjaThread::RPC:
       return RpcIOThreadRun(message_loop);
+    case NinjaThread::FILE:
+      return FileThreadRun(message_loop);
     case NinjaThread::ID_COUNT:
       CHECK(false);  // This shouldn't actually be reached!
       break;
@@ -143,6 +145,12 @@ NOINLINE void NinjaThreadImpl::MainThreadRun(base::MessageLoop* message_loop) {
 }
 
 NOINLINE void NinjaThreadImpl::RpcIOThreadRun(base::MessageLoop* message_loop) {
+  volatile int line_number = __LINE__;
+  Thread::Run(message_loop);
+  CHECK_GT(line_number, 0);
+}
+
+NOINLINE void NinjaThreadImpl::FileThreadRun(base::MessageLoop* message_loop) {
   volatile int line_number = __LINE__;
   Thread::Run(message_loop);
   CHECK_GT(line_number, 0);

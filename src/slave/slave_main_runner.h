@@ -16,6 +16,7 @@
 #include "slave/command_executor.h"
 
 namespace ninja {
+class SlaveFileThread;
 class SlaveRPC;
 }  // namespace ninja
 
@@ -58,6 +59,7 @@ class SlaveMainRunner
 
   scoped_ptr<ninja::SlaveRPC> slave_rpc_;
   scoped_ptr<ninja::CommandExecutor> command_executor_;
+  scoped_ptr<ninja::SlaveFileThread> slave_file_thread_;
 
   typedef std::set<uint32> NinjaCommmandHashSet;
   NinjaCommmandHashSet ninja_command_hash_set_;

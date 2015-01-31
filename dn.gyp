@@ -39,6 +39,7 @@
         'src/rpc/service_manager.cc',
         'src/rpc/slave_services.proto',
         'src/slave/command_executor.cc',
+        'src/slave/slave_file_thread.cc',
         'src/slave/slave_main_runner.cc',
         'src/slave/slave_rpc.cc',
         'src/thread/ninja_thread_impl.cc',
