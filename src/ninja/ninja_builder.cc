@@ -4,7 +4,8 @@
 
 #include "ninja/ninja_builder.h"
 
-  #include "base/logging.h"
+#include "base/logging.h"
+#include "base/stl_util.h"
 #include "third_party/ninja/src/manifest_parser.h"
 
 namespace {
@@ -16,6 +17,22 @@ struct RealFileReader : public ManifestParser::FileReader {
     return ::ReadFile(path, content, err) == 0;
   }
 };
+
+void GetAllCommandsHelper(Edge* edge, set<Edge*>* seen,
+                          std::vector<std::string>& commands) {
+  if (!edge)
+    return;
+  if (!seen->insert(edge).second)
+    return;
+
+  for (vector<Node*>::iterator in = edge->inputs_.begin();
+       in != edge->inputs_.end(); ++in)
+    GetAllCommandsHelper((*in)->in_edge(), seen, commands);
+
+  if (!edge->is_phony()) {
+    commands.push_back(edge->EvaluateCommand());
+  }
+}
 
 }  // namespace
 
@@ -128,6 +145,15 @@ bool NinjaBuilder::RebuildManifest(const char* input_file, string* err) {
   // rebuilt.  Not doing so can lead to crashes, see
   // https://github.com/martine/ninja/issues/874
   return builder.Build(err);
+}
+
+void NinjaBuilder::GetAllCommands(std::vector<std::string>& commands) {
+  commands.clear();
+  std::string error;
+  std::vector<Node*> nodes = state_.DefaultNodes(&error);
+  set<Edge*> seen;
+  for (vector<Node*>::iterator in = nodes.begin(); in != nodes.end(); ++in)
+    GetAllCommandsHelper((*in)->in_edge(), &seen, commands);
 }
 
 }  // namespace ninja

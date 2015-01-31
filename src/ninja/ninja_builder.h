@@ -6,6 +6,7 @@
 #define  NINJA_NINJA_BUILDER_H_
 
 #include <string>
+#include <vector>
 
 #include "base/macros.h"
 #include "third_party/ninja/src/build.h"
@@ -57,6 +58,8 @@ struct NinjaBuilder : public BuildLogUser {
   State& state() {
     return state_;
   }
+
+  void GetAllCommands(std::vector<std::string>& commands);
 
  private:
   // Build configuration set from flags (e.g. parallelism).
