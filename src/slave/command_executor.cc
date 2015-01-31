@@ -10,9 +10,19 @@
 
 namespace ninja {
 
-CommandExecutor::CommandExecutor() : weak_factory_(this) {}
+CommandExecutor::CommandExecutor()
+    : weak_factory_(this) {
+}
 
 CommandExecutor::~CommandExecutor() {}
+
+void CommandExecutor::AddObserver(Observer* obs) {
+  observer_list_.AddObserver(obs);
+}
+
+void CommandExecutor::RemoveObserver(Observer* obs) {
+  observer_list_.RemoveObserver(obs);
+}
 
 void CommandExecutor::AppendCommand(const std::string& command) {
   incoming_command_queue_.push(command);
@@ -23,8 +33,6 @@ void CommandExecutor::CleanUp() {
   subprocs_.Clear();
 }
 
-int pending_commands = 0;
-
 void CommandExecutor::StartCommand() {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   if (!incoming_command_queue_.empty() && CanRunMore()) {
@@ -32,13 +40,12 @@ void CommandExecutor::StartCommand() {
     incoming_command_queue_.pop();
     Subprocess* subproc = subprocs_.Add(command, true /*use console*/);
     CHECK(subproc != NULL);
-    pending_commands++;
+    FOR_EACH_OBSERVER(Observer, observer_list_, OnCommandStarted(command));
+    subprocss_to_command_.insert(std::make_pair(subproc, command));
   } else {
     CommandRunner::Result result;
-    while (pending_commands) {
+    while (!subprocss_to_command_.empty())
       WaitForCommand(&result);
-      pending_commands--;
-    }
   }
 
   if (incoming_command_queue_.empty())
@@ -59,6 +66,11 @@ bool CommandExecutor::WaitForCommand(CommandRunner::Result* result) {
 
   result->status = subproc->Finish();
   result->output = subproc->GetOutput();
+  SubprocessToCommand::iterator it = subprocss_to_command_.find(subproc);
+  DCHECK(it != subprocss_to_command_.end());
+  FOR_EACH_OBSERVER(
+      Observer, observer_list_, OnCommandFinished(it->second, result));
+  subprocss_to_command_.erase(it);
   delete subproc;
   return true;
 }

@@ -47,6 +47,8 @@ class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
               ::slave::FinishResponse* response,
               ::google::protobuf::Closure* done) override;
 
+  void OnRunCommandDone(::google::protobuf::Closure* done);
+
  private:
   std::string master_ip_;
   uint16 port_;

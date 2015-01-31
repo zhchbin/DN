@@ -4,6 +4,8 @@
 
 #include "ninja/ninja_builder.h"
 
+#include <set>
+
 #include "base/logging.h"
 #include "base/stl_util.h"
 #include "third_party/ninja/src/manifest_parser.h"
@@ -19,7 +21,7 @@ struct RealFileReader : public ManifestParser::FileReader {
 };
 
 void GetAllCommandsHelper(Edge* edge, set<Edge*>* seen,
-                          std::vector<std::string>& commands) {
+                          std::vector<std::string>* commands) {
   if (!edge)
     return;
   if (!seen->insert(edge).second)
@@ -30,7 +32,7 @@ void GetAllCommandsHelper(Edge* edge, set<Edge*>* seen,
     GetAllCommandsHelper((*in)->in_edge(), seen, commands);
 
   if (!edge->is_phony()) {
-    commands.push_back(edge->EvaluateCommand());
+    commands->push_back(edge->EvaluateCommand());
   }
 }
 
@@ -147,11 +149,11 @@ bool NinjaBuilder::RebuildManifest(const char* input_file, string* err) {
   return builder.Build(err);
 }
 
-void NinjaBuilder::GetAllCommands(std::vector<std::string>& commands) {
-  commands.clear();
+void NinjaBuilder::GetAllCommands(std::vector<std::string>* commands) {
+  commands->clear();
   std::string error;
   std::vector<Node*> nodes = state_.DefaultNodes(&error);
-  set<Edge*> seen;
+  std::set<Edge*> seen;
   for (vector<Node*>::iterator in = nodes.begin(); in != nodes.end(); ++in)
     GetAllCommandsHelper((*in)->in_edge(), &seen, commands);
 }

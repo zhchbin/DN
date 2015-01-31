@@ -15,25 +15,12 @@
 
 namespace {
 
-static const std::string kWhitelistCommands[] = {
-  "g++", "c++", "ninja"
-};
-
 void QuitMainThreadHelper() {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
       base::MessageLoop::current()->QuitClosure());
-}
-
-bool IsWhitelistCommand(const std::string& command) {
-  for (size_t i = 0; i < arraysize(kWhitelistCommands); ++i) {
-    if (StartsWithASCII(command, kWhitelistCommands[i], false))
-      return true;
-  }
-
-  return false;
 }
 
 }  // namespace
@@ -73,18 +60,10 @@ void SlaveRPC::RunCommand(::google::protobuf::RpcController* /* controller */,
                           ::slave::RunCommandResponse* response,
                           ::google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
-  if (!IsWhitelistCommand(request->command())) {
-    response->set_status(slave::RunCommandResponse::kExitFailure);
-    response->set_output("This command is NOT ALLOWED to run.");
-    done->Run();
-  }
-
   NinjaThread::PostTask(
-      NinjaThread::MAIN,
-      FROM_HERE,
-      base::Bind(&SlaveMainRunner::RunCommand,
-                 slave_main_runner_,
-                 request->command()));
+      NinjaThread::MAIN, FROM_HERE,
+      base::Bind(&SlaveMainRunner::RunCommand, slave_main_runner_,
+                 request, response, done));
 }
 
 void SlaveRPC::Finish(::google::protobuf::RpcController* /*controller*/,
@@ -99,6 +78,11 @@ void SlaveRPC::Finish(::google::protobuf::RpcController* /*controller*/,
       NinjaThread::MAIN,
       FROM_HERE,
       base::Bind(&QuitMainThreadHelper));
+}
+
+void SlaveRPC::OnRunCommandDone(::google::protobuf::Closure* done) {
+  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
+  done->Run();
 }
 
 }  // namespace ninja

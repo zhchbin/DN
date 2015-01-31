@@ -59,7 +59,7 @@ struct NinjaBuilder : public BuildLogUser {
     return state_;
   }
 
-  void GetAllCommands(std::vector<std::string>& commands);
+  void GetAllCommands(std::vector<std::string>* commands);
 
  private:
   // Build configuration set from flags (e.g. parallelism).
