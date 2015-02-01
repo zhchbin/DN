@@ -36,7 +36,6 @@ def run_cpplint(files):
     return execute([sys.executable, cpplint, '--root=src'] + files)
 
 def main():
-    find_files()
     success, output = run_cpplint(find_files());
     if success:
         if '-v' in sys.argv:
