@@ -12,9 +12,9 @@
 #include "common/main_runner.h"
 #include "thread/ninja_thread_delegate.h"
 
-namespace ninja {
+namespace master {
+
 class MasterRPC;
-}  // namespace ninja
 
 class MasterMainRunner : public common::MainRunner {
  public:
@@ -29,8 +29,10 @@ class MasterMainRunner : public common::MainRunner {
   std::string bind_ip_;
   uint16 port_;
 
-  scoped_refptr<ninja::MasterRPC> master_rpc_;
+  scoped_refptr<MasterRPC> master_rpc_;
   DISALLOW_COPY_AND_ASSIGN(MasterMainRunner);
 };
+
+}  // namespace master
 
 #endif  // MASTER_MASTER_MAIN_RUNNER_H_

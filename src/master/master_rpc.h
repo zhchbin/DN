@@ -14,7 +14,7 @@
 #include "rpc/rpc_socket_server.h"
 #include "thread/ninja_thread_delegate.h"
 
-namespace ninja {
+namespace master {
 
 class MasterRPC
     : public NinjaThreadDelegate,
@@ -42,6 +42,6 @@ class MasterRPC
   DISALLOW_COPY_AND_ASSIGN(MasterRPC);
 };
 
-}  // namespace ninja
+}  // namespace master
 
 #endif  // MASTER_MASTER_RPC_H_

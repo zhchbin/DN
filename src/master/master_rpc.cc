@@ -8,7 +8,7 @@
 #include "rpc/rpc_connection.h"
 #include "thread/ninja_thread.h"
 
-namespace ninja {
+namespace master {
 
 MasterRPC::MasterRPC(const std::string& bind_ip, uint16 port)
     : bind_ip_(bind_ip),
@@ -36,4 +36,4 @@ void MasterRPC::CleanUp() {
 void MasterRPC::OnConnect(rpc::RpcConnection* connection) {
 }
 
-}  // namespace ninja
+}  // namespace master

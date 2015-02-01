@@ -75,7 +75,7 @@ MainRunner* MainRunner::Create() {
       bind_ip = command_line->GetSwitchValueASCII(switches::kBindIP);
       DCHECK(!bind_ip.empty());
     }
-    return new MasterMainRunner(bind_ip, port);
+    return new master::MasterMainRunner(bind_ip, port);
   }
 }
 
