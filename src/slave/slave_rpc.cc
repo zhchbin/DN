@@ -25,7 +25,7 @@ void QuitMainThreadHelper() {
 
 }  // namespace
 
-namespace ninja {
+namespace slave {
 
 SlaveRPC::SlaveRPC(const std::string& master_ip,
                    uint16 port,
@@ -85,4 +85,4 @@ void SlaveRPC::OnRunCommandDone(::google::protobuf::Closure* done) {
   done->Run();
 }
 
-}  // namespace ninja
+}  // namespace slave

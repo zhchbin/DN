@@ -67,7 +67,7 @@ MainRunner* MainRunner::Create() {
     LOG(INFO) << "Running as slave.";
     std::string master = command_line->GetSwitchValueASCII(switches::kMaster);
     DCHECK(!master.empty());
-    return new SlaveMainRunner(master, port);
+    return new slave::SlaveMainRunner(master, port);
   } else {
     LOG(INFO) << "Running as master.";
     std::string bind_ip = rpc::kDefaultBindIP;

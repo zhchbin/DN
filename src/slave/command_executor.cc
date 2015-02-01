@@ -8,7 +8,7 @@
 #include "base/logging.h"
 #include "thread/ninja_thread.h"
 
-namespace ninja {
+namespace slave {
 
 CommandExecutor::CommandExecutor()
     : weak_factory_(this) {
@@ -82,4 +82,4 @@ bool CommandExecutor::CanRunMore() {
   return subproc_number < 4;
 }
 
-}  // namespace ninja
+}  // namespace slave

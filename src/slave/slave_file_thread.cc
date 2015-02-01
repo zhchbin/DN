@@ -7,7 +7,7 @@
 #include "base/bind.h"
 #include "thread/ninja_thread.h"
 
-namespace ninja {
+namespace slave {
 
 SlaveFileThread::SlaveFileThread() {
   NinjaThread::SetDelegate(NinjaThread::FILE, this);
@@ -43,4 +43,4 @@ void SlaveFileThread::PoolMongooseServer() {
       base::Bind(&SlaveFileThread::PoolMongooseServer, base::Unretained(this)));
 }
 
-}  // namespace ninja
+}  // namespace slave

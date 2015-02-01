@@ -15,7 +15,7 @@
 #include "third_party/ninja/src/build.h"
 #include "third_party/ninja/src/subprocess.h"
 
-namespace ninja {
+namespace slave {
 
 class CommandExecutor {
  public:
@@ -58,6 +58,6 @@ class CommandExecutor {
   DISALLOW_COPY_AND_ASSIGN(CommandExecutor);
 };
 
-}  // namespace ninja
+}  // namespace slave
 
 #endif  // SLAVE_COMMAND_EXECUTOR_H_

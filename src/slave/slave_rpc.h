@@ -17,13 +17,14 @@
 #include "rpc/service_manager.h"
 #include "thread/ninja_thread_delegate.h"
 
-class SlaveMainRunner;
 
 namespace rpc {
 class RpcSocketClient;
 }
 
-namespace ninja {
+namespace slave {
+
+class SlaveMainRunner;
 
 class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
  public:
@@ -59,6 +60,6 @@ class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
   DISALLOW_COPY_AND_ASSIGN(SlaveRPC);
 };
 
-}  // namespace ninja
+}  // namespace slave
 
 #endif  // SLAVE_SLAVE_RPC_H_

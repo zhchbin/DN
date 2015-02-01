@@ -8,7 +8,7 @@
 #include "third_party/mongoose/mongoose.h"
 #include "thread/ninja_thread_delegate.h"
 
-namespace ninja {
+namespace slave {
 
 class SlaveFileThread : public NinjaThreadDelegate {
  public:
@@ -26,6 +26,6 @@ class SlaveFileThread : public NinjaThreadDelegate {
   mg_server* server_;
 };
 
-}  // namespace ninja
+}  // namespace slave
 
 #endif  // SLAVE_SLAVE_FILE_THREAD_H_

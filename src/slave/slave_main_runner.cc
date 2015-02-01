@@ -31,10 +31,12 @@ slave::RunCommandResponse::ExitStatus TransformExitStatus(ExitStatus status) {
 
 }  // namespace
 
+namespace slave {
+
 SlaveMainRunner::SlaveMainRunner(const std::string& master, uint16 port)
     : master_(master),
       port_(port),
-      command_executor_(new ninja::CommandExecutor()) {
+      command_executor_(new CommandExecutor()) {
   command_executor_->AddObserver(this);
 }
 
@@ -56,14 +58,14 @@ void SlaveMainRunner::OnCommandFinished(const std::string& command,
 
   NinjaThread::PostTask(
       NinjaThread::RPC, FROM_HERE,
-      base::Bind(&ninja::SlaveRPC::OnRunCommandDone,
+      base::Bind(&SlaveRPC::OnRunCommandDone,
                  base::Unretained(slave_rpc_.get()),
                  it->second.second));
 }
 
 bool SlaveMainRunner::PostCreateThreads() {
-  slave_rpc_.reset(new ninja::SlaveRPC(master_, port_, this));
-  slave_file_thread_.reset(new ninja::SlaveFileThread());
+  slave_rpc_.reset(new SlaveRPC(master_, port_, this));
+  slave_file_thread_.reset(new SlaveFileThread());
 
   std::vector<std::string> commands;
   ninja_builder()->GetAllCommands(&commands);
@@ -81,17 +83,17 @@ bool SlaveMainRunner::PostCreateThreads() {
 void SlaveMainRunner::Shutdown() {
 }
 
-void SlaveMainRunner::RunCommand(const ::slave::RunCommandRequest* request,
-                                 ::slave::RunCommandResponse* response,
+void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
+                                 RunCommandResponse* response,
                                  ::google::protobuf::Closure* done) {
   std::string command = request->command();
   uint32 command_hash = base::Hash(command);
   if (!ContainsKey(ninja_command_hash_set_, command_hash)) {
-    response->set_status(slave::RunCommandResponse::kExitFailure);
+    response->set_status(RunCommandResponse::kExitFailure);
     response->set_output("This command is NOT ALLOWED to run.");
     NinjaThread::PostTask(
         NinjaThread::RPC, FROM_HERE,
-        base::Bind(&ninja::SlaveRPC::OnRunCommandDone,
+        base::Bind(&SlaveRPC::OnRunCommandDone,
                    base::Unretained(slave_rpc_.get()),
                    done));
     return;
@@ -101,3 +103,5 @@ void SlaveMainRunner::RunCommand(const ::slave::RunCommandRequest* request,
   hash_to_response_pair_[command_hash] = pair;
   command_executor_->AppendCommand(command);
 }
+
+}  // namespace slave
