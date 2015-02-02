@@ -68,7 +68,7 @@ bool SlaveMainRunner::PostCreateThreads() {
   slave_file_thread_.reset(new SlaveFileThread());
 
   std::vector<std::string> commands;
-  ninja_builder()->GetAllCommands(&commands);
+  ninja_main()->GetAllCommands(&commands);
   for (std::vector<std::string>::iterator it = commands.begin();
        it != commands.end();
        ++it) {

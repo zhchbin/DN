@@ -19,8 +19,6 @@ MasterMainRunner::~MasterMainRunner() {
 
 bool MasterMainRunner::PostCreateThreads() {
   master_rpc_.reset(new MasterRPC(bind_ip_, port_, make_scoped_refptr(this)));
-  ninja_builder()->RunBuild();
-
   return true;
 }
 

@@ -2,7 +2,7 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#include "ninja/ninja_builder.h"
+#include "ninja/ninja_main.h"
 
 #include <set>
 
@@ -40,11 +40,11 @@ void GetAllCommandsHelper(Edge* edge, set<Edge*>* seen,
 
 namespace ninja {
 
-NinjaBuilder::NinjaBuilder(const BuildConfig& config) : config_(config) {}
+NinjaMain::NinjaMain(const BuildConfig& config) : config_(config) {}
 
-bool NinjaBuilder::InitFromManifest(const std::string& input_file,
-                                    std::string* error,
-                                    bool rebuild_manifest) {
+bool NinjaMain::InitFromManifest(const std::string& input_file,
+                                 std::string* error,
+                                 bool rebuild_manifest) {
   // Reference: https://github.com/martine/ninja/blob/8605b3daa6c68b29e4126e86193acdcfaf7cc2f1/src/ninja.cc#L1064-L1105
   RealFileReader file_reader;
   ManifestParser parser(&state_, &file_reader);
@@ -64,7 +64,7 @@ bool NinjaBuilder::InitFromManifest(const std::string& input_file,
   return true;
 }
 
-bool NinjaBuilder::OpenBuildLog(bool recompact_only) {
+bool NinjaMain::OpenBuildLog(bool recompact_only) {
   std::string log_path = ".ninja_log";
   if (!build_dir_.empty())
     log_path = build_dir_ + "/" + log_path;
@@ -97,7 +97,7 @@ bool NinjaBuilder::OpenBuildLog(bool recompact_only) {
   return true;
 }
 
-bool NinjaBuilder::OpenDepsLog(bool recompact_only) {
+bool NinjaMain::OpenDepsLog(bool recompact_only) {
   string path = ".ninja_deps";
   if (!build_dir_.empty())
     path = build_dir_ + "/" + path;
@@ -130,7 +130,7 @@ bool NinjaBuilder::OpenDepsLog(bool recompact_only) {
   return true;
 }
 
-bool NinjaBuilder::EnsureBuildDirExists() {
+bool NinjaMain::EnsureBuildDirExists() {
   build_dir_ = state_.bindings_.LookupVariable("builddir");
   if (!build_dir_.empty() && !config_.dry_run) {
     if (!disk_interface_.MakeDirs(build_dir_ + "/.") && errno != EEXIST) {
@@ -142,7 +142,7 @@ bool NinjaBuilder::EnsureBuildDirExists() {
   return true;
 }
 
-bool NinjaBuilder::RebuildManifest(const char* input_file, string* err) {
+bool NinjaMain::RebuildManifest(const char* input_file, string* err) {
   std::string path = input_file;
   unsigned int slash_bits;  // Unused because this path is only used for lookup.
   if (!CanonicalizePath(&path, &slash_bits, err))
@@ -164,7 +164,7 @@ bool NinjaBuilder::RebuildManifest(const char* input_file, string* err) {
   return builder.Build(err);
 }
 
-void NinjaBuilder::GetAllCommands(std::vector<std::string>* commands) {
+void NinjaMain::GetAllCommands(std::vector<std::string>* commands) {
   commands->clear();
   std::string error;
   std::vector<Node*> nodes = state_.DefaultNodes(&error);

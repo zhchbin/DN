@@ -29,8 +29,8 @@ MainRunner::~MainRunner() {
 bool MainRunner::InitFromManifest(const std::string& input_file,
                                   std::string* error) {
   BuildConfig config;
-  ninja_builder_.reset(new ninja::NinjaBuilder(config));
-  return ninja_builder_->InitFromManifest(input_file, error, true);
+  ninja_main_.reset(new ninja::NinjaMain(config));
+  return ninja_main_->InitFromManifest(input_file, error, true);
 }
 
 void MainRunner::CreateThreads() {

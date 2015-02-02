@@ -36,7 +36,6 @@ class MasterRPC
   void OnConnect(rpc::RpcConnection* connection) override;
 
  private:
-
   std::string bind_ip_;
   uint16 port_;
   scoped_ptr<rpc::RpcSocketServer> rpc_socket_server_;

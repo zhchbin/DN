@@ -8,7 +8,7 @@
 #include <string>
 
 #include "base/message_loop/message_loop.h"
-#include "ninja/ninja_builder.h"
+#include "ninja/ninja_main.h"
 #include "thread/ninja_thread_impl.h"
 
 namespace common {
@@ -29,15 +29,13 @@ class MainRunner {
   virtual void Shutdown() = 0;
 
  protected:
-  ninja::NinjaBuilder* ninja_builder() {
-    return ninja_builder_.get();
-  }
+  ninja::NinjaMain* ninja_main() { return ninja_main_.get(); }
 
  private:
   scoped_ptr<NinjaThreadImpl> main_thread_;
   scoped_ptr<NinjaThreadImpl> rpc_thread_;
   scoped_ptr<NinjaThreadImpl> file_thread_;
-  scoped_ptr<ninja::NinjaBuilder> ninja_builder_;
+  scoped_ptr<ninja::NinjaMain> ninja_main_;
 
   base::MessageLoop message_loop_;
 };

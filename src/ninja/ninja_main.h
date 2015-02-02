@@ -2,8 +2,8 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  NINJA_NINJA_BUILDER_H_
-#define  NINJA_NINJA_BUILDER_H_
+#ifndef  NINJA_NINJA_MAIN_H_
+#define  NINJA_NINJA_MAIN_H_
 
 #include <string>
 #include <vector>
@@ -17,10 +17,10 @@
 
 namespace ninja {
 
-struct NinjaBuilder : public BuildLogUser {
+struct NinjaMain : public BuildLogUser {
  public:
-  explicit NinjaBuilder(const BuildConfig& config);
-  virtual ~NinjaBuilder() {}
+  explicit NinjaMain(const BuildConfig& config);
+  virtual ~NinjaMain() {}
 
   bool InitFromManifest(const std::string& input_file,
                         std::string* error,
@@ -57,9 +57,7 @@ struct NinjaBuilder : public BuildLogUser {
     return (!n || !n->in_edge()) && disk_interface_.Stat(s.AsString()) == 0;
   }
 
-  State& state() {
-    return state_;
-  }
+  State& state() { return state_; }
 
   void GetAllCommands(std::vector<std::string>* commands);
 
@@ -79,9 +77,9 @@ struct NinjaBuilder : public BuildLogUser {
   BuildLog build_log_;
   DepsLog deps_log_;
 
-  DISALLOW_COPY_AND_ASSIGN(NinjaBuilder);
+  DISALLOW_COPY_AND_ASSIGN(NinjaMain);
 };
 
 }  // namespace ninja
 
-#endif  // NINJA_NINJA_BUILDER_H_
+#endif  // NINJA_NINJA_MAIN_H_
