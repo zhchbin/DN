@@ -16,20 +16,24 @@ namespace master {
 
 class MasterRPC;
 
-class MasterMainRunner : public common::MainRunner {
+class MasterMainRunner
+    : public base::RefCountedThreadSafe<MasterMainRunner>,
+      public common::MainRunner {
  public:
   MasterMainRunner(const std::string& bind_ip, uint16 port);
-  ~MasterMainRunner() override;
 
   // common::MainRunner implementations.
   bool PostCreateThreads() override;
   void Shutdown() override;
 
  private:
+  friend class base::RefCountedThreadSafe<MasterMainRunner>;
+  ~MasterMainRunner() override;
+
   std::string bind_ip_;
   uint16 port_;
+  scoped_ptr<MasterRPC> master_rpc_;
 
-  scoped_refptr<MasterRPC> master_rpc_;
   DISALLOW_COPY_AND_ASSIGN(MasterMainRunner);
 };
 

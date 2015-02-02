@@ -16,12 +16,16 @@
 
 namespace master {
 
+class MasterMainRunner;
+
 class MasterRPC
     : public NinjaThreadDelegate,
-      public base::RefCountedThreadSafe<MasterRPC>,
       public rpc::RpcSocketServer::Observer {
  public:
-  MasterRPC(const std::string& bind_ip, uint16 port);
+  MasterRPC(const std::string& bind_ip,
+            uint16 port,
+            scoped_refptr<MasterMainRunner> master_main_runner);
+  ~MasterRPC() override;
 
   // NinjaThreadDelegate implementations.
   void Init() override;
@@ -32,12 +36,11 @@ class MasterRPC
   void OnConnect(rpc::RpcConnection* connection) override;
 
  private:
-  friend class base::RefCountedThreadSafe<MasterRPC>;
-  virtual ~MasterRPC();
 
   std::string bind_ip_;
   uint16 port_;
   scoped_ptr<rpc::RpcSocketServer> rpc_socket_server_;
+  scoped_refptr<MasterMainRunner> master_main_runner_;
 
   DISALLOW_COPY_AND_ASSIGN(MasterRPC);
 };

@@ -5,14 +5,18 @@
 #include "master/master_rpc.h"
 
 #include "proto/slave_services.pb.h"
+#include "master/master_main_runner.h"
 #include "rpc/rpc_connection.h"
 #include "thread/ninja_thread.h"
 
 namespace master {
 
-MasterRPC::MasterRPC(const std::string& bind_ip, uint16 port)
+MasterRPC::MasterRPC(const std::string& bind_ip,
+                     uint16 port,
+                     scoped_refptr<MasterMainRunner> master_main_runner)
     : bind_ip_(bind_ip),
-      port_(port) {
+      port_(port),
+      master_main_runner_(master_main_runner) {
   NinjaThread::SetDelegate(NinjaThread::RPC, this);
 }
 
