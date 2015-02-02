@@ -5,6 +5,7 @@
 #ifndef  SLAVE_SLAVE_FILE_THREAD_H_
 #define  SLAVE_SLAVE_FILE_THREAD_H_
 
+#include "base/memory/weak_ptr.h"
 #include "third_party/mongoose/mongoose.h"
 #include "thread/ninja_thread_delegate.h"
 
@@ -23,6 +24,7 @@ class SlaveFileThread : public NinjaThreadDelegate {
   void PoolMongooseServer();
 
  private:
+  base::WeakPtrFactory<SlaveFileThread> weak_factory_;
   mg_server* server_;
 };
 

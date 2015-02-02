@@ -9,7 +9,8 @@
 
 namespace slave {
 
-SlaveFileThread::SlaveFileThread() {
+SlaveFileThread::SlaveFileThread()
+    : weak_factory_(this) {
   NinjaThread::SetDelegate(NinjaThread::FILE, this);
 }
 
@@ -27,7 +28,8 @@ void SlaveFileThread::InitAsync() {
   NinjaThread::PostTask(
       NinjaThread::FILE,
       FROM_HERE,
-      base::Bind(&SlaveFileThread::PoolMongooseServer, base::Unretained(this)));
+      base::Bind(&SlaveFileThread::PoolMongooseServer,
+                 weak_factory_.GetWeakPtr()));
 }
 
 void SlaveFileThread::CleanUp() {
@@ -40,7 +42,8 @@ void SlaveFileThread::PoolMongooseServer() {
   NinjaThread::PostTask(
       NinjaThread::FILE,
       FROM_HERE,
-      base::Bind(&SlaveFileThread::PoolMongooseServer, base::Unretained(this)));
+      base::Bind(&SlaveFileThread::PoolMongooseServer,
+                  weak_factory_.GetWeakPtr()));
 }
 
 }  // namespace slave
