@@ -43,10 +43,25 @@ namespace ninja {
 NinjaBuilder::NinjaBuilder(const BuildConfig& config) : config_(config) {}
 
 bool NinjaBuilder::InitFromManifest(const std::string& input_file,
-                                    std::string* error) {
+                                    std::string* error,
+                                    bool rebuild_manifest) {
+  // Reference: https://github.com/martine/ninja/blob/8605b3daa6c68b29e4126e86193acdcfaf7cc2f1/src/ninja.cc#L1064-L1105
   RealFileReader file_reader;
   ManifestParser parser(&state_, &file_reader);
-  return parser.Load(input_file, error);
+  if (!parser.Load(input_file, error))
+    return false;
+  if (!EnsureBuildDirExists()) {
+    *error = "EnsureBuildDirExists returns error.";
+    return false;
+  }
+  if (!OpenBuildLog() || !OpenDepsLog()) {
+    *error = "OpenBuildLog or OpenDepsLog returns error.";
+    return false;
+  }
+  if (rebuild_manifest && RebuildManifest(input_file.c_str(), error))
+    return InitFromManifest(input_file, error, !rebuild_manifest);
+
+  return true;
 }
 
 bool NinjaBuilder::OpenBuildLog(bool recompact_only) {

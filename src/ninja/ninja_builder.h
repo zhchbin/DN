@@ -22,7 +22,9 @@ struct NinjaBuilder : public BuildLogUser {
   explicit NinjaBuilder(const BuildConfig& config);
   virtual ~NinjaBuilder() {}
 
-  bool InitFromManifest(const std::string& input_file, std::string* error);
+  bool InitFromManifest(const std::string& input_file,
+                        std::string* error,
+                        bool rebuild_manifest);
 
   /// Open the build log.
   /// @return false on error.
@@ -63,7 +65,7 @@ struct NinjaBuilder : public BuildLogUser {
 
  private:
   // Build configuration set from flags (e.g. parallelism).
-  const BuildConfig& config_;
+  BuildConfig config_;
 
   // Loaded state (rules, nodes).
   State state_;
