@@ -3,7 +3,7 @@
     'build/win_precompile.gypi',
   ],
   'variables': {
-    'proto_in_dir': 'src/rpc',
+    'proto_in_dir': 'src/proto',
     'proto_out_dir': 'proto'
   },
   'targets': [
@@ -32,13 +32,13 @@
         'src/net/winsock_util.cc',
         'src/ninja/dn_builder.cc',
         'src/ninja/ninja_main.cc',
+        'src/proto/rpc_message.proto',
+        'src/proto/slave_services.proto',
         'src/rpc/rpc_connection.cc',
-        'src/rpc/rpc_message.proto',
         'src/rpc/rpc_options.cc',
         'src/rpc/rpc_socket_client.cc',
         'src/rpc/rpc_socket_server.cc',
         'src/rpc/service_manager.cc',
-        'src/rpc/slave_services.proto',
         'src/slave/command_executor.cc',
         'src/slave/slave_file_thread.cc',
         'src/slave/slave_main_runner.cc',
@@ -92,16 +92,16 @@
       ],
 
       'link_settings': {
-         'libraries': [
-           '-lcurl',
-         ],
+        'libraries': [
+          '-lcurl',
+        ],
       },
     },
     {
       'target_name': 'dn_unittest',
       'type': 'executable',
       'sources': [
-        'src/rpc/echo_unittest.proto',
+        'src/proto/echo_unittest.proto',
         'src/rpc/rpc_socket_unittest.cc',
         'src/run_all_unittest.cc',
         'src/thread/ninja_thread_unittest.cc',
