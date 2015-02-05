@@ -11,9 +11,20 @@
 #include "rpc/rpc_connection.h"
 #include "rpc/rpc_socket_client.h"
 #include "slave/slave_main_runner.h"
+#include "slave/slave_file_thread.h"
 #include "thread/ninja_thread.h"
 
 namespace {
+
+void QuitFileThreadHelper() {
+  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::FILE));
+  slave::SlaveFileThread::QuitPool();
+
+  NinjaThread::PostTask(
+      NinjaThread::FILE,
+      FROM_HERE,
+      base::MessageLoop::current()->QuitClosure());
+}
 
 void QuitMainThreadHelper() {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
@@ -29,7 +40,7 @@ namespace slave {
 
 SlaveRPC::SlaveRPC(const std::string& master_ip,
                    uint16 port,
-                   scoped_refptr<SlaveMainRunner> main_runner)
+                   SlaveMainRunner* main_runner)
     : master_ip_(master_ip),
       port_(port),
       slave_main_runner_(main_runner) {
@@ -74,6 +85,10 @@ void SlaveRPC::Finish(::google::protobuf::RpcController* /*controller*/,
   if (done)
     done->Run();
 
+  NinjaThread::PostTask(
+      NinjaThread::FILE,
+      FROM_HERE,
+      base::Bind(&QuitFileThreadHelper));
   NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,

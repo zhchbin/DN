@@ -4,7 +4,14 @@ option cc_generic_services = true;
 
 message RunCommandRequest {
   required string command = 1;
-  required string target = 2;
+  required uint32 edge_id = 2;
+
+  //Directories necessary for outputs.
+  repeated string dirs = 3;
+
+  // Response file, if needed.
+  optional string rspfile_name = 4;
+  optional string rspfile_content = 5;
 };
 
 message RunCommandResponse {
@@ -16,6 +23,7 @@ message RunCommandResponse {
 
   required ExitStatus status = 1;
   required string output = 2;
+  required uint32 edge_id = 3;
 };
 
 message FinishRequest {

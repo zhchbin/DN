@@ -7,7 +7,17 @@
 #include "base/bind.h"
 #include "thread/ninja_thread.h"
 
+namespace {
+static bool g_should_quit_pool = false;
+}  // namespace
+
 namespace slave {
+
+// static
+void SlaveFileThread::QuitPool() {
+  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::FILE));
+  g_should_quit_pool = true;
+}
 
 SlaveFileThread::SlaveFileThread()
     : weak_factory_(this) {
@@ -37,8 +47,10 @@ void SlaveFileThread::CleanUp() {
 }
 
 void SlaveFileThread::PoolMongooseServer() {
-  mg_poll_server(server_, 1000);
+  if (g_should_quit_pool)
+    return;
 
+  mg_poll_server(server_, 1000);
   NinjaThread::PostTask(
       NinjaThread::FILE,
       FROM_HERE,

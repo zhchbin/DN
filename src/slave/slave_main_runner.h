@@ -31,10 +31,8 @@ namespace slave {
 class SlaveFileThread;
 class SlaveRPC;
 
-class SlaveMainRunner
-    :  public base::RefCountedThreadSafe<SlaveMainRunner>,
-       public CommandExecutor::Observer,
-       public common::MainRunner {
+class SlaveMainRunner : public CommandExecutor::Observer,
+                        public common::MainRunner {
  public:
   SlaveMainRunner(const std::string& master, uint16 port);
 
@@ -45,7 +43,6 @@ class SlaveMainRunner
 
   // common::MainRunner implementations.
   bool PostCreateThreads() override;
-  void Shutdown() override;
 
   void RunCommand(const RunCommandRequest* request,
                   RunCommandResponse* response,
@@ -54,6 +51,7 @@ class SlaveMainRunner
  private:
   friend class base::RefCountedThreadSafe<SlaveMainRunner>;
   ~SlaveMainRunner() override;
+
   std::string master_;
   uint16 port_;
 

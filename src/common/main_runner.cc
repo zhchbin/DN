@@ -22,8 +22,6 @@ const int kMaxPort = 65535;
 namespace common {
 
 MainRunner::~MainRunner() {
-  rpc_thread_->Stop();
-  file_thread_->Stop();
 }
 
 bool MainRunner::InitFromManifest(const std::string& input_file,
@@ -46,6 +44,11 @@ void MainRunner::Run() {
   file_thread_->Start();
   base::RunLoop run_loop;
   run_loop.Run();
+}
+
+void MainRunner::Shutdown() {
+  file_thread_.reset();
+  rpc_thread_.reset();
 }
 
 // static

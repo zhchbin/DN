@@ -13,6 +13,8 @@ namespace slave {
 
 class SlaveFileThread : public NinjaThreadDelegate {
  public:
+  static void QuitPool();
+
   SlaveFileThread();
   ~SlaveFileThread() override;
 

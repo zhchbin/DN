@@ -15,10 +15,9 @@ namespace common {
 
 // This class is responsible for dn master/slave initialization, running and
 // shutdown.
-class MainRunner {
+class MainRunner : public base::RefCountedThreadSafe<MainRunner> {
  public:
   virtual ~MainRunner();
-
   static MainRunner* Create();
 
   // The following methods are called in the main routine in declaration order.
@@ -26,12 +25,14 @@ class MainRunner {
   void CreateThreads();
   virtual bool PostCreateThreads() = 0;
   void Run();
-  virtual void Shutdown() = 0;
+  virtual void Shutdown();
 
  protected:
   ninja::NinjaMain* ninja_main() { return ninja_main_.get(); }
 
  private:
+  friend class base::RefCountedThreadSafe<MainRunner>;
+
   scoped_ptr<NinjaThreadImpl> main_thread_;
   scoped_ptr<NinjaThreadImpl> rpc_thread_;
   scoped_ptr<NinjaThreadImpl> file_thread_;

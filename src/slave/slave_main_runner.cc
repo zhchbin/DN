@@ -13,6 +13,7 @@
 #include "slave/slave_file_thread.h"
 #include "slave/slave_rpc.h"
 
+
 namespace {
 
 slave::RunCommandResponse::ExitStatus TransformExitStatus(ExitStatus status) {
@@ -41,6 +42,7 @@ SlaveMainRunner::SlaveMainRunner(const std::string& master, uint16 port)
 }
 
 SlaveMainRunner::~SlaveMainRunner() {
+  LOG(INFO) << "~SlaveMainRunner";
   command_executor_->RemoveObserver(this);
 }
 
@@ -80,14 +82,12 @@ bool SlaveMainRunner::PostCreateThreads() {
   return true;
 }
 
-void SlaveMainRunner::Shutdown() {
-}
-
 void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
                                  RunCommandResponse* response,
                                  ::google::protobuf::Closure* done) {
   std::string command = request->command();
   uint32 command_hash = base::Hash(command);
+  response->set_edge_id(request->edge_id());
   if (!ContainsKey(ninja_command_hash_set_, command_hash)) {
     response->set_status(RunCommandResponse::kExitFailure);
     response->set_output("This command is NOT ALLOWED to run.");

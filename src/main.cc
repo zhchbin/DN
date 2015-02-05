@@ -24,7 +24,7 @@ int main(int argc, char* argv[]) {
     }
   }
 
-  scoped_ptr<common::MainRunner> main_runner(common::MainRunner::Create());
+  scoped_refptr<common::MainRunner> main_runner(common::MainRunner::Create());
   std::string error;
   static const char kDefaultManifest[] = "build.ninja";
   CHECK(main_runner->InitFromManifest(kDefaultManifest, &error)) << error;

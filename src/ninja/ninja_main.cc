@@ -8,6 +8,7 @@
 
 #include "base/logging.h"
 #include "base/stl_util.h"
+#include "ninja/dn_builder.h"
 #include "third_party/ninja/src/manifest_parser.h"
 
 namespace {
@@ -171,6 +172,38 @@ void NinjaMain::GetAllCommands(std::vector<std::string>* commands) {
   std::set<Edge*> seen;
   for (vector<Node*>::iterator in = nodes.begin(); in != nodes.end(); ++in)
     GetAllCommandsHelper((*in)->in_edge(), &seen, commands);
+}
+
+bool NinjaMain::RunBuild(std::vector<Node*> targets,
+                         master::MasterMainRunner* runner) {
+  std::string err;
+  builder_.reset(new ninja::DNBuilder(&state_, config_, &build_log_,
+                                      &deps_log_, &disk_interface_));
+  disk_interface_.AllowStatCache(true);
+  for (size_t i = 0; i < targets.size(); ++i) {
+    if (!builder_->AddTarget(targets[i], &err)) {
+      if (!err.empty()) {
+        LOG(ERROR) << err.c_str();
+        return false;
+      } else {
+        // Added a target that is already up-to-date; not really
+        // an error.
+      }
+    }
+  }
+  disk_interface_.AllowStatCache(false);
+
+  if (builder_->AlreadyUpToDate()) {
+    LOG(INFO) << "dn: no work to do.";
+    return true;
+  }
+
+  if (!builder_->Build(&err, runner)) {
+    LOG(INFO) << "ninja: build stopped: " << err << ".";
+    return false;
+  }
+
+  return true;
 }
 
 }  // namespace ninja

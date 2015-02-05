@@ -9,11 +9,17 @@
 #include <vector>
 
 #include "base/macros.h"
+#include "base/memory/scoped_ptr.h"
+#include "ninja/dn_builder.h"
 #include "third_party/ninja/src/build.h"
 #include "third_party/ninja/src/build_log.h"
-#include "third_party/ninja/src/state.h"
-#include "third_party/ninja/src/disk_interface.h"
 #include "third_party/ninja/src/deps_log.h"
+#include "third_party/ninja/src/disk_interface.h"
+#include "third_party/ninja/src/state.h"
+
+namespace master {
+class MasterMainRunner;
+}  // namespace master
 
 namespace ninja {
 
@@ -58,8 +64,13 @@ struct NinjaMain : public BuildLogUser {
   }
 
   State& state() { return state_; }
+  RealDiskInterface*  disk_interface() { return &disk_interface_; }
 
   void GetAllCommands(std::vector<std::string>* commands);
+
+  bool RunBuild(std::vector<Node*> targets, master::MasterMainRunner* runner);
+
+  ninja::DNBuilder* builder() { return builder_.get(); }
 
  private:
   // Build configuration set from flags (e.g. parallelism).
@@ -76,6 +87,8 @@ struct NinjaMain : public BuildLogUser {
 
   BuildLog build_log_;
   DepsLog deps_log_;
+
+  scoped_ptr<ninja::DNBuilder> builder_;
 
   DISALLOW_COPY_AND_ASSIGN(NinjaMain);
 };

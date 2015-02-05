@@ -30,6 +30,7 @@
         'src/net/tcp_socket_win.cc',
         'src/net/winsock_init.cc',
         'src/net/winsock_util.cc',
+        'src/ninja/dn_builder.cc',
         'src/ninja/ninja_main.cc',
         'src/rpc/rpc_connection.cc',
         'src/rpc/rpc_message.proto',
@@ -89,8 +90,13 @@
       'include_dirs': [
         'src',
       ],
-    },
 
+      'link_settings': {
+         'libraries': [
+           '-lcurl',
+         ],
+      },
+    },
     {
       'target_name': 'dn_unittest',
       'type': 'executable',
