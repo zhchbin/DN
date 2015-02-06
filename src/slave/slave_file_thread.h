@@ -28,6 +28,8 @@ class SlaveFileThread : public NinjaThreadDelegate {
  private:
   base::WeakPtrFactory<SlaveFileThread> weak_factory_;
   mg_server* server_;
+
+  DISALLOW_COPY_AND_ASSIGN(SlaveFileThread);
 };
 
 }  // namespace slave

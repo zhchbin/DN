@@ -85,9 +85,9 @@ class NinjaThread {
 
  private:
   friend class NinjaThreadImpl;
-
   NinjaThread() {}
   virtual ~NinjaThread() {}
+
   DISALLOW_COPY_AND_ASSIGN(NinjaThread);
 };
 

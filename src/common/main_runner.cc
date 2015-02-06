@@ -21,6 +21,9 @@ const int kMaxPort = 65535;
 
 namespace common {
 
+MainRunner::MainRunner() {
+}
+
 MainRunner::~MainRunner() {
 }
 

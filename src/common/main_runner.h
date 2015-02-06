@@ -17,8 +17,10 @@ namespace common {
 // shutdown.
 class MainRunner : public base::RefCountedThreadSafe<MainRunner> {
  public:
-  virtual ~MainRunner();
   static MainRunner* Create();
+
+  MainRunner();
+  virtual ~MainRunner();
 
   // The following methods are called in the main routine in declaration order.
   bool InitFromManifest(const std::string& input_file, std::string* error);
@@ -39,6 +41,8 @@ class MainRunner : public base::RefCountedThreadSafe<MainRunner> {
   scoped_ptr<ninja::NinjaMain> ninja_main_;
 
   base::MessageLoop message_loop_;
+
+  DISALLOW_COPY_AND_ASSIGN(MainRunner);
 };
 
 }  // namespace common

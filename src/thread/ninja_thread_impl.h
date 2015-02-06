@@ -48,6 +48,8 @@ class NinjaThreadImpl : public NinjaThread, public base::Thread {
   // The identifier of this thread.  Only one thread can exist with a given
   // identifier at a given time.
   ID identifier_;
+
+  DISALLOW_COPY_AND_ASSIGN(NinjaThreadImpl);
 };
 
 #endif  // THREAD_NINJA_THREAD_IMPL_H_
