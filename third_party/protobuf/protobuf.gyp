@@ -63,6 +63,15 @@
           'PROTOBUF_USE_DLLS',
         ],
       },
+      'conditions': [
+        ['OS=="linux"', {
+          'cflags_cc': [
+            '-Wno-sign-compare',
+            '-Wno-unused-local-typedefs',
+            '-Wno-deprecated',
+          ],
+        }],
+      ],
     },
     # This is the full, heavy protobuf lib that's needed for c++ .protos
     # that don't specify the LITE_RUNTIME option.  The protocol
@@ -131,6 +140,15 @@
         'src/google/protobuf/io/zero_copy_stream_impl.cc',
         'src/google/protobuf/compiler/importer.cc',
         'src/google/protobuf/compiler/parser.cc',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'cflags_cc': [
+            '-Wno-sign-compare',
+            '-Wno-unused-local-typedefs',
+            '-Wno-deprecated',
+          ],
+        }],
       ],
     },
     {
@@ -201,6 +219,15 @@
       'include_dirs': [
         '<(config_h_dir)',
         'src/src',
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'cflags_cc': [
+            '-Wno-sign-compare',
+            '-Wno-unused-local-typedefs',
+            '-Wno-deprecated',
+          ],
+        }],
       ],
     },
   ],
