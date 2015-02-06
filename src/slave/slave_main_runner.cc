@@ -9,10 +9,13 @@
 #include "base/bind.h"
 #include "base/hash.h"
 #include "base/stl_util.h"
+#include "base/threading/thread_restrictions.h"
 #include "proto/slave_services.pb.h"
+#include "ninja/dn_builder.h"
+#include "ninja/ninja_main.h"
 #include "slave/slave_file_thread.h"
 #include "slave/slave_rpc.h"
-
+#include "thread/ninja_thread.h"
 
 namespace {
 

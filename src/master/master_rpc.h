@@ -9,8 +9,6 @@
 #include <string>
 #include <vector>
 
-#include "base/macros.h"
-#include "base/memory/ref_counted.h"
 #include "base/memory/scoped_ptr.h"
 #include "rpc/rpc_socket_server.h"
 #include "thread/ninja_thread_delegate.h"

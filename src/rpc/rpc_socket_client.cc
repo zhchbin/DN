@@ -42,6 +42,10 @@ void RpcSocketClient::Disconnect() {
   rpc_connection_->socket()->Disconnect();
 }
 
+RpcConnection* RpcSocketClient::connection() {
+  return rpc_connection_.get();
+}
+
 void RpcSocketClient::OnConnectComplete(const net::CompletionCallback& callback,
                                         int result) {
   CHECK(result == net::OK) << "Can't not connect to master.";

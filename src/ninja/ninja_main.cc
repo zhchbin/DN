@@ -206,4 +206,8 @@ bool NinjaMain::RunBuild(std::vector<Node*> targets,
   return true;
 }
 
+ninja::DNBuilder* NinjaMain::builder() {
+  return builder_.get();
+}
+
 }  // namespace ninja

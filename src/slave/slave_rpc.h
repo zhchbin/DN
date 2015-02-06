@@ -9,12 +9,9 @@
 #include <map>
 
 #include "base/basictypes.h"
-#include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
 #include "google/protobuf/service.h"
 #include "proto/slave_services.pb.h"
-#include "rpc/rpc_connection.h"
-#include "rpc/service_manager.h"
 #include "thread/ninja_thread_delegate.h"
 
 namespace rpc {

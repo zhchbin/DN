@@ -10,6 +10,8 @@
 #include "base/run_loop.h"
 #include "base/strings/string_number_conversions.h"
 #include "master/master_main_runner.h"
+#include "ninja/dn_builder.h"
+#include "ninja/ninja_main.h"
 #include "rpc/rpc_options.h"
 #include "slave/slave_main_runner.h"
 #include "thread/ninja_thread_impl.h"
@@ -83,6 +85,10 @@ MainRunner* MainRunner::Create() {
     }
     return new master::MasterMainRunner(bind_ip, port);
   }
+}
+
+ninja::NinjaMain* MainRunner::ninja_main() {
+  return ninja_main_.get();
 }
 
 }  // namespace common

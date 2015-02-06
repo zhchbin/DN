@@ -8,9 +8,7 @@
 #include <string>
 #include <vector>
 
-#include "base/macros.h"
 #include "base/memory/scoped_ptr.h"
-#include "ninja/dn_builder.h"
 #include "third_party/ninja/src/build.h"
 #include "third_party/ninja/src/build_log.h"
 #include "third_party/ninja/src/deps_log.h"
@@ -22,6 +20,8 @@ class MasterMainRunner;
 }  // namespace master
 
 namespace ninja {
+
+class DNBuilder;
 
 struct NinjaMain : public BuildLogUser {
  public:
@@ -70,7 +70,7 @@ struct NinjaMain : public BuildLogUser {
 
   bool RunBuild(std::vector<Node*> targets, master::MasterMainRunner* runner);
 
-  ninja::DNBuilder* builder() { return builder_.get(); }
+  ninja::DNBuilder* builder();
 
  private:
   // Build configuration set from flags (e.g. parallelism).

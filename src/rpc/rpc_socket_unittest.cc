@@ -9,6 +9,7 @@
 #include "base/message_loop/message_loop.h"
 #include "net/net_errors.h"
 #include "proto/echo_unittest.pb.h"
+#include "rpc/rpc_connection.h"
 #include "rpc/rpc_socket_client.h"
 #include "rpc/rpc_socket_server.h"
 #include "rpc/service_manager.h"

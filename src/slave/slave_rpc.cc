@@ -10,6 +10,7 @@
 #include "proto/rpc_message.pb.h"
 #include "rpc/rpc_connection.h"
 #include "rpc/rpc_socket_client.h"
+#include "rpc/service_manager.h"
 #include "slave/slave_main_runner.h"
 #include "slave/slave_file_thread.h"
 #include "thread/ninja_thread.h"

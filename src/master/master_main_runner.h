@@ -9,12 +9,9 @@
 #include <string>
 #include <vector>
 
-#include "base/macros.h"
-#include "base/memory/ref_counted.h"
 #include "common/main_runner.h"
 #include "third_party/ninja/src/build.h"
 #include "third_party/ninja/src/subprocess.h"
-#include "thread/ninja_thread_delegate.h"
 
 namespace master {
 

@@ -9,6 +9,9 @@
 #include "base/threading/thread_restrictions.h"
 #include "curl/curl.h"
 #include "master/master_rpc.h"
+#include "ninja/dn_builder.h"
+#include "ninja/ninja_main.h"
+#include "thread/ninja_thread.h"
 
 namespace master {
 

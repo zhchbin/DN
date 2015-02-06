@@ -8,14 +8,11 @@
 #include <map>
 #include <string>
 
-#include "base/basictypes.h"
-#include "base/memory/scoped_ptr.h"
 #include "base/memory/singleton.h"
 
 namespace google {
 namespace protobuf {
 class Service;
-class Closure;
 }  // namespace protobuf
 }  // namespace google
 

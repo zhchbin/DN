@@ -10,13 +10,14 @@
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
 #include "net/completion_callback.h"
-#include "rpc/rpc_connection.h"
 
 namespace net {
 class StreamSocket;
 }
 
 namespace rpc {
+
+class RpcConnection;
 
 class RpcSocketClient {
  public:
@@ -27,7 +28,7 @@ class RpcSocketClient {
   void Connect(const net::CompletionCallback& callback);
   void Disconnect();
 
-  RpcConnection* connection() { return rpc_connection_.get(); }
+  RpcConnection* connection();
 
  private:
   void OnConnectComplete(const net::CompletionCallback& callback, int result);

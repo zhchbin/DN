@@ -10,8 +10,6 @@
 #include <string>
 #include <utility>
 
-#include "base/macros.h"
-#include "base/memory/ref_counted.h"
 #include "common/main_runner.h"
 #include "slave/command_executor.h"
 
