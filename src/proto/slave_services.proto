@@ -26,13 +26,15 @@ message RunCommandResponse {
   required uint32 edge_id = 3;
 };
 
-message FinishRequest {
+message QuitRequest {
 };
 
-message FinishResponse {
+message QuitResponse {
 };
 
 service SlaveService {
   rpc RunCommand(RunCommandRequest) returns (RunCommandResponse);
-  rpc Finish(FinishRequest) returns (FinishResponse);
+
+  // Quit slave.
+  rpc Quit(QuitRequest) returns (QuitResponse);
 };

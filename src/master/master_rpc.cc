@@ -56,10 +56,10 @@ void MasterRPC::CleanUp() {
   for (Connections::iterator it = connections_.begin();
        it != connections_.end();
        ++it) {
-    slave::FinishRequest request;
-    slave::FinishResponse response;
+    slave::QuitRequest request;
+    slave::QuitResponse response;
     slave::SlaveService::Stub stub(*it);
-    stub.Finish(NULL, &request, &response, NULL);
+    stub.Quit(NULL, &request, &response, NULL);
   }
   connections_.clear();
 

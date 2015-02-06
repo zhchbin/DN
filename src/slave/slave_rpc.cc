@@ -66,10 +66,10 @@ void SlaveRPC::CleanUp() {
   rpc_socket_client_.reset();
 }
 
-void SlaveRPC::RunCommand(::google::protobuf::RpcController* /* controller */,
-                          const ::slave::RunCommandRequest* request,
-                          ::slave::RunCommandResponse* response,
-                          ::google::protobuf::Closure* done) {
+void SlaveRPC::RunCommand(google::protobuf::RpcController* /* controller */,
+                          const slave::RunCommandRequest* request,
+                          slave::RunCommandResponse* response,
+                          google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
   NinjaThread::PostTask(
       NinjaThread::MAIN, FROM_HERE,
@@ -77,10 +77,10 @@ void SlaveRPC::RunCommand(::google::protobuf::RpcController* /* controller */,
                  request, response, done));
 }
 
-void SlaveRPC::Finish(::google::protobuf::RpcController* /*controller*/,
-                      const ::slave::FinishRequest* /* request */,
-                      ::slave::FinishResponse* /* response */,
-                      ::google::protobuf::Closure* done) {
+void SlaveRPC::Quit(google::protobuf::RpcController* /*controller*/,
+                    const slave::QuitRequest* /* request */,
+                    slave::QuitResponse* /* response */,
+                    google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
   if (done)
     done->Run();
@@ -95,7 +95,7 @@ void SlaveRPC::Finish(::google::protobuf::RpcController* /*controller*/,
       base::Bind(&QuitMainThreadHelper));
 }
 
-void SlaveRPC::OnRunCommandDone(::google::protobuf::Closure* done) {
+void SlaveRPC::OnRunCommandDone(google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
   done->Run();
 }

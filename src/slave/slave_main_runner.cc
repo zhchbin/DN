@@ -42,7 +42,6 @@ SlaveMainRunner::SlaveMainRunner(const std::string& master, uint16 port)
 }
 
 SlaveMainRunner::~SlaveMainRunner() {
-  LOG(INFO) << "~SlaveMainRunner";
   command_executor_->RemoveObserver(this);
 }
 

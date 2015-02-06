@@ -38,16 +38,16 @@ class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
   void CleanUp() override;
 
   // slave::SlaveService implementations.
-  void RunCommand(::google::protobuf::RpcController* controller,
-                  const ::slave::RunCommandRequest* request,
-                  ::slave::RunCommandResponse* response,
-                  ::google::protobuf::Closure* done) override;
-  void Finish(::google::protobuf::RpcController* controller,
-              const ::slave::FinishRequest* request,
-              ::slave::FinishResponse* response,
-              ::google::protobuf::Closure* done) override;
+  void RunCommand(google::protobuf::RpcController* controller,
+                  const slave::RunCommandRequest* request,
+                  slave::RunCommandResponse* response,
+                  google::protobuf::Closure* done) override;
+  void Quit(google::protobuf::RpcController* controller,
+            const slave::QuitRequest* request,
+            slave::QuitResponse* response,
+            google::protobuf::Closure* done) override;
 
-  void OnRunCommandDone(::google::protobuf::Closure* done);
+  void OnRunCommandDone(google::protobuf::Closure* done);
 
  private:
   std::string master_ip_;
