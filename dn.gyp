@@ -73,6 +73,11 @@
               'src/net/winsock_util.cc',
               'src/net/winsock_util.h',
             ],
+            'link_settings': {
+              'libraries': [
+                '-lcurl',
+              ],
+            },
           },
         ],
       ],
@@ -90,12 +95,6 @@
       'include_dirs': [
         'src',
       ],
-
-      'link_settings': {
-        'libraries': [
-          '-lcurl',
-        ],
-      },
     },
     {
       'target_name': 'dn_unittest',

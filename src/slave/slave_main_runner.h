@@ -52,6 +52,10 @@ class SlaveMainRunner : public CommandExecutor::Observer,
   friend class base::RefCountedThreadSafe<SlaveMainRunner>;
   ~SlaveMainRunner() override;
 
+  // Create directories necessary for outputs and create response file,
+  // if needed. Note: this will block.
+  bool CreateDirsAndResponseFile(const RunCommandRequest* request);
+
   std::string master_;
   uint16 port_;
 

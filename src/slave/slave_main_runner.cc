@@ -98,10 +98,36 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
                    done));
     return;
   }
+  if (!CreateDirsAndResponseFile(request)) {
+    response->set_status(RunCommandResponse::kExitFailure);
+    response->set_output("Create directories or response file failed.");
+    NinjaThread::PostTask(
+        NinjaThread::RPC, FROM_HERE,
+        base::Bind(&SlaveRPC::OnRunCommandDone,
+                   base::Unretained(slave_rpc_.get()),
+                   done));
+    return;
+  }
 
   ResponsePair pair = std::make_pair(response, done);
   hash_to_response_pair_[command_hash] = pair;
   command_executor_->AppendCommand(command);
+}
+
+bool SlaveMainRunner::CreateDirsAndResponseFile(
+    const RunCommandRequest* request) {
+  base::ThreadRestrictions::AssertIOAllowed();
+  for (int i = 0; i < request->dirs_size(); ++i) {
+    if (!ninja_main()->disk_interface()->MakeDirs(request->dirs(i)))
+      return false;
+  }
+  if (request->has_rspfile_name()) {
+    if (!ninja_main()->disk_interface()->WriteFile(request->rspfile_name(),
+                                                   request->rspfile_content()))
+      return false;
+  }
+
+  return true;
 }
 
 }  // namespace slave

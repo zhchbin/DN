@@ -6,6 +6,7 @@
 
 #include "base/bind.h"
 #include "base/hash.h"
+#include "base/threading/thread_restrictions.h"
 #include "curl/curl.h"
 #include "master/master_rpc.h"
 
@@ -48,6 +49,8 @@ bool MasterMainRunner::StartCommand(Edge* edge, bool run_in_local) {
 }
 
 bool MasterMainRunner::StartCommandLocally(Edge* edge) {
+  base::ThreadRestrictions::AssertIOAllowed();
+
   // Create directories necessary for outputs.
   for (vector<Node*>::iterator o = edge->outputs_.begin();
        o != edge->outputs_.end(); ++o) {
