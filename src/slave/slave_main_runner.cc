@@ -56,13 +56,14 @@ void SlaveMainRunner::OnCommandFinished(const std::string& command,
   DCHECK(it != hash_to_response_pair_.end());
   it->second.first->set_output(result->output);
   it->second.first->set_status(TransformExitStatus(result->status));
+  google::protobuf::Closure* done = it->second.second;
   hash_to_response_pair_.erase(it);
 
   NinjaThread::PostTask(
       NinjaThread::RPC, FROM_HERE,
       base::Bind(&SlaveRPC::OnRunCommandDone,
                  base::Unretained(slave_rpc_.get()),
-                 it->second.second));
+                 done));
 }
 
 bool SlaveMainRunner::PostCreateThreads() {
