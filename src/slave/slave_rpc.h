@@ -43,6 +43,10 @@ class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
                   const slave::RunCommandRequest* request,
                   slave::RunCommandResponse* response,
                   google::protobuf::Closure* done) override;
+  void GetStatus(google::protobuf::RpcController* controller,
+                 const slave::StatusRequest* request,
+                 slave::StatusResponse* response,
+                 google::protobuf::Closure* done) override;
   void Quit(google::protobuf::RpcController* controller,
             const slave::QuitRequest* request,
             slave::QuitResponse* response,
@@ -54,8 +58,8 @@ class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
   std::string master_ip_;
   uint16 port_;
   scoped_ptr<rpc::RpcSocketClient> rpc_socket_client_;
-
   SlaveMainRunner* slave_main_runner_;
+  int amount_of_running_commands_;
 
   DISALLOW_COPY_AND_ASSIGN(SlaveRPC);
 };

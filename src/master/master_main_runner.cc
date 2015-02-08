@@ -186,4 +186,28 @@ void MasterMainRunner::OnRemoteCommandDone(uint32 edge_id,
       base::Bind(&MasterMainRunner::OnCurlTargetDone, this, result));
 }
 
+void MasterMainRunner::OnSlaveSystemInfoAvailable(int connection_id,
+                                                  const SlaveInfo& info) {
+  if (slave_info_id_map_.find(connection_id) != slave_info_id_map_.end())
+    return;
+
+  slave_info_id_map_[connection_id] = info;
+}
+
+void MasterMainRunner::OnSlaveStatusUpdate(
+    int connection_id,
+    double load_average,
+    int amount_of_running_commands,
+    int64 amount_of_available_physical_memory) {
+  // Don't update the status until |OnSlaveSystemInfoAvailable| is called.
+  SlaveInfoIdMap::iterator it = slave_info_id_map_.find(connection_id);
+  if (it == slave_info_id_map_.end())
+    return;
+
+  it->second.load_average = load_average;
+  it->second.amount_of_running_commands = amount_of_running_commands;
+  it->second.amount_of_available_physical_memory =
+      amount_of_available_physical_memory;
+}
+
 }  // namespace master

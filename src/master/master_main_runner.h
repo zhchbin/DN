@@ -17,6 +17,20 @@ namespace master {
 
 class MasterRPC;
 
+struct SlaveInfo {
+  int32 number_of_processors;
+  int64 amount_of_physical_memory;
+  int64 amount_of_virtual_memory;
+  std::string operating_system_name;
+  std::string operating_system_version;
+  std::string operating_system_architecture;
+
+  // The following fields will change dynamically.
+  double load_average;
+  int amount_of_running_commands;
+  int64 amount_of_available_physical_memory;
+};
+
 class MasterMainRunner : public common::MainRunner {
  public:
   MasterMainRunner(const std::string& bind_ip, uint16 port);
@@ -37,10 +51,20 @@ class MasterMainRunner : public common::MainRunner {
   void OnRemoteCommandDone(uint32 edge_id,
                            ExitStatus status,
                            const std::string& output);
-
   void OnCurlTargetDone(CommandRunner::Result result);
 
+  void OnSlaveSystemInfoAvailable(int connection_id, const SlaveInfo& info);
+
+  void OnSlaveStatusUpdate(int connection_id,
+                           double load_average,
+                           int amount_of_running_commands,
+                           int64 amount_of_available_physical_memory);
+
  private:
+  // Map the connection id to slave info.
+  typedef std::map<int, SlaveInfo> SlaveInfoIdMap;
+  SlaveInfoIdMap slave_info_id_map_;
+
   friend class base::RefCountedThreadSafe<MasterMainRunner>;
   ~MasterMainRunner() override;
 

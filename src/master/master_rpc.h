@@ -10,12 +10,14 @@
 #include <vector>
 
 #include "base/memory/scoped_ptr.h"
+#include "base/timer/timer.h"
 #include "rpc/rpc_socket_server.h"
 #include "thread/ninja_thread_delegate.h"
 
 namespace slave {
-class SystemInfoResponse;
 class RunCommandResponse;
+class StatusResponse;
+class SystemInfoResponse;
 }  // namespace slave
 
 namespace master {
@@ -46,7 +48,12 @@ class MasterRPC
                             const std::string& command,
                             uint32 edge_id);
   void OnRemoteCommandDone(slave::RunCommandResponse* raw_response);
-  void OnSlaveSystemInfoAvailable(slave::SystemInfoResponse* raw_response);
+  void OnSlaveSystemInfoAvailable(int connection_id,
+                                  slave::SystemInfoResponse* raw_response);
+  void OnSlaveStatusUpdate(int connection_id,
+                           slave::StatusResponse* raw_response);
+
+  void GetSlavesStatus();
 
  private:
   std::string bind_ip_;
@@ -56,6 +63,9 @@ class MasterRPC
 
   typedef std::vector<rpc::RpcConnection*> Connections;
   Connections connections_;
+
+  // Timer for checking slave status every two seconds.
+  scoped_ptr<base::RepeatingTimer<MasterRPC> > timer_;
 
   DISALLOW_COPY_AND_ASSIGN(MasterRPC);
 };

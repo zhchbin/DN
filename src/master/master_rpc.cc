@@ -49,6 +49,9 @@ void MasterRPC::Init() {
 void MasterRPC::InitAsync() {
   rpc_socket_server_.reset(new rpc::RpcSocketServer(bind_ip_, port_));
   rpc_socket_server_->AddObserver(this);
+  timer_.reset(new base::RepeatingTimer<MasterRPC>());
+  timer_->Start(FROM_HERE, base::TimeDelta::FromSeconds(2),
+                this, &MasterRPC::GetSlavesStatus);
 }
 
 void MasterRPC::CleanUp() {
@@ -64,7 +67,9 @@ void MasterRPC::CleanUp() {
   connections_.clear();
 
   rpc_socket_server_->RemoveObserver(this);
-  rpc_socket_server_.reset(NULL);
+  rpc_socket_server_.reset();
+  timer_->Stop();
+  timer_.reset();
 }
 
 void MasterRPC::OnConnect(rpc::RpcConnection* connection) {
@@ -76,6 +81,7 @@ void MasterRPC::OnConnect(rpc::RpcConnection* connection) {
       NULL, &request, response,
       google::protobuf::NewCallback(this,
                                     &MasterRPC::OnSlaveSystemInfoAvailable,
+                                    connection->id(),
                                     response));
 
   NinjaThread::PostTask(
@@ -127,8 +133,55 @@ void MasterRPC::OnRemoteCommandDone(slave::RunCommandResponse* raw_response) {
 }
 
 void MasterRPC::OnSlaveSystemInfoAvailable(
+    int connection_id,
     slave::SystemInfoResponse* raw_response) {
   scoped_ptr<slave::SystemInfoResponse> response(raw_response);
+
+  SlaveInfo info;
+  info.number_of_processors = response->number_of_processors();
+  info.amount_of_physical_memory = response->amount_of_physical_memory();
+  info.amount_of_virtual_memory = response->amount_of_virtual_memory();
+  info.operating_system_name = response->operating_system_name();
+  info.operating_system_version = response->operating_system_version();
+  info.operating_system_architecture =
+      response->operating_system_architecture();
+
+  NinjaThread::PostTask(
+      NinjaThread::MAIN,
+      FROM_HERE,
+      base::Bind(&MasterMainRunner::OnSlaveSystemInfoAvailable,
+                 master_main_runner_,
+                 connection_id,
+                 info));
+}
+
+void MasterRPC::GetSlavesStatus() {
+  for (Connections::iterator it = connections_.begin();
+       it != connections_.end();
+       ++it) {
+    slave::StatusRequest request;
+    slave::StatusResponse* response = new slave::StatusResponse();
+    slave::SlaveService::Stub stub(*it);
+    stub.GetStatus(NULL, &request, response,
+        google::protobuf::NewCallback(this,
+                                      &MasterRPC::OnSlaveStatusUpdate,
+                                      (*it)->id(),
+                                      response));
+  }
+}
+
+void MasterRPC::OnSlaveStatusUpdate(int connection_id,
+                                    slave::StatusResponse* raw_response) {
+  scoped_ptr<slave::StatusResponse> response(raw_response);
+  NinjaThread::PostTask(
+      NinjaThread::MAIN,
+      FROM_HERE,
+      base::Bind(&MasterMainRunner::OnSlaveStatusUpdate,
+                 master_main_runner_,
+                 connection_id,
+                 response->load_average(),
+                 response->amount_of_running_commands(),
+                 response->amount_of_available_physical_memory()));
 }
 
 }  // namespace master

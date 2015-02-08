@@ -59,11 +59,28 @@ message SystemInfoResponse {
   required string operating_system_architecture = 6;
 };
 
+message StatusRequest {
+};
+
+message StatusResponse {
+  // The load average of the machine. A negative value indicates error.
+  required double load_average = 1;
+
+  // The amount of running commands.
+  required int32 amount_of_running_commands = 2;
+
+  required int64 amount_of_available_physical_memory = 3;
+};
+
 service SlaveService {
   // Returns the system information, see SystemInfoResponse.
   rpc SystemInfo(SystemInfoRequest) returns (SystemInfoResponse);
 
   rpc RunCommand(RunCommandRequest) returns (RunCommandResponse);
+
+  // Returns operating system status, including cpu load average and amount of
+  // running commands.
+  rpc GetStatus(StatusRequest) returns (StatusResponse);
 
   // Quit slave.
   rpc Quit(QuitRequest) returns (QuitResponse);

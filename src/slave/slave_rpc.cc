@@ -14,6 +14,7 @@
 #include "rpc/service_manager.h"
 #include "slave/slave_main_runner.h"
 #include "slave/slave_file_thread.h"
+#include "third_party/ninja/src/util.h"
 #include "thread/ninja_thread.h"
 
 namespace {
@@ -45,7 +46,8 @@ SlaveRPC::SlaveRPC(const std::string& master_ip,
                    SlaveMainRunner* main_runner)
     : master_ip_(master_ip),
       port_(port),
-      slave_main_runner_(main_runner) {
+      slave_main_runner_(main_runner),
+      amount_of_running_commands_(0) {
   NinjaThread::SetDelegate(NinjaThread::RPC, this);
 }
 
@@ -91,10 +93,22 @@ void SlaveRPC::RunCommand(google::protobuf::RpcController* /* controller */,
                           slave::RunCommandResponse* response,
                           google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
+  ++amount_of_running_commands_;
   NinjaThread::PostTask(
       NinjaThread::MAIN, FROM_HERE,
       base::Bind(&SlaveMainRunner::RunCommand, slave_main_runner_,
                  request, response, done));
+}
+
+void SlaveRPC::GetStatus(google::protobuf::RpcController* /* controller */,
+                         const slave::StatusRequest* /* request */,
+                         slave::StatusResponse* response,
+                         google::protobuf::Closure* done) {
+  response->set_load_average(GetLoadAverage());
+  response->set_amount_of_running_commands(amount_of_running_commands_);
+  response->set_amount_of_available_physical_memory(
+      base::SysInfo::AmountOfAvailablePhysicalMemory());
+  done->Run();
 }
 
 void SlaveRPC::Quit(google::protobuf::RpcController* /*controller*/,
@@ -117,6 +131,7 @@ void SlaveRPC::Quit(google::protobuf::RpcController* /*controller*/,
 
 void SlaveRPC::OnRunCommandDone(google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
+  --amount_of_running_commands_;
   done->Run();
 }
 
