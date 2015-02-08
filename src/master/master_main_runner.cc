@@ -30,7 +30,7 @@ bool MasterMainRunner::PostCreateThreads() {
 
 void MasterMainRunner::StartBuild() {
   std::string error;
-  config_.parallelism = 2;
+  config_.parallelism = 2;   // TODO(zhchbin): Remove this line.
   ninja_main()->RunBuild(ninja_main()->state().DefaultNodes(&error), this);
 }
 

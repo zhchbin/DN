@@ -7,6 +7,7 @@
 #include "base/bind.h"
 #include "base/message_loop/message_loop.h"
 #include "base/strings/string_util.h"
+#include "base/sys_info.h"
 #include "proto/rpc_message.pb.h"
 #include "rpc/rpc_connection.h"
 #include "rpc/rpc_socket_client.h"
@@ -65,6 +66,24 @@ void SlaveRPC::CleanUp() {
   rpc::ServiceManager::GetInstance()->UnregisterService(this);
   rpc_socket_client_->Disconnect();
   rpc_socket_client_.reset();
+}
+
+void SlaveRPC::SystemInfo(google::protobuf::RpcController* /* controller */,
+                          const slave::SystemInfoRequest* /* request */,
+                          slave::SystemInfoResponse* response,
+                          google::protobuf::Closure* done) {
+  response->set_number_of_processors(base::SysInfo::NumberOfProcessors());
+  response->set_amount_of_physical_memory(
+      base::SysInfo::AmountOfPhysicalMemory());
+  response->set_amount_of_virtual_memory(
+      base::SysInfo::AmountOfVirtualMemory());
+  response->set_operating_system_name(base::SysInfo::OperatingSystemName());
+  response->set_operating_system_version(
+      base::SysInfo::OperatingSystemVersion());
+  response->set_operating_system_architecture(
+      base::SysInfo::OperatingSystemArchitecture());
+
+  done->Run();
 }
 
 void SlaveRPC::RunCommand(google::protobuf::RpcController* /* controller */,

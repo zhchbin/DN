@@ -35,6 +35,10 @@ class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
   void CleanUp() override;
 
   // slave::SlaveService implementations.
+  void SystemInfo(google::protobuf::RpcController* controller,
+                  const slave::SystemInfoRequest* request,
+                  slave::SystemInfoResponse* response,
+                  google::protobuf::Closure* done) override;
   void RunCommand(google::protobuf::RpcController* controller,
                   const slave::RunCommandRequest* request,
                   slave::RunCommandResponse* response,

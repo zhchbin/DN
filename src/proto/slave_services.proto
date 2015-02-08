@@ -32,7 +32,37 @@ message QuitRequest {
 message QuitResponse {
 };
 
+message SystemInfoRequest {
+};
+
+message SystemInfoResponse {
+  // The number of logical processors/cores on the current machine.
+  required int32 number_of_processors = 1;
+
+  // The number of bytes of physical memory on the current machine.
+  required int64 amount_of_physical_memory = 2;
+
+  // The number of bytes of virtual memory of this process. A value of zero
+  // means that there is no limit on the available virtual memory.
+  required int64 amount_of_virtual_memory = 3;
+
+  // The name of the host operating system.
+  required string operating_system_name = 4;
+
+  // The version of the host operating system.
+  required string operating_system_version = 5;
+
+  // The architecture of the running operating system.
+  // Exact value may differ across platforms.
+  // e.g. a 32-bit x86 kernel on a 64-bit capable CPU will return "x86",
+  //      whereas a x86-64 kernel on the same CPU will return "x86_64"
+  required string operating_system_architecture = 6;
+};
+
 service SlaveService {
+  // Returns the system information, see SystemInfoResponse.
+  rpc SystemInfo(SystemInfoRequest) returns (SystemInfoResponse);
+
   rpc RunCommand(RunCommandRequest) returns (RunCommandResponse);
 
   // Quit slave.

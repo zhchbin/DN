@@ -69,6 +69,15 @@ void MasterRPC::CleanUp() {
 
 void MasterRPC::OnConnect(rpc::RpcConnection* connection) {
   connections_.push_back(connection);
+  slave::SystemInfoRequest request;
+  slave::SystemInfoResponse* response = new slave::SystemInfoResponse;
+  slave::SlaveService::Stub stub(connection);
+  stub.SystemInfo(
+      NULL, &request, response,
+      google::protobuf::NewCallback(this,
+                                    &MasterRPC::OnSlaveSystemInfoAvailable,
+                                    response));
+
   NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
@@ -115,6 +124,11 @@ void MasterRPC::OnRemoteCommandDone(slave::RunCommandResponse* raw_response) {
                  response->edge_id(),
                  TransformExitStatus(response->status()),
                  response->output()));
+}
+
+void MasterRPC::OnSlaveSystemInfoAvailable(
+    slave::SystemInfoResponse* raw_response) {
+  scoped_ptr<slave::SystemInfoResponse> response(raw_response);
 }
 
 }  // namespace master

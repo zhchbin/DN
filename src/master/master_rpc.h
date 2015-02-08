@@ -14,6 +14,7 @@
 #include "thread/ninja_thread_delegate.h"
 
 namespace slave {
+class SystemInfoResponse;
 class RunCommandResponse;
 }  // namespace slave
 
@@ -45,6 +46,7 @@ class MasterRPC
                             const std::string& command,
                             uint32 edge_id);
   void OnRemoteCommandDone(slave::RunCommandResponse* raw_response);
+  void OnSlaveSystemInfoAvailable(slave::SystemInfoResponse* raw_response);
 
  private:
   std::string bind_ip_;
