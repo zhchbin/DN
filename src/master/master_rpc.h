@@ -5,7 +5,7 @@
 #ifndef  MASTER_MASTER_RPC_H_
 #define  MASTER_MASTER_RPC_H_
 
-#include <queue>
+#include <map>
 #include <string>
 #include <vector>
 
