@@ -51,12 +51,12 @@ class DNBuilder {
 
   bool HasRemoteCommandRunLocally(Edge* edge);
   void BuildLoop();
+  void BuildFinished();
 
  private:
   bool ExtractDeps(CommandRunner::Result* result, const string& deps_type,
                    const string& deps_prefix, vector<Node*>* deps_nodes,
                    string* err);
-  void BuildFinished();
 
   State* state_;
   const BuildConfig& config_;

@@ -195,6 +195,7 @@ bool NinjaMain::RunBuild(std::vector<Node*> targets,
 
   if (builder_->AlreadyUpToDate()) {
     LOG(INFO) << "dn: no work to do.";
+    builder_->BuildFinished();
     return true;
   }
 
