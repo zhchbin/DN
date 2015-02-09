@@ -12,6 +12,7 @@
       'type': 'static_library',
       'sources': [
         'src/common/main_runner.cc',
+        'src/common/util.cc',
         'src/master/master_main_runner.cc',
         'src/master/master_rpc.cc',
         'src/net/address_list.cc',

@@ -54,6 +54,9 @@ class CommandExecutor {
 
   base::WeakPtrFactory<CommandExecutor> weak_factory_;
 
+  // The number of jobs which can run in parallel.
+  uint parallelism_;
+
   DISALLOW_COPY_AND_ASSIGN(CommandExecutor);
 };
 

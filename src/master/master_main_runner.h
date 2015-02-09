@@ -82,6 +82,7 @@ class MasterMainRunner : public common::MainRunner {
 
   typedef std::map<uint32, Edge*> OutstandingEdgeMap;
   OutstandingEdgeMap outstanding_edges_;
+  int number_of_slave_processors_;
 
   DISALLOW_COPY_AND_ASSIGN(MasterMainRunner);
 };

@@ -6,12 +6,14 @@
 
 #include "base/bind.h"
 #include "base/logging.h"
+#include "common/util.h"
 #include "thread/ninja_thread.h"
 
 namespace slave {
 
 CommandExecutor::CommandExecutor()
-    : weak_factory_(this) {
+    : weak_factory_(this),
+      parallelism_(common::GuessParallelism()) {
 }
 
 CommandExecutor::~CommandExecutor() {}
@@ -79,7 +81,7 @@ bool CommandExecutor::CanRunMore() {
   size_t subproc_number =
       subprocs_.running_.size() + subprocs_.finished_.size();
 
-  return subproc_number < 4;
+  return subproc_number < parallelism_;
 }
 
 }  // namespace slave

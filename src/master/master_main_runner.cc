@@ -7,6 +7,7 @@
 #include "base/bind.h"
 #include "base/hash.h"
 #include "base/threading/thread_restrictions.h"
+#include "common/util.h"
 #include "curl/curl.h"
 #include "master/master_rpc.h"
 #include "ninja/dn_builder.h"
@@ -17,7 +18,8 @@ namespace master {
 
 MasterMainRunner::MasterMainRunner(const std::string& bind_ip, uint16 port)
     : bind_ip_(bind_ip),
-      port_(port) {
+      port_(port),
+      number_of_slave_processors_(0) {
 }
 
 MasterMainRunner::~MasterMainRunner() {
@@ -30,7 +32,7 @@ bool MasterMainRunner::PostCreateThreads() {
 
 void MasterMainRunner::StartBuild() {
   std::string error;
-  config_.parallelism = 2;   // TODO(zhchbin): Remove this line.
+  config_.parallelism = common::GuessParallelism();
   ninja_main()->RunBuild(ninja_main()->state().DefaultNodes(&error), this);
 }
 
@@ -41,7 +43,8 @@ bool MasterMainRunner::LocalCanRunMore() {
 }
 
 bool MasterMainRunner::RemoteCanRunMore() {
-  return outstanding_edges_.size() < 10;
+  return static_cast<int>(outstanding_edges_.size()) <
+      number_of_slave_processors_;
 }
 
 bool MasterMainRunner::StartCommand(Edge* edge, bool run_in_local) {
@@ -192,6 +195,7 @@ void MasterMainRunner::OnSlaveSystemInfoAvailable(int connection_id,
     return;
 
   slave_info_id_map_[connection_id] = info;
+  number_of_slave_processors_ += info.number_of_processors;
 }
 
 void MasterMainRunner::OnSlaveStatusUpdate(
