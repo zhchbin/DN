@@ -70,7 +70,8 @@ base::LazyInstance<NinjaThreadProxies>::Leaky
     g_proxies = LAZY_INSTANCE_INITIALIZER;
 
 struct NinjaThreadGlobals {
-  NinjaThreadGlobals() {
+  NinjaThreadGlobals()
+      : blocking_pool(new base::SequencedWorkerPool(3, "NinjaBlocking")) {
     memset(threads, 0, NinjaThread::ID_COUNT * sizeof(threads[0]));
     memset(thread_delegates, 0,
            NinjaThread::ID_COUNT * sizeof(thread_delegates[0]));
@@ -89,6 +90,8 @@ struct NinjaThreadGlobals {
   // NinjaThreadImpl objects remove themselves from this array upon
   // destruction.
   NinjaThreadImpl* threads[NinjaThread::ID_COUNT];
+
+  const scoped_refptr<base::SequencedWorkerPool> blocking_pool;
 };
 
 base::LazyInstance<NinjaThreadGlobals>::Leaky
@@ -286,6 +289,28 @@ bool NinjaThread::PostTaskAndReply(
   return GetMessageLoopProxyForThread(identifier)->PostTaskAndReply(from_here,
                                                                     task,
                                                                     reply);
+}
+
+// static
+bool NinjaThread::PostBlockingPoolTask(
+    const tracked_objects::Location& from_here,
+    const base::Closure& task) {
+  return g_globals.Get().blocking_pool->PostWorkerTask(from_here, task);
+}
+
+// static
+bool NinjaThread::PostBlockingPoolTaskAndReply(
+    const tracked_objects::Location& from_here,
+    const base::Closure& task,
+    const base::Closure& reply) {
+  return g_globals.Get().blocking_pool->PostTaskAndReply(
+      from_here, task, reply);
+}
+
+// static
+void NinjaThread::ShutdownThreadPool() {
+  const int kMaxNewShutdownBlockingTasks = 100;
+  g_globals.Get().blocking_pool->Shutdown(kMaxNewShutdownBlockingTasks);
 }
 
 // static

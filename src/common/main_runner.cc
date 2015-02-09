@@ -54,6 +54,7 @@ void MainRunner::Run() {
 void MainRunner::Shutdown() {
   file_thread_.reset();
   rpc_thread_.reset();
+  NinjaThread::ShutdownThreadPool();
 }
 
 // static

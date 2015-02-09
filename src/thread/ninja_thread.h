@@ -60,6 +60,35 @@ class NinjaThread {
       const base::Closure& task,
       const base::Closure& reply);
 
+  // Simplified wrappers for posting to the blocking thread pool. Use this
+  // for doing things like blocking I/O.
+  //
+  // The first variant will run the task in the pool with no sequencing
+  // semantics, so may get run in parallel with other posted tasks. The second
+  // variant will all post a task with no sequencing semantics, and will post a
+  // reply task to the origin TaskRunner upon completion.  The third variant
+  // provides sequencing between tasks with the same sequence token name.
+  //
+  // These tasks are guaranteed to run before shutdown.
+  //
+  // If you need to provide different shutdown semantics (like you have
+  // something slow and noncritical that doesn't need to block shutdown),
+  // or you want to manually provide a sequence token (which saves a map
+  // lookup and is guaranteed unique without you having to come up with a
+  // unique string), you can access the sequenced worker pool directly via
+  // GetBlockingPool().
+  //
+  // If you need to PostTaskAndReplyWithResult, use
+  // base::PostTaskAndReplyWithResult() with GetBlockingPool() as the task
+  // runner.
+  static bool PostBlockingPoolTask(const tracked_objects::Location& from_here,
+                                   const base::Closure& task);
+  static bool PostBlockingPoolTaskAndReply(
+      const tracked_objects::Location& from_here,
+      const base::Closure& task,
+      const base::Closure& reply);
+  static void ShutdownThreadPool();
+
   // Sets the delegate for the specified NinjaThread.
   //
   // Only one delegate may be registered at a time.  Delegates may be
