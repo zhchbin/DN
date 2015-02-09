@@ -37,6 +37,7 @@ void CommandExecutor::CleanUp() {
 
 void CommandExecutor::StartCommand() {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
+
   if (!incoming_command_queue_.empty() && CanRunMore()) {
     std::string command = incoming_command_queue_.front();
     incoming_command_queue_.pop();
@@ -50,7 +51,7 @@ void CommandExecutor::StartCommand() {
       WaitForCommand(&result);
   }
 
-  if (incoming_command_queue_.empty())
+  if (incoming_command_queue_.empty() && subprocss_to_command_.empty())
     return;
 
   // Start commands in the next message loop if possible.
