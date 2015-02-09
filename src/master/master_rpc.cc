@@ -6,6 +6,7 @@
 
 #include "base/bind.h"
 #include "master/master_main_runner.h"
+#include "net/ip_endpoint.h"
 #include "proto/slave_services.pb.h"
 #include "rpc/rpc_connection.h"
 #include "thread/ninja_thread.h"
@@ -56,12 +57,12 @@ void MasterRPC::InitAsync() {
 
 void MasterRPC::CleanUp() {
   // Try to notifiy slaves quit event.
-  for (Connections::iterator it = connections_.begin();
+  for (ConnectionMap::iterator it = connections_.begin();
        it != connections_.end();
        ++it) {
     slave::QuitRequest request;
     slave::QuitResponse response;
-    slave::SlaveService::Stub stub(*it);
+    slave::SlaveService::Stub stub(it->second);
     stub.Quit(NULL, &request, &response, NULL);
   }
   connections_.clear();
@@ -73,7 +74,8 @@ void MasterRPC::CleanUp() {
 }
 
 void MasterRPC::OnConnect(rpc::RpcConnection* connection) {
-  connections_.push_back(connection);
+  connections_[connection->id()] = connection;
+
   slave::SystemInfoRequest request;
   slave::SystemInfoResponse* response = new slave::SystemInfoResponse;
   slave::SlaveService::Stub stub(connection);
@@ -135,6 +137,7 @@ void MasterRPC::OnRemoteCommandDone(slave::RunCommandResponse* raw_response) {
 void MasterRPC::OnSlaveSystemInfoAvailable(
     int connection_id,
     slave::SystemInfoResponse* raw_response) {
+  DCHECK(connections_.find(connection_id) != connections_.end());
   scoped_ptr<slave::SystemInfoResponse> response(raw_response);
 
   SlaveInfo info;
@@ -146,6 +149,10 @@ void MasterRPC::OnSlaveSystemInfoAvailable(
   info.operating_system_architecture =
       response->operating_system_architecture();
 
+  net::IPEndPoint ip_address;
+  connections_[connection_id]->GetPeerAddress(&ip_address);
+  info.ip = ip_address.ToStringWithoutPort();
+
   NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
@@ -156,16 +163,16 @@ void MasterRPC::OnSlaveSystemInfoAvailable(
 }
 
 void MasterRPC::GetSlavesStatus() {
-  for (Connections::iterator it = connections_.begin();
+  for (ConnectionMap::iterator it = connections_.begin();
        it != connections_.end();
        ++it) {
     slave::StatusRequest request;
     slave::StatusResponse* response = new slave::StatusResponse();
-    slave::SlaveService::Stub stub(*it);
+    slave::SlaveService::Stub stub(it->second);
     stub.GetStatus(NULL, &request, response,
         google::protobuf::NewCallback(this,
                                       &MasterRPC::OnSlaveStatusUpdate,
-                                      (*it)->id(),
+                                      it->first,
                                       response));
   }
 }

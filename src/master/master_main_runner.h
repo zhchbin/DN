@@ -24,6 +24,7 @@ struct SlaveInfo {
   std::string operating_system_name;
   std::string operating_system_version;
   std::string operating_system_architecture;
+  std::string ip;
 
   // The following fields will change dynamically.
   double load_average;

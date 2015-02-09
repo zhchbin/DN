@@ -61,8 +61,8 @@ class MasterRPC
   scoped_ptr<rpc::RpcSocketServer> rpc_socket_server_;
   MasterMainRunner* master_main_runner_;
 
-  typedef std::vector<rpc::RpcConnection*> Connections;
-  Connections connections_;
+  typedef std::map<int, rpc::RpcConnection*> ConnectionMap;
+  ConnectionMap connections_;
 
   // Timer for checking slave status every two seconds.
   scoped_ptr<base::RepeatingTimer<MasterRPC> > timer_;
