@@ -6,8 +6,8 @@
 
 #include "base/bind.h"
 #include "base/logging.h"
+#include "base/message_loop/message_loop.h"
 #include "common/util.h"
-#include "thread/ninja_thread.h"
 
 namespace slave {
 
@@ -36,12 +36,10 @@ void CommandExecutor::CleanUp() {
 }
 
 void CommandExecutor::StartCommand() {
-  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
-
   if (!incoming_command_queue_.empty() && CanRunMore()) {
     std::string command = incoming_command_queue_.front();
     incoming_command_queue_.pop();
-    Subprocess* subproc = subprocs_.Add(command, true /*use console*/);
+    Subprocess* subproc = subprocs_.Add(command, false /*use console*/);
     CHECK(subproc != NULL);
     FOR_EACH_OBSERVER(Observer, observer_list_, OnCommandStarted(command));
     subprocss_to_command_.insert(std::make_pair(subproc, command));
@@ -55,8 +53,7 @@ void CommandExecutor::StartCommand() {
     return;
 
   // Start commands in the next message loop if possible.
-  NinjaThread::PostTask(
-      NinjaThread::MAIN,
+  base::MessageLoop::current()->PostTask(
       FROM_HERE,
       base::Bind(&CommandExecutor::StartCommand, weak_factory_.GetWeakPtr()));
   return;

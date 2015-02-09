@@ -104,6 +104,7 @@
         'src/proto/echo_unittest.proto',
         'src/rpc/rpc_socket_unittest.cc',
         'src/run_all_unittest.cc',
+        'src/slave/command_executor_unittest.cc',
         'src/thread/ninja_thread_unittest.cc',
       ],
       'dependencies': [
