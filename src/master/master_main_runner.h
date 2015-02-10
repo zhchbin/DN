@@ -49,7 +49,8 @@ class MasterMainRunner : public common::MainRunner {
   void Abort();
   bool HasPendingLocalCommands();
 
-  void OnRemoteCommandDone(uint32 edge_id,
+  void OnRemoteCommandDone(int connection_id,
+                           uint32 edge_id,
                            ExitStatus status,
                            const std::string& output);
   void OnCurlTargetDone(CommandRunner::Result result);

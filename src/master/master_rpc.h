@@ -47,7 +47,8 @@ class MasterRPC
                             const std::string& rspfile_content,
                             const std::string& command,
                             uint32 edge_id);
-  void OnRemoteCommandDone(slave::RunCommandResponse* raw_response);
+  void OnRemoteCommandDone(int connection_id,
+                           slave::RunCommandResponse* raw_response);
   void OnSlaveSystemInfoAvailable(int connection_id,
                                   slave::SystemInfoResponse* raw_response);
   void OnSlaveStatusUpdate(int connection_id,

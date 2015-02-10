@@ -112,6 +112,7 @@ void MasterRPC::StartCommandRemotely(const Directories& dirs,
   }
 
   slave::RunCommandResponse* response = new slave::RunCommandResponse();
+  // TODO(zhchbin): choose one of the connections.
   slave::SlaveService::Stub stub(connections_[0]);
   stub.RunCommand(
       NULL,
@@ -119,16 +120,21 @@ void MasterRPC::StartCommandRemotely(const Directories& dirs,
       response,
       google::protobuf::NewCallback(this,
                                     &MasterRPC::OnRemoteCommandDone,
+                                    connections_[0]->id(),
                                     response));
 }
 
-void MasterRPC::OnRemoteCommandDone(slave::RunCommandResponse* raw_response) {
+void MasterRPC::OnRemoteCommandDone(
+    int connection_id,
+    slave::RunCommandResponse* raw_response) {
   scoped_ptr<slave::RunCommandResponse> response(raw_response);
+
   NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
       base::Bind(&MasterMainRunner::OnRemoteCommandDone,
                  master_main_runner_,
+                 connection_id,
                  response->edge_id(),
                  TransformExitStatus(response->status()),
                  response->output()));

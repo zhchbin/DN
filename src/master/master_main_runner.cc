@@ -5,6 +5,8 @@
 #include "master/master_main_runner.h"
 
 #include "base/bind.h"
+#include "base/files/file_util.h"
+#include "base/files/scoped_file.h"
 #include "base/hash.h"
 #include "base/threading/thread_restrictions.h"
 #include "common/util.h"
@@ -14,15 +16,49 @@
 #include "ninja/ninja_main.h"
 #include "thread/ninja_thread.h"
 
+namespace {
+
+const char kHttp[] = "http://";
+
+size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
+  return fwrite(ptr, size, nmemb, stream);
+}
+
+void CurlTargetsOnBlockingPool(const std::string& host,
+                               const std::vector<std::string>& targets) {
+  CURL* curl = curl_easy_init();
+  for (size_t i = 0; i < targets.size(); ++i) {
+    base::FilePath filename = base::FilePath::FromUTF8Unsafe(targets[i]);
+    CHECK(base::CreateDirectory(filename.DirName()));
+    base::ScopedFILE file(base::OpenFile(filename, "wb"));
+    std::string url = kHttp + host + "/" + targets[i];
+    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
+    curl_easy_setopt(curl, CURLOPT_WRITEDATA, file.get());
+    CHECK(curl_easy_perform(curl) == CURLE_OK);
+  }
+  curl_easy_cleanup(curl);
+}
+
+}  // namespace
+
 namespace master {
 
 MasterMainRunner::MasterMainRunner(const std::string& bind_ip, uint16 port)
     : bind_ip_(bind_ip),
       port_(port),
       number_of_slave_processors_(0) {
+#if defined(OS_LINUX)
+  // |curl_global_init| is not thread-safe, following advice in docs of
+  // |curl_easy_init|, we call it manually.
+  curl_global_init(CURL_GLOBAL_ALL);
+#endif
 }
 
 MasterMainRunner::~MasterMainRunner() {
+#if defined(OS_LINUX)
+  curl_global_cleanup();
+#endif
 }
 
 bool MasterMainRunner::PostCreateThreads() {
@@ -43,7 +79,7 @@ bool MasterMainRunner::LocalCanRunMore() {
 }
 
 bool MasterMainRunner::RemoteCanRunMore() {
-  return static_cast<int>(outstanding_edges_.size()) <
+  return static_cast<int>(outstanding_edges_.size()) <=
       number_of_slave_processors_;
 }
 
@@ -138,30 +174,6 @@ bool MasterMainRunner::HasPendingLocalCommands() {
   return !subproc_to_edge_.empty();
 }
 
-
-size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-  size_t written = fwrite(ptr, size, nmemb, stream);
-  return written;
-}
-
-void CurlTargetOnFileThread(const std::string& target) {
-  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::FILE));
-
-  CURL *curl;
-  FILE *fp;
-  std::string url = "http://127.0.0.1:8080/" + target;
-  curl = curl_easy_init();
-  if (curl) {
-    fp = fopen(target.c_str(), "wb");
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, fp);
-    curl_easy_perform(curl);
-    curl_easy_cleanup(curl);
-    fclose(fp);
-  }
-}
-
 void MasterMainRunner::OnCurlTargetDone(CommandRunner::Result result) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   std::string error;
@@ -170,7 +182,8 @@ void MasterMainRunner::OnCurlTargetDone(CommandRunner::Result result) {
   }
 }
 
-void MasterMainRunner::OnRemoteCommandDone(uint32 edge_id,
+void MasterMainRunner::OnRemoteCommandDone(int connection_id,
+                                           uint32 edge_id,
                                            ExitStatus status,
                                            const std::string& output) {
   OutstandingEdgeMap::iterator it = outstanding_edges_.find(edge_id);
@@ -178,14 +191,21 @@ void MasterMainRunner::OnRemoteCommandDone(uint32 edge_id,
   CommandRunner::Result result;
   result.edge = it->second;
   result.status = status;
-  result.output = output;
+  result.output = output;  // The output stream of the command.
   outstanding_edges_.erase(it);
   std::string error;
 
-  NinjaThread::PostTaskAndReply(
-      NinjaThread::FILE,
+  std::vector<std::string> targets;
+  for (size_t i = 0; i < result.edge->outputs_.size(); ++i)
+    targets.push_back(result.edge->outputs_[i]->path());
+
+  DCHECK(slave_info_id_map_.find(connection_id) != slave_info_id_map_.end());
+  // TODO(zhchbin): Remove hard code 8080.
+  std::string host = slave_info_id_map_[connection_id].ip + ":" + "8080";
+
+  NinjaThread::PostBlockingPoolTaskAndReply(
       FROM_HERE,
-      base::Bind(CurlTargetOnFileThread, result.edge->outputs_[0]->path()),
+      base::Bind(CurlTargetsOnBlockingPool, host, targets),
       base::Bind(&MasterMainRunner::OnCurlTargetDone, this, result));
 }
 
