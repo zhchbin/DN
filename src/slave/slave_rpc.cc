@@ -112,10 +112,12 @@ void SlaveRPC::GetStatus(google::protobuf::RpcController* /* controller */,
 }
 
 void SlaveRPC::Quit(google::protobuf::RpcController* /*controller*/,
-                    const slave::QuitRequest* /* request */,
+                    const slave::QuitRequest* request,
                     slave::QuitResponse* /* response */,
                     google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
+  LOG(INFO) << request->reason();
+
   if (done)
     done->Run();
 

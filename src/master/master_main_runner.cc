@@ -8,6 +8,7 @@
 #include "base/files/file_util.h"
 #include "base/files/scoped_file.h"
 #include "base/hash.h"
+#include "base/sys_info.h"
 #include "base/threading/thread_restrictions.h"
 #include "common/util.h"
 #include "curl/curl.h"
@@ -213,6 +214,23 @@ void MasterMainRunner::OnSlaveSystemInfoAvailable(int connection_id,
                                                   const SlaveInfo& info) {
   if (slave_info_id_map_.find(connection_id) != slave_info_id_map_.end())
     return;
+  if (info.operating_system_name != base::SysInfo::OperatingSystemName() ||
+      info.operating_system_architecture !=
+          base::SysInfo::OperatingSystemArchitecture()) {
+    static const string kRejectReason =
+        "Different system name or architecture, system info of master: \"" +
+        base::SysInfo::OperatingSystemName() + ", " +
+        base::SysInfo::OperatingSystemArchitecture() + "\".";
+
+    NinjaThread::PostTask(
+        NinjaThread::RPC,
+        FROM_HERE,
+        base::Bind(&MasterRPC::QuitSlave,
+                   base::Unretained(master_rpc_.get()),
+                   connection_id,
+                   kRejectReason));
+    return;
+  }
 
   slave_info_id_map_[connection_id] = info;
   number_of_slave_processors_ += info.number_of_processors;

@@ -27,6 +27,7 @@ message RunCommandResponse {
 };
 
 message QuitRequest {
+  required string reason = 1;
 };
 
 message QuitResponse {

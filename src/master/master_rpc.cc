@@ -60,10 +60,8 @@ void MasterRPC::CleanUp() {
   for (ConnectionMap::iterator it = connections_.begin();
        it != connections_.end();
        ++it) {
-    slave::QuitRequest request;
-    slave::QuitResponse response;
-    slave::SlaveService::Stub stub(it->second);
-    stub.Quit(NULL, &request, &response, NULL);
+    static const char kQuitSuccess[] = "Build finished successfully.";
+    QuitSlave(it->first, kQuitSuccess);
   }
   connections_.clear();
 
@@ -122,6 +120,18 @@ void MasterRPC::StartCommandRemotely(const Directories& dirs,
                                     &MasterRPC::OnRemoteCommandDone,
                                     connections_[0]->id(),
                                     response));
+}
+
+void MasterRPC::QuitSlave(int connection_id, const std::string& reason) {
+  ConnectionMap::iterator it = connections_.find(connection_id);
+  DCHECK(it != connections_.end());
+  slave::QuitRequest request;
+  if (!reason.empty())
+    request.set_reason(reason);
+
+  slave::QuitResponse response;
+  slave::SlaveService::Stub stub(it->second);
+  stub.Quit(NULL, &request, &response, NULL);
 }
 
 void MasterRPC::OnRemoteCommandDone(
