@@ -40,6 +40,7 @@ class MasterRPC
 
   // rpc::RpcSocketServer::Observer implementations.
   void OnConnect(rpc::RpcConnection* connection) override;
+  void OnClose(rpc::RpcConnection* connection) override;
 
   typedef std::vector<std::string> Directories;
   void StartCommandRemotely(const Directories& dirs,

@@ -152,13 +152,16 @@ int RpcConnection::QueuedWriteIOBuffer::GetSizeToWrite() const {
   return pending_data_.front().size() - consumed;
 }
 
-RpcConnection::RpcConnection(int id, scoped_ptr<net::StreamSocket> socket)
+RpcConnection::RpcConnection(int id,
+                             scoped_ptr<net::StreamSocket> socket,
+                             RpcConnection::Delegate* delegate)
     : id_(id),
       socket_(socket.Pass()),
       read_buf_(new ReadIOBuffer()),
       write_buf_(new QueuedWriteIOBuffer()),
       last_request_id_(0),
-      weak_ptr_factory_(this) {
+      weak_ptr_factory_(this),
+      delegate_(delegate) {
 }
 
 RpcConnection::~RpcConnection() {
@@ -190,6 +193,10 @@ void RpcConnection::CallMethod(const google::protobuf::MethodDescriptor* method,
   DoWriteLoop();
 }
 
+void RpcConnection::Close() {
+  delegate_->OnClose(this);
+}
+
 void RpcConnection::DoReadLoop() {
   int rv;
   do {
@@ -215,8 +222,10 @@ void RpcConnection::OnReadCompleted(int rv) {
 }
 
 int RpcConnection::HandleReadResult(int rv) {
-  if (rv <= 0)
+  if (rv <= 0) {
+    Close();
     return rv == 0 ? net::ERR_CONNECTION_CLOSED : rv;
+  }
 
   read_buf_->DidRead(rv);
 
@@ -268,8 +277,10 @@ void RpcConnection::OnWriteCompleted(int rv) {
 }
 
 int RpcConnection::HandleWriteResult(int rv) {
-  if (rv < 0)
+  if (rv < 0) {
+    Close();
     return rv;
+  }
 
   write_buf_->DidConsume(rv);
   return net::OK;

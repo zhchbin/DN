@@ -10,6 +10,7 @@
 #include "base/basictypes.h"
 #include "base/memory/scoped_ptr.h"
 #include "net/completion_callback.h"
+#include "rpc/rpc_connection.h"
 
 namespace net {
 class StreamSocket;
@@ -17,9 +18,7 @@ class StreamSocket;
 
 namespace rpc {
 
-class RpcConnection;
-
-class RpcSocketClient {
+class RpcSocketClient : public RpcConnection::Delegate {
  public:
   explicit RpcSocketClient(const std::string& server_ip, uint16 port);
   ~RpcSocketClient();
@@ -27,6 +26,9 @@ class RpcSocketClient {
   void Connect();
   void Connect(const net::CompletionCallback& callback);
   void Disconnect();
+
+  // RpcConnection::Delegate implementations.
+  void OnClose(RpcConnection* connection) override;
 
   RpcConnection* connection();
 

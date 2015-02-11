@@ -90,6 +90,12 @@ void MasterRPC::OnConnect(rpc::RpcConnection* connection) {
       base::Bind(&MasterMainRunner::StartBuild, master_main_runner_));
 }
 
+void MasterRPC::OnClose(rpc::RpcConnection* connection) {
+  connections_.erase(connection->id());
+  // TODO(zhchbin): Update status of MasterMainRunner.
+  LOG(INFO) << "OnClose";
+}
+
 void MasterRPC::StartCommandRemotely(const Directories& dirs,
                                      const std::string& rspfile_name,
                                      const std::string& rspfile_content,

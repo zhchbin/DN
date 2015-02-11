@@ -8,7 +8,6 @@
 #include "net/net_errors.h"
 #include "net/net_util.h"
 #include "net/tcp_client_socket.h"
-#include "rpc/rpc_connection.h"
 
 namespace rpc {
 
@@ -42,6 +41,9 @@ void RpcSocketClient::Disconnect() {
   rpc_connection_->socket()->Disconnect();
 }
 
+void RpcSocketClient::OnClose(RpcConnection* connection) {
+}
+
 RpcConnection* RpcSocketClient::connection() {
   return rpc_connection_.get();
 }
@@ -51,7 +53,7 @@ void RpcSocketClient::OnConnectComplete(const net::CompletionCallback& callback,
   CHECK(result == net::OK) << "Can't not connect to master.";
   static const int kOneMegabyte = 1024 * 1024;
   socket_->SetSendBufferSize(kOneMegabyte);
-  rpc_connection_.reset(new RpcConnection(0, socket_.Pass()));
+  rpc_connection_.reset(new RpcConnection(0, socket_.Pass(), this));
   rpc_connection_->DoReadLoop();
   if (!callback.is_null())
     callback.Run(result);

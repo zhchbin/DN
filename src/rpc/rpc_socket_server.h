@@ -12,6 +12,7 @@
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list.h"
+#include "rpc/rpc_connection.h"
 
 namespace net {
 
@@ -22,14 +23,13 @@ class StreamSocket;
 
 namespace rpc {
 
-class RpcConnection;
-
-class RpcSocketServer {
+class RpcSocketServer : public RpcConnection::Delegate {
  public:
   class Observer {
    public:
     virtual ~Observer() {}
     virtual void OnConnect(RpcConnection* connection) = 0;
+    virtual void OnClose(RpcConnection* connection) = 0;
   };
 
   explicit RpcSocketServer(const std::string& bind_ip, uint16 port);
@@ -38,6 +38,9 @@ class RpcSocketServer {
   void RemoveObserver(Observer *obs);
 
   RpcConnection* FindConnection(int connection_id);
+
+  // RpcConnection::Delegate implementations.
+  void OnClose(RpcConnection* connection) override;
 
  private:
   typedef std::map<int, RpcConnection*> IdToConnectionMap;

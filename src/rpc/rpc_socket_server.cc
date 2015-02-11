@@ -12,7 +12,6 @@
 #include "net/server_socket.h"
 #include "net/stream_socket.h"
 #include "net/tcp_server_socket.h"
-#include "rpc/rpc_connection.h"
 
 namespace {
 const int kBackLog = 10;
@@ -80,7 +79,7 @@ int RpcSocketServer::HandleAcceptResult(int rv) {
   }
 
   RpcConnection* connection =
-      new RpcConnection(last_id_++, accepted_socket_.Pass());
+      new RpcConnection(last_id_++, accepted_socket_.Pass(), this);
   id_to_connection_[connection->id()] = connection;
   connection->DoReadLoop();
   FOR_EACH_OBSERVER(Observer, observer_list_, OnConnect(connection));
@@ -93,6 +92,13 @@ RpcConnection* RpcSocketServer::FindConnection(int connection_id) {
     return NULL;
 
   return it->second;
+}
+
+void RpcSocketServer::OnClose(RpcConnection* connection) {
+  DCHECK(id_to_connection_.find(connection->id()) != id_to_connection_.end());
+  FOR_EACH_OBSERVER(Observer, observer_list_, OnClose(connection));
+  id_to_connection_.erase(connection->id());
+  base::MessageLoopProxy::current()->DeleteSoon(FROM_HERE, connection);
 }
 
 }  // namespace rpc

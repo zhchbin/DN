@@ -119,7 +119,16 @@ class RpcConnection : public google::protobuf::RpcChannel {
     DISALLOW_COPY_AND_ASSIGN(QueuedWriteIOBuffer);
   };
 
-  RpcConnection(int id, scoped_ptr<net::StreamSocket> socket);
+  // Delegate to handle close events.
+  class Delegate {
+   public:
+    virtual ~Delegate() {}
+    virtual void OnClose(RpcConnection* connection) = 0;
+  };
+
+  RpcConnection(int id,
+                scoped_ptr<net::StreamSocket> socket,
+                RpcConnection::Delegate* delegate);
   ~RpcConnection();
 
   int id() const { return id_; }
@@ -141,6 +150,7 @@ class RpcConnection : public google::protobuf::RpcChannel {
                   google::protobuf::Message* response,
                   google::protobuf::Closure* done) override;
 
+  void Close();
   void DoReadLoop();
   void DoWriteLoop();
 
@@ -191,6 +201,8 @@ class RpcConnection : public google::protobuf::RpcChannel {
   uint32 last_request_id_;
   RequsetIdToResponseMap request_id_to_response_map_;
   base::WeakPtrFactory<RpcConnection> weak_ptr_factory_;
+
+  RpcConnection::Delegate* const delegate_;
 
   DISALLOW_COPY_AND_ASSIGN(RpcConnection);
 };

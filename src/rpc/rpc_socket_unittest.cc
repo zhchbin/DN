@@ -157,6 +157,7 @@ TEST(RpcSocketTest, CallServiceBidirectionally) {
 class MockRpcSocketServerObserver : public RpcSocketServer::Observer {
  public:
   MOCK_METHOD1(OnConnect, void(RpcConnection* connection));
+  MOCK_METHOD1(OnClose, void(RpcConnection* connection));
 };
 
 TEST(RpcSocketTest, ServerObserver) {
@@ -166,9 +167,12 @@ TEST(RpcSocketTest, ServerObserver) {
   MockRpcSocketServerObserver observer;
   server.AddObserver(&observer);
   EXPECT_CALL(observer, OnConnect(_)).Times(1);
+  EXPECT_CALL(observer, OnClose(_)).Times(1);
   TestCompletionCallback connect_callback;
   client.Connect(connect_callback.callback());
   EXPECT_EQ(net::OK, connect_callback.WaitForResult());
+  client.Disconnect();
+
   base::MessageLoop::current()->PostTask(
       FROM_HERE,
       base::MessageLoop::current()->QuitClosure());
