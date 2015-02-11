@@ -25,8 +25,8 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
   return fwrite(ptr, size, nmemb, stream);
 }
 
-void CurlTargetsOnBlockingPool(const std::string& host,
-                               const std::vector<std::string>& targets) {
+void FetchTargetsOnBlockingPool(const std::string& host,
+                                const std::vector<std::string>& targets) {
   CURL* curl = curl_easy_init();
   for (size_t i = 0; i < targets.size(); ++i) {
     base::FilePath filename = base::FilePath::FromUTF8Unsafe(targets[i]);
@@ -175,12 +175,11 @@ bool MasterMainRunner::HasPendingLocalCommands() {
   return !subproc_to_edge_.empty();
 }
 
-void MasterMainRunner::OnCurlTargetDone(CommandRunner::Result result) {
+void MasterMainRunner::OnFetchTargetsDone(CommandRunner::Result result) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   std::string error;
-  if (!ninja_main()->builder()->HasRemoteCommandRunLocally(result.edge)) {
+  if (!ninja_main()->builder()->HasRemoteCommandRunLocally(result.edge))
     ninja_main()->builder()->FinishCommand(&result, &error);
-  }
 }
 
 void MasterMainRunner::OnRemoteCommandDone(int connection_id,
@@ -206,8 +205,8 @@ void MasterMainRunner::OnRemoteCommandDone(int connection_id,
 
   NinjaThread::PostBlockingPoolTaskAndReply(
       FROM_HERE,
-      base::Bind(CurlTargetsOnBlockingPool, host, targets),
-      base::Bind(&MasterMainRunner::OnCurlTargetDone, this, result));
+      base::Bind(FetchTargetsOnBlockingPool, host, targets),
+      base::Bind(&MasterMainRunner::OnFetchTargetsDone, this, result));
 }
 
 void MasterMainRunner::OnSlaveSystemInfoAvailable(int connection_id,

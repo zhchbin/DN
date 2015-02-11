@@ -53,7 +53,7 @@ class MasterMainRunner : public common::MainRunner {
                            uint32 edge_id,
                            ExitStatus status,
                            const std::string& output);
-  void OnCurlTargetDone(CommandRunner::Result result);
+  void OnFetchTargetsDone(CommandRunner::Result result);
 
   void OnSlaveSystemInfoAvailable(int connection_id, const SlaveInfo& info);
 
