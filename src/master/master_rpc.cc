@@ -60,7 +60,7 @@ void MasterRPC::CleanUp() {
   for (ConnectionMap::iterator it = connections_.begin();
        it != connections_.end();
        ++it) {
-    static const char kQuitSuccess[] = "Build finished successfully.";
+    static const char kQuitSuccess[] = "Build finished.";
     QuitSlave(it->first, kQuitSuccess);
   }
   connections_.clear();

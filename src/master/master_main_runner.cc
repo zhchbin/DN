@@ -120,7 +120,8 @@ bool MasterMainRunner::StartCommandLocally(Edge* edge) {
 bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
   MasterRPC::Directories dirs;
   for (vector<Node*>::iterator o = edge->outputs_.begin();
-       o != edge->outputs_.end(); ++o) {
+       o != edge->outputs_.end();
+       ++o) {
     dirs.push_back((*o)->path());
   }
 

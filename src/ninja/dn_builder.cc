@@ -115,6 +115,7 @@ bool DNBuilder::AlreadyUpToDate() const {
 bool DNBuilder::Build(string* err, master::MasterMainRunner* runner) {
   command_runner_ = runner;
   status_->PlanHasTotalEdges(plan_.command_edge_count());
+  should_quit_build_loop_ = false;
   return NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
@@ -136,6 +137,9 @@ bool DNBuilder::HasRemoteCommandRunLocally(Edge* edge) {
 void DNBuilder::BuildLoop() {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   DCHECK(command_runner_ != NULL);
+
+  if (should_quit_build_loop_)
+    return;
 
   if (!plan_.more_to_do()) {
     BuildFinished();
@@ -175,6 +179,7 @@ void DNBuilder::BuildLoop() {
       failed = true;
     }
   } else {
+    // We try to start edge locally, instead of waiting for the remote one.
     if (!outstanding_edge_list_.empty()) {
       StartEdge(outstanding_edge_list_.back(), &error, true);
       outstanding_edge_list_.pop_back();
@@ -213,7 +218,7 @@ bool DNBuilder::FinishCommand(CommandRunner::Result* result, string* err) {
   METRIC_RECORD("FinishCommand");
 
   if (!result->success()) {
-    LOG(ERROR) << "subcommand failed";
+    LOG(ERROR) << "subcommand failed: " << result->output;
     BuildFinished();
     return false;
   }
@@ -382,6 +387,7 @@ bool DNBuilder::ExtractDeps(CommandRunner::Result* result,
 }
 
 void DNBuilder::BuildFinished() {
+  should_quit_build_loop_ = true;
   Cleanup();
   status_->BuildFinished();
 

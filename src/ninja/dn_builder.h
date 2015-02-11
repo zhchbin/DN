@@ -73,6 +73,9 @@ class DNBuilder {
   typedef std::list<Edge*> OutstandingEdgeList;
   OutstandingEdgeList outstanding_edge_list_;
 
+  // Whether we should quit the |BuildLoop|.
+  bool should_quit_build_loop_;
+
   DISALLOW_COPY_AND_ASSIGN(DNBuilder);
 };
 
