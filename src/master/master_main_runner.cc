@@ -194,6 +194,10 @@ void MasterMainRunner::OnRemoteCommandDone(int connection_id,
   result.output = output;  // The output stream of the command.
   outstanding_edges_.erase(it);
   std::string error;
+  if (status != ExitSuccess) {
+    ninja_main()->builder()->FinishCommand(&result, &error);
+    return;
+  }
 
   std::vector<std::string> targets;
   for (size_t i = 0; i < result.edge->outputs_.size(); ++i)
