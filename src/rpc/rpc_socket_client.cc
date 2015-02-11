@@ -42,6 +42,7 @@ void RpcSocketClient::Disconnect() {
 }
 
 void RpcSocketClient::OnClose(RpcConnection* connection) {
+  DCHECK(connection == rpc_connection_.get());
 }
 
 RpcConnection* RpcSocketClient::connection() {

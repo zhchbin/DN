@@ -290,10 +290,15 @@ void RpcConnection::OnRequestMessage(const rpc::RpcMessage& message) {
   DCHECK_EQ(message.type(), RpcMessage::REQUEST);
   google::protobuf::Service* service =
       ServiceManager::GetInstance()->FindService(message.service());
+  if (!service) {
+    LOG(ERROR) << "Unknown service: " << message.service();
+    return;
+  }
+
   const google::protobuf::MethodDescriptor* method_descriptor =
       service->GetDescriptor()->FindMethodByName(message.method());
   if (method_descriptor == NULL) {
-    LOG(ERROR) << "Unkonwn method: " << message.method();
+    LOG(ERROR) << "Unknown method: " << message.method();
     return;
   }
 
