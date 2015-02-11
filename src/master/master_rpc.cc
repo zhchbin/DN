@@ -92,8 +92,12 @@ void MasterRPC::OnConnect(rpc::RpcConnection* connection) {
 
 void MasterRPC::OnClose(rpc::RpcConnection* connection) {
   connections_.erase(connection->id());
-  // TODO(zhchbin): Update status of MasterMainRunner.
-  LOG(INFO) << "OnClose";
+  NinjaThread::PostTask(
+      NinjaThread::MAIN,
+      FROM_HERE,
+      base::Bind(&MasterMainRunner::OnSlaveClose,
+                 master_main_runner_,
+                 connection->id()));
 }
 
 void MasterRPC::StartCommandRemotely(const Directories& dirs,

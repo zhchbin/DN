@@ -61,6 +61,7 @@ class MasterMainRunner : public common::MainRunner {
                            double load_average,
                            int amount_of_running_commands,
                            int64 amount_of_available_physical_memory);
+  void OnSlaveClose(int connection_id);
 
  private:
   // Map the connection id to slave info.

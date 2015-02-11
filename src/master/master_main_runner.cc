@@ -255,4 +255,9 @@ void MasterMainRunner::OnSlaveStatusUpdate(
       amount_of_available_physical_memory;
 }
 
+void MasterMainRunner::OnSlaveClose(int connection_id) {
+  DCHECK(slave_info_id_map_.find(connection_id) != slave_info_id_map_.end());
+  slave_info_id_map_.erase(connection_id);
+}
+
 }  // namespace master
