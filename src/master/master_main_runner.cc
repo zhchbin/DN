@@ -118,6 +118,10 @@ bool MasterMainRunner::StartCommandLocally(Edge* edge) {
 }
 
 bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
+  int connection_id = FindMostAvailableSlave();
+  if (connection_id == INT_MIN)
+    return false;
+
   MasterRPC::Directories dirs;
   for (vector<Node*>::iterator o = edge->outputs_.begin();
        o != edge->outputs_.end();
@@ -133,6 +137,7 @@ bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
       FROM_HERE,
       base::Bind(&MasterRPC::StartCommandRemotely,
                  base::Unretained(master_rpc_.get()),
+                 connection_id,
                  dirs,
                  edge->GetUnescapedRspfile(),
                  edge->GetBinding("rspfile_content"),
@@ -259,6 +264,23 @@ void MasterMainRunner::OnSlaveStatusUpdate(
 void MasterMainRunner::OnSlaveClose(int connection_id) {
   DCHECK(slave_info_id_map_.find(connection_id) != slave_info_id_map_.end());
   slave_info_id_map_.erase(connection_id);
+}
+
+int MasterMainRunner::FindMostAvailableSlave() {
+  int connection_id = INT_MIN;
+  int max_number_of_available_processors = INT_MIN;
+  for (SlaveInfoIdMap::iterator it = slave_info_id_map_.begin();
+       it != slave_info_id_map_.end();
+       ++it) {
+    int tmp =
+        it->second.number_of_processors - it->second.amount_of_running_commands;
+    if (tmp > max_number_of_available_processors) {
+      tmp = max_number_of_available_processors;
+      connection_id = it->first;
+    }
+  }
+
+  return connection_id;
 }
 
 }  // namespace master

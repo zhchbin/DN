@@ -100,7 +100,8 @@ void MasterRPC::OnClose(rpc::RpcConnection* connection) {
                  connection->id()));
 }
 
-void MasterRPC::StartCommandRemotely(const Directories& dirs,
+void MasterRPC::StartCommandRemotely(int connection_id,
+                                     const Directories& dirs,
                                      const std::string& rspfile_name,
                                      const std::string& rspfile_content,
                                      const std::string& command,
@@ -119,16 +120,18 @@ void MasterRPC::StartCommandRemotely(const Directories& dirs,
     dir->assign(*it);
   }
 
+  // |response| will be deleted when after corresponding |OnRemoteCommandDone|
+  // is called.
   slave::RunCommandResponse* response = new slave::RunCommandResponse();
-  // TODO(zhchbin): choose one of the connections.
-  slave::SlaveService::Stub stub(connections_[0]);
+  CHECK(connections_.find(connection_id) != connections_.end());
+  slave::SlaveService::Stub stub(connections_[connection_id]);
   stub.RunCommand(
       NULL,
       &request,
       response,
       google::protobuf::NewCallback(this,
                                     &MasterRPC::OnRemoteCommandDone,
-                                    connections_[0]->id(),
+                                    connection_id,
                                     response));
 }
 

@@ -52,7 +52,10 @@ class RpcSocketServer : public RpcConnection::Delegate {
 
   scoped_ptr<net::ServerSocket> server_socket_;
   scoped_ptr<net::StreamSocket> accepted_socket_;
+
+  // The id of the last connection, counted from 0.
   int last_id_;
+
   IdToConnectionMap id_to_connection_;
   std::string bind_ip_;
   uint16 port_;

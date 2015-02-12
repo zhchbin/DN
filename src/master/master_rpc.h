@@ -43,7 +43,8 @@ class MasterRPC
   void OnClose(rpc::RpcConnection* connection) override;
 
   typedef std::vector<std::string> Directories;
-  void StartCommandRemotely(const Directories& dirs,
+  void StartCommandRemotely(int connection_id,
+                            const Directories& dirs,
                             const std::string& rspfile_name,
                             const std::string& rspfile_content,
                             const std::string& command,

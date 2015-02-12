@@ -74,6 +74,11 @@ class MasterMainRunner : public common::MainRunner {
   bool StartCommandLocally(Edge* edge);
   bool StartCommandRemotely(Edge* edge);
 
+  // Return the connection id of the most available slave to dispatch running
+  // command job. Return INT_MIN means there are no slaves available, note that
+  // connection id is counted from 0.
+  int FindMostAvailableSlave();
+
   std::string bind_ip_;
   uint16 port_;
   scoped_ptr<MasterRPC> master_rpc_;
