@@ -24,9 +24,8 @@ namespace master {
 
 class MasterMainRunner;
 
-class MasterRPC
-    : public NinjaThreadDelegate,
-      public rpc::RpcSocketServer::Observer {
+class MasterRPC : public NinjaThreadDelegate,
+                  public rpc::RpcSocketServer::Observer {
  public:
   MasterRPC(const std::string& bind_ip,
             uint16 port,
