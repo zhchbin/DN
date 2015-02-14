@@ -18,15 +18,22 @@
 
 #if defined(OS_LINUX)
 #include "curl/curl.h"
+#elif defined(OS_WIN)
+#include <urlmon.h>
+#pragma comment(lib, "urlmon.lib")
+
+#include "base/strings/sys_string_conversions.h"
 #endif
 
 namespace {
 
 const char kHttp[] = "http://";
 
+#if defined(OS_LINUX)
 size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
   return fwrite(ptr, size, nmemb, stream);
 }
+#endif
 
 void FetchTargetsOnBlockingPool(const std::string& host,
                                 const std::vector<std::string>& targets) {
@@ -35,8 +42,8 @@ void FetchTargetsOnBlockingPool(const std::string& host,
   for (size_t i = 0; i < targets.size(); ++i) {
     base::FilePath filename = base::FilePath::FromUTF8Unsafe(targets[i]);
     CHECK(base::CreateDirectory(filename.DirName()));
-    base::ScopedFILE file(base::OpenFile(filename, "wb"));
     std::string url = kHttp + host + "/" + targets[i];
+    base::ScopedFILE file(base::OpenFile(filename, "wb"));
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, file.get());
@@ -44,7 +51,20 @@ void FetchTargetsOnBlockingPool(const std::string& host,
   }
   curl_easy_cleanup(curl);
 #elif defined(OS_WIN)
-  // TODO(zhchbin): use |URLDownloadToFile| to download |targets| files.
+  for (size_t i = 0; i < targets.size(); ++i) {
+    base::FilePath filename = base::FilePath::FromUTF8Unsafe(targets[i]);
+    CHECK(base::CreateDirectory(filename.DirName()));
+    std::string url = kHttp + host + "/" + targets[i];
+    HRESULT hr = URLDownloadToFile(NULL,
+                                   base::SysUTF8ToWide(url).c_str(),
+                                   filename.value().c_str(),
+                                   0,
+                                   NULL);
+    if (FAILED(hr)) {
+      LOG(ERROR) << "Download failed: Error " << std::hex << hr << ". "
+                 << targets[i];
+    }
+  }
 #else
   NOTIMPLEMENTED();
 #endif
