@@ -12,7 +12,7 @@
 class NinjaThreadImpl;
 
 namespace ninja {
-class NinjaMain;
+struct NinjaMain;
 }  // namespace ninja
 
 namespace common {

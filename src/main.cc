@@ -8,6 +8,11 @@
 #include "base/command_line.h"
 #include "common/main_runner.h"
 
+#if defined(OS_WIN)
+#include <direct.h>
+#define chdir _chdir
+#endif
+
 int main(int argc, char* argv[]) {
   base::CommandLine::Init(argc, argv);
   base::AtExitManager exit_manager;

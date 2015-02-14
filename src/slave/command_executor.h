@@ -9,6 +9,7 @@
 #include <queue>
 #include <string>
 
+#include "base/basictypes.h"
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list.h"
 #include "third_party/ninja/src/build.h"
@@ -55,7 +56,7 @@ class CommandExecutor {
   base::WeakPtrFactory<CommandExecutor> weak_factory_;
 
   // The number of jobs which can run in parallel.
-  uint parallelism_;
+  uint32 parallelism_;
 
   DISALLOW_COPY_AND_ASSIGN(CommandExecutor);
 };

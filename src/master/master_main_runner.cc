@@ -11,11 +11,14 @@
 #include "base/sys_info.h"
 #include "base/threading/thread_restrictions.h"
 #include "common/util.h"
-#include "curl/curl.h"
 #include "master/master_rpc.h"
 #include "ninja/dn_builder.h"
 #include "ninja/ninja_main.h"
 #include "thread/ninja_thread.h"
+
+#if defined(OS_LINUX)
+#include "curl/curl.h"
+#endif
 
 namespace {
 
@@ -27,6 +30,7 @@ size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
 
 void FetchTargetsOnBlockingPool(const std::string& host,
                                 const std::vector<std::string>& targets) {
+#if defined(OS_LINUX)
   CURL* curl = curl_easy_init();
   for (size_t i = 0; i < targets.size(); ++i) {
     base::FilePath filename = base::FilePath::FromUTF8Unsafe(targets[i]);
@@ -39,6 +43,11 @@ void FetchTargetsOnBlockingPool(const std::string& host,
     CHECK(curl_easy_perform(curl) == CURLE_OK);
   }
   curl_easy_cleanup(curl);
+#elif defined(OS_WIN)
+  // TODO(zhchbin): use |URLDownloadToFile| to download |targets| files.
+#else
+  NOTIMPLEMENTED();
+#endif
 }
 
 }  // namespace

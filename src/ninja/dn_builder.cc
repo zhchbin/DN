@@ -17,6 +17,10 @@
 #include "third_party/ninja/src/state.h"
 #include "thread/ninja_thread.h"
 
+#if defined(OS_WIN)
+#include "third_party/ninja/src/msvc_helper.h"
+#endif
+
 namespace {
 
 bool EdgeMustStartLocally(Edge* edge) {
