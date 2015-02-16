@@ -54,12 +54,13 @@ void SlaveMainRunner::OnCommandStarted(const std::string& command) {
 void SlaveMainRunner::OnCommandFinished(const std::string& command,
                                         const CommandRunner::Result* result) {
   uint32 command_hash = base::Hash(command);
-  HashToResponsePair::iterator it = hash_to_response_pair_.find(command_hash);
-  DCHECK(it != hash_to_response_pair_.end());
-  it->second.first->set_output(result->output);
-  it->second.first->set_status(TransformExitStatus(result->status));
-  google::protobuf::Closure* done = it->second.second;
-  hash_to_response_pair_.erase(it);
+  RunCommandContextMap::iterator it =
+      run_command_context_map_.find(command_hash);
+  DCHECK(it != run_command_context_map_.end());
+  it->second.response->set_output(result->output);
+  it->second.response->set_status(TransformExitStatus(result->status));
+  google::protobuf::Closure* done = it->second.done;
+  run_command_context_map_.erase(it);
 
   NinjaThread::PostTask(
       NinjaThread::RPC, FROM_HERE,
@@ -112,8 +113,7 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
     return;
   }
 
-  ResponsePair pair = std::make_pair(response, done);
-  hash_to_response_pair_[command_hash] = pair;
+  run_command_context_map_[command_hash] = {request, response, done};
   command_executor_->AppendCommand(command);
 }
 

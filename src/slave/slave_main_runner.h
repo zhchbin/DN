@@ -64,10 +64,15 @@ class SlaveMainRunner : public CommandExecutor::Observer,
   typedef std::set<uint32> NinjaCommmandHashSet;
   NinjaCommmandHashSet ninja_command_hash_set_;
 
-  typedef std::pair<
-      RunCommandResponse*, google::protobuf::Closure*> ResponsePair;
-  typedef std::map<uint32, ResponsePair> HashToResponsePair;
-  HashToResponsePair hash_to_response_pair_;
+  struct RunCommandContext {
+    const RunCommandRequest* request;
+    RunCommandResponse* response;
+    google::protobuf::Closure* done;
+  };
+  // RunCommandContextMap is used to hold the context of running a command from
+  // master. Key is the hash of |request->command()|.
+  typedef std::map<uint32, RunCommandContext> RunCommandContextMap;
+  RunCommandContextMap run_command_context_map_;
 
   DISALLOW_COPY_AND_ASSIGN(SlaveMainRunner);
 };
