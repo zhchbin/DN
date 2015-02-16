@@ -6,8 +6,8 @@ message RunCommandRequest {
   required string command = 1;
   required uint32 edge_id = 2;
 
-  //Directories necessary for outputs.
-  repeated string dirs = 3;
+  // Path for outputs.
+  repeated string output_paths = 3;
 
   // Response file, if needed.
   optional string rspfile_name = 4;

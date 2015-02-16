@@ -118,11 +118,11 @@ bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
   if (connection_id == INT_MIN)
     return false;
 
-  MasterRPC::Directories dirs;
+  MasterRPC::OutputPaths output_paths;
   for (vector<Node*>::iterator o = edge->outputs_.begin();
        o != edge->outputs_.end();
        ++o) {
-    dirs.push_back((*o)->path());
+    output_paths.push_back((*o)->path());
   }
 
   std::string command = edge->EvaluateCommand();
@@ -134,7 +134,7 @@ bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
       base::Bind(&MasterRPC::StartCommandRemotely,
                  base::Unretained(master_rpc_.get()),
                  connection_id,
-                 dirs,
+                 output_paths,
                  edge->GetUnescapedRspfile(),
                  edge->GetBinding("rspfile_content"),
                  command,

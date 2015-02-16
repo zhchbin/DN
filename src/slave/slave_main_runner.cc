@@ -120,8 +120,8 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
 bool SlaveMainRunner::CreateDirsAndResponseFile(
     const RunCommandRequest* request) {
   base::ThreadRestrictions::AssertIOAllowed();
-  for (int i = 0; i < request->dirs_size(); ++i) {
-    if (!ninja_main()->disk_interface()->MakeDirs(request->dirs(i)))
+  for (int i = 0; i < request->output_paths_size(); ++i) {
+    if (!ninja_main()->disk_interface()->MakeDirs(request->output_paths(i)))
       return false;
   }
   if (request->has_rspfile_name()) {

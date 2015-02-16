@@ -41,9 +41,9 @@ class MasterRPC : public NinjaThreadDelegate,
   void OnConnect(rpc::RpcConnection* connection) override;
   void OnClose(rpc::RpcConnection* connection) override;
 
-  typedef std::vector<std::string> Directories;
+  typedef std::vector<std::string> OutputPaths;
   void StartCommandRemotely(int connection_id,
-                            const Directories& dirs,
+                            const OutputPaths& paths,
                             const std::string& rspfile_name,
                             const std::string& rspfile_content,
                             const std::string& command,

@@ -101,7 +101,7 @@ void MasterRPC::OnClose(rpc::RpcConnection* connection) {
 }
 
 void MasterRPC::StartCommandRemotely(int connection_id,
-                                     const Directories& dirs,
+                                     const OutputPaths& paths,
                                      const std::string& rspfile_name,
                                      const std::string& rspfile_content,
                                      const std::string& command,
@@ -113,11 +113,11 @@ void MasterRPC::StartCommandRemotely(int connection_id,
     request.set_rspfile_name(rspfile_name);
     request.set_rspfile_content(rspfile_content);
   }
-  for (Directories::const_iterator it = dirs.begin();
-       it != dirs.end();
+  for (OutputPaths::const_iterator it = paths.begin();
+       it != paths.end();
        ++it) {
-    std::string* dir = request.add_dirs();
-    dir->assign(*it);
+    std::string* path = request.add_output_paths();
+    path->assign(*it);
   }
 
   // |response| will be deleted when after corresponding |OnRemoteCommandDone|
