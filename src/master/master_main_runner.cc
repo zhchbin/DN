@@ -11,33 +11,22 @@
 #include "base/sys_info.h"
 #include "base/threading/thread_restrictions.h"
 #include "common/util.h"
+#include "curl/curl.h"
 #include "master/master_rpc.h"
 #include "ninja/dn_builder.h"
 #include "ninja/ninja_main.h"
 #include "thread/ninja_thread.h"
 
-#if defined(OS_LINUX)
-#include "curl/curl.h"
-#elif defined(OS_WIN)
-#include <urlmon.h>
-#pragma comment(lib, "urlmon.lib")
-
-#include "base/strings/sys_string_conversions.h"
-#endif
-
 namespace {
 
 const char kHttp[] = "http://";
 
-#if defined(OS_LINUX)
 size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
   return fwrite(ptr, size, nmemb, stream);
 }
-#endif
 
 void FetchTargetsOnBlockingPool(const std::string& host,
                                 const std::vector<std::string>& targets) {
-#if defined(OS_LINUX)
   CURL* curl = curl_easy_init();
   for (size_t i = 0; i < targets.size(); ++i) {
     base::FilePath filename = base::FilePath::FromUTF8Unsafe(targets[i]);
@@ -50,24 +39,6 @@ void FetchTargetsOnBlockingPool(const std::string& host,
     CHECK(curl_easy_perform(curl) == CURLE_OK);
   }
   curl_easy_cleanup(curl);
-#elif defined(OS_WIN)
-  for (size_t i = 0; i < targets.size(); ++i) {
-    base::FilePath filename = base::FilePath::FromUTF8Unsafe(targets[i]);
-    CHECK(base::CreateDirectory(filename.DirName()));
-    std::string url = kHttp + host + "/" + targets[i];
-    HRESULT hr = URLDownloadToFile(NULL,
-                                   base::SysUTF8ToWide(url).c_str(),
-                                   filename.value().c_str(),
-                                   0,
-                                   NULL);
-    if (FAILED(hr)) {
-      LOG(ERROR) << "Download failed: Error " << std::hex << hr << ". "
-                 << targets[i];
-    }
-  }
-#else
-  NOTIMPLEMENTED();
-#endif
 }
 
 }  // namespace
@@ -78,17 +49,13 @@ MasterMainRunner::MasterMainRunner(const std::string& bind_ip, uint16 port)
     : bind_ip_(bind_ip),
       port_(port),
       number_of_slave_processors_(0) {
-#if defined(OS_LINUX)
   // |curl_global_init| is not thread-safe, following advice in docs of
   // |curl_easy_init|, we call it manually.
   curl_global_init(CURL_GLOBAL_ALL);
-#endif
 }
 
 MasterMainRunner::~MasterMainRunner() {
-#if defined(OS_LINUX)
   curl_global_cleanup();
-#endif
 }
 
 bool MasterMainRunner::PostCreateThreads() {

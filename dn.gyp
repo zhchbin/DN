@@ -60,6 +60,9 @@
       ],
       'conditions': [
         [ 'OS == "win"', {
+            'defines': [
+              'CURL_STATICLIB',
+            ],
             'sources!': [
               'src/net/socket_libevent.cc',
               'src/net/socket_libevent.h',
@@ -67,6 +70,14 @@
               'src/net/tcp_socket_libevent.h',
             ],
             'msvs_disabled_warnings': [4267, 4125],
+            'link_settings': {
+              'libraries': [
+                '-l../../third_party/curl/lib/libcurl.lib',
+              ],
+            },
+            'include_dirs': [
+              'third_party/curl/include',
+            ],
           }, { # else: OS != "win"
             'sources!': [
               'src/net/winsock_init.cc',
