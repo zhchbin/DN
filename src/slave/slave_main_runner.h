@@ -47,12 +47,20 @@ class SlaveMainRunner : public CommandExecutor::Observer,
                   google::protobuf::Closure* done);
 
  private:
+  struct RunCommandContext {
+    const RunCommandRequest* request;
+    RunCommandResponse* response;
+    google::protobuf::Closure* done;
+  };
+
   friend class base::RefCountedThreadSafe<SlaveMainRunner>;
   ~SlaveMainRunner() override;
 
   // Create directories necessary for outputs and create response file,
   // if needed. Note: this will block.
   bool CreateDirsAndResponseFile(const RunCommandRequest* request);
+
+  void MD5OutputsOnBlockingPool(const RunCommandContext& context);
 
   std::string master_;
   uint16 port_;
@@ -64,11 +72,6 @@ class SlaveMainRunner : public CommandExecutor::Observer,
   typedef std::set<uint32> NinjaCommmandHashSet;
   NinjaCommmandHashSet ninja_command_hash_set_;
 
-  struct RunCommandContext {
-    const RunCommandRequest* request;
-    RunCommandResponse* response;
-    google::protobuf::Closure* done;
-  };
   // RunCommandContextMap is used to hold the context of running a command from
   // master. Key is the hash of |request->command()|.
   typedef std::map<uint32, RunCommandContext> RunCommandContextMap;

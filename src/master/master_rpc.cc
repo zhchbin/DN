@@ -151,6 +151,9 @@ void MasterRPC::OnRemoteCommandDone(
     int connection_id,
     slave::RunCommandResponse* raw_response) {
   scoped_ptr<slave::RunCommandResponse> response(raw_response);
+  std::vector<std::string> md5s;
+  for (int i = 0; i < response->md5_size(); ++i)
+    md5s.push_back(response->md5(i));
 
   NinjaThread::PostTask(
       NinjaThread::MAIN,
@@ -160,7 +163,8 @@ void MasterRPC::OnRemoteCommandDone(
                  connection_id,
                  response->edge_id(),
                  TransformExitStatus(response->status()),
-                 response->output()));
+                 response->output(),
+                 md5s));
 }
 
 void MasterRPC::OnSlaveSystemInfoAvailable(

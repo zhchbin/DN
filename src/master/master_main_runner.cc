@@ -8,6 +8,8 @@
 #include "base/files/file_util.h"
 #include "base/files/scoped_file.h"
 #include "base/hash.h"
+#include "base/md5.h"
+#include "base/strings/string_piece.h"
 #include "base/sys_info.h"
 #include "base/threading/thread_restrictions.h"
 #include "common/util.h"
@@ -21,25 +23,48 @@ namespace {
 
 const char kHttp[] = "http://";
 
-size_t write_data(void* ptr, size_t size, size_t count, FILE* stream) {
-  return fwrite(ptr, size, count, stream);
-}
-
-void FetchTargetsOnBlockingPool(const std::string& host,
-                                const std::vector<std::string>& targets) {
-  CURL* curl = curl_easy_init();
-  for (size_t i = 0; i < targets.size(); ++i) {
-    base::FilePath filename = base::FilePath::FromUTF8Unsafe(targets[i]);
-    CHECK(base::CreateDirectory(filename.DirName()));
-    std::string url = kHttp + host + "/" + targets[i];
-    base::ScopedFILE file(base::OpenFile(filename, "wb"));
-    curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_data);
-    curl_easy_setopt(curl, CURLOPT_WRITEDATA, file.get());
-    CHECK(curl_easy_perform(curl) == CURLE_OK);
+// Curl helper, with md5 check sum.
+class CurlHelper {
+ public:
+  static size_t WriteDataStatic(void* ptr, size_t size, size_t count,
+                                CurlHelper* curl_helper) {
+    return curl_helper->WriteData(ptr, size, count);
   }
-  curl_easy_cleanup(curl);
-}
+
+  CurlHelper() : curl_(curl_easy_init()) {
+  }
+
+  ~CurlHelper() {
+    curl_easy_cleanup(curl_);
+  }
+
+  std::string Get(const std::string& url, const base::FilePath& filename) {
+    base::MD5Init(&md5_context_);
+    CHECK(base::CreateDirectory(filename.DirName()));
+    file_.reset(base::OpenFile(filename, "wb"));
+    curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
+    curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, CurlHelper::WriteDataStatic);
+    curl_easy_setopt(curl_, CURLOPT_WRITEDATA, this);
+    if (curl_easy_perform(curl_) != CURLE_OK)
+      return "";
+
+    base::MD5Digest digest;
+    base::MD5Final(&digest, &md5_context_);
+    return MD5DigestToBase16(digest);
+  }
+
+  size_t WriteData(void* ptr, size_t size, size_t count) {
+    base::MD5Update(
+        &md5_context_,
+        base::StringPiece(reinterpret_cast<char*>(ptr), size * count));
+    return fwrite(ptr, size, count, file_.get());
+  }
+
+ private:
+  CURL* curl_;
+  base::MD5Context md5_context_;
+  base::ScopedFILE file_;
+};
 
 }  // namespace
 
@@ -184,10 +209,12 @@ void MasterMainRunner::OnFetchTargetsDone(CommandRunner::Result result) {
     ninja_main()->builder()->FinishCommand(&result, &error);
 }
 
-void MasterMainRunner::OnRemoteCommandDone(int connection_id,
-                                           uint32 edge_id,
-                                           ExitStatus status,
-                                           const std::string& output) {
+void MasterMainRunner::OnRemoteCommandDone(
+    int connection_id,
+    uint32 edge_id,
+    ExitStatus status,
+    const std::string& output,
+    const std::vector<std::string>& md5s) {
   OutstandingEdgeMap::iterator it = outstanding_edges_.find(edge_id);
   DCHECK(it != outstanding_edges_.end());
   CommandRunner::Result result;
@@ -201,18 +228,23 @@ void MasterMainRunner::OnRemoteCommandDone(int connection_id,
     return;
   }
 
-  std::vector<std::string> targets;
-  for (size_t i = 0; i < result.edge->outputs_.size(); ++i)
-    targets.push_back(result.edge->outputs_[i]->path());
+  DCHECK(result.edge->outputs_.size() == md5s.size());
+  TargetVector targets;
+  for (size_t i = 0; i < result.edge->outputs_.size(); ++i) {
+    targets.push_back(
+        std::make_pair(result.edge->outputs_[i]->path(), md5s[i]));
+  }
 
   DCHECK(slave_info_id_map_.find(connection_id) != slave_info_id_map_.end());
   // TODO(zhchbin): Remove hard code 8080.
   std::string host = slave_info_id_map_[connection_id].ip + ":" + "8080";
-
-  NinjaThread::PostBlockingPoolTaskAndReply(
+  NinjaThread::PostBlockingPoolTask(
       FROM_HERE,
-      base::Bind(FetchTargetsOnBlockingPool, host, targets),
-      base::Bind(&MasterMainRunner::OnFetchTargetsDone, this, result));
+      base::Bind(&MasterMainRunner::FetchTargetsOnBlockingPool,
+                 this,
+                 host,
+                 targets,
+                 result));
 }
 
 void MasterMainRunner::OnSlaveSystemInfoAvailable(int connection_id,
@@ -277,6 +309,34 @@ int MasterMainRunner::FindMostAvailableSlave() {
   }
 
   return connection_id;
+}
+
+void MasterMainRunner::FetchTargetsOnBlockingPool(
+    const std::string& host,
+    const TargetVector& targets,
+    CommandRunner::Result result) {
+  bool success = true;
+  if (result.success()) {
+    CurlHelper curl_helper;
+    for (size_t i = 0; i < targets.size(); ++i) {
+      base::FilePath filename =
+          base::FilePath::FromUTF8Unsafe(targets[i].first);
+      std::string url = kHttp + host + "/" + targets[i].first;
+      success = (curl_helper.Get(url, filename) == targets[i].second);
+      if (!success)
+        break;
+    }
+  }
+
+  if (success) {
+    NinjaThread::PostTask(
+        NinjaThread::MAIN,
+        FROM_HERE,
+        base::Bind(&MasterMainRunner::OnFetchTargetsDone, this, result));
+  }
+
+  // DO NOT call |MasterMainRunner::OnFetchTargetsDone| if curl is failed,
+  // since we will try to start unfinished outstanding edges locally.
 }
 
 }  // namespace master

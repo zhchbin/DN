@@ -22,8 +22,13 @@ message RunCommandResponse {
   };
 
   required ExitStatus status = 1;
+
+  // Output stream.
   required string output = 2;
   required uint32 edge_id = 3;
+
+  // The md5 list of the files in |output_paths|.
+  repeated string md5 = 4;
 };
 
 message QuitRequest {

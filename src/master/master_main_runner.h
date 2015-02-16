@@ -7,6 +7,7 @@
 
 #include <map>
 #include <string>
+#include <utility>
 #include <vector>
 
 #include "common/main_runner.h"
@@ -34,6 +35,10 @@ struct SlaveInfo {
 
 class MasterMainRunner : public common::MainRunner {
  public:
+  // The first one is the file path, the second one is its md5 digest.
+  typedef std::pair<std::string, std::string> Target;
+  typedef std::vector<Target> TargetVector;
+
   MasterMainRunner(const std::string& bind_ip, uint16 port);
 
   // common::MainRunner implementations.
@@ -52,7 +57,12 @@ class MasterMainRunner : public common::MainRunner {
   void OnRemoteCommandDone(int connection_id,
                            uint32 edge_id,
                            ExitStatus status,
-                           const std::string& output);
+                           const std::string& output,
+                           const std::vector<std::string>& md5s);
+
+  void FetchTargetsOnBlockingPool(const std::string& host,
+                                  const TargetVector& targets,
+                                  CommandRunner::Result result);
   void OnFetchTargetsDone(CommandRunner::Result result);
 
   void OnSlaveSystemInfoAvailable(int connection_id, const SlaveInfo& info);

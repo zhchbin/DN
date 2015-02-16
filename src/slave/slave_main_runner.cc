@@ -7,17 +7,21 @@
 #include <vector>
 
 #include "base/bind.h"
+#include "base/files/file_util.h"
 #include "base/hash.h"
+#include "base/md5.h"
 #include "base/stl_util.h"
 #include "base/threading/thread_restrictions.h"
-#include "proto/slave_services.pb.h"
 #include "ninja/dn_builder.h"
 #include "ninja/ninja_main.h"
+#include "proto/slave_services.pb.h"
 #include "slave/slave_file_thread.h"
 #include "slave/slave_rpc.h"
 #include "thread/ninja_thread.h"
 
 namespace {
+
+const int kMd5DigestBufferSize = 512 * 1024;  // 512 kB.
 
 slave::RunCommandResponse::ExitStatus TransformExitStatus(ExitStatus status) {
   switch (status) {
@@ -31,6 +35,37 @@ slave::RunCommandResponse::ExitStatus TransformExitStatus(ExitStatus status) {
     NOTREACHED();
     return slave::RunCommandResponse::kExitFailure;
   }
+}
+
+std::string GetMd5Digest(const base::FilePath& file_path) {
+  base::File file(file_path, base::File::FLAG_OPEN | base::File::FLAG_READ);
+  if (!file.IsValid())
+    return std::string();
+
+  base::MD5Context context;
+  base::MD5Init(&context);
+
+  int64 offset = 0;
+  scoped_ptr<char[]> buffer(new char[kMd5DigestBufferSize]);
+  while (true) {
+    int result = file.Read(offset, buffer.get(), kMd5DigestBufferSize);
+    if (result < 0) {
+      // Found an error.
+      return std::string();
+    }
+
+    if (result == 0) {
+      // End of file.
+      break;
+    }
+
+    offset += result;
+    base::MD5Update(&context, base::StringPiece(buffer.get(), result));
+  }
+
+  base::MD5Digest digest;
+  base::MD5Final(&digest, &context);
+  return MD5DigestToBase16(digest);
 }
 
 }  // namespace
@@ -59,14 +94,10 @@ void SlaveMainRunner::OnCommandFinished(const std::string& command,
   DCHECK(it != run_command_context_map_.end());
   it->second.response->set_output(result->output);
   it->second.response->set_status(TransformExitStatus(result->status));
-  google::protobuf::Closure* done = it->second.done;
+  NinjaThread::PostBlockingPoolTask(
+      FROM_HERE,
+      base::Bind(&SlaveMainRunner::MD5OutputsOnBlockingPool, this, it->second));
   run_command_context_map_.erase(it);
-
-  NinjaThread::PostTask(
-      NinjaThread::RPC, FROM_HERE,
-      base::Bind(&SlaveRPC::OnRunCommandDone,
-                 base::Unretained(slave_rpc_.get()),
-                 done));
 }
 
 bool SlaveMainRunner::PostCreateThreads() {
@@ -131,6 +162,25 @@ bool SlaveMainRunner::CreateDirsAndResponseFile(
   }
 
   return true;
+}
+
+void SlaveMainRunner::MD5OutputsOnBlockingPool(
+    const RunCommandContext& context) {
+  if (context.response->status() == slave::RunCommandResponse::kExitSuccess) {
+    for (int i = 0; i < context.request->output_paths_size(); ++i) {
+      base::FilePath filename =
+          base::FilePath::FromUTF8Unsafe(context.request->output_paths(i));
+      const std::string& md5 = GetMd5Digest(filename);
+      CHECK(!md5.empty());
+      context.response->add_md5()->assign(md5);
+    }
+  }
+
+  NinjaThread::PostTask(
+      NinjaThread::RPC, FROM_HERE,
+      base::Bind(&SlaveRPC::OnRunCommandDone,
+                 base::Unretained(slave_rpc_.get()),
+                 context.done));
 }
 
 }  // namespace slave
