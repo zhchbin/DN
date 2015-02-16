@@ -21,8 +21,8 @@ namespace {
 
 const char kHttp[] = "http://";
 
-size_t write_data(void *ptr, size_t size, size_t nmemb, FILE *stream) {
-  return fwrite(ptr, size, nmemb, stream);
+size_t write_data(void* ptr, size_t size, size_t count, FILE* stream) {
+  return fwrite(ptr, size, count, stream);
 }
 
 void FetchTargetsOnBlockingPool(const std::string& host,
