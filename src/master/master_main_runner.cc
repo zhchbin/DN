@@ -41,13 +41,21 @@ class CurlHelper {
   std::string Get(const std::string& url, const base::FilePath& filename) {
     base::MD5Init(&md5_context_);
     CHECK(base::CreateDirectory(filename.DirName()));
-    file_.reset(base::OpenFile(filename, "wb"));
+    file_.InitializeUnsafe(filename,
+                           base::File::FLAG_CREATE | base::File::FLAG_WRITE);
+    if (!file_.IsValid()) {
+      LOG(ERROR) << filename.value();
+      return "";
+    }
+
     curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, CurlHelper::WriteDataStatic);
     curl_easy_setopt(curl_, CURLOPT_WRITEDATA, this);
     if (curl_easy_perform(curl_) != CURLE_OK)
       return "";
 
+    file_.Unlock();
+    file_.Close();
     base::MD5Digest digest;
     base::MD5Final(&digest, &md5_context_);
     return MD5DigestToBase16(digest);
@@ -57,13 +65,13 @@ class CurlHelper {
     base::MD5Update(
         &md5_context_,
         base::StringPiece(reinterpret_cast<char*>(ptr), size * count));
-    return fwrite(ptr, size, count, file_.get());
+    return file_.WriteAtCurrentPos(reinterpret_cast<char*>(ptr), size * count);
   }
 
  private:
   CURL* curl_;
   base::MD5Context md5_context_;
-  base::ScopedFILE file_;
+  base::File file_;
 };
 
 }  // namespace
