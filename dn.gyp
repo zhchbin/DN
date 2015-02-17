@@ -79,6 +79,11 @@
             'include_dirs': [
               'third_party/curl/include',
             ],
+            'direct_dependent_settings': {
+              'include_dirs': [
+                'third_party/curl/include',
+              ],
+            },
           }, { # else: OS != "win"
             'sources!': [
               'src/net/winsock_init.cc',

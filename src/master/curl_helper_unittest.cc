@@ -10,7 +10,14 @@
 
 namespace master {
 
-TEST(CurlHelperTest, GetWithMD5) {
+#if defined(OS_LINUX)
+// Our precompiled libcurl.lib does not support SSL yet.
+#define MAYBE_GetWithMD5 GetWithMD5
+#else
+#define MAYBE_GetWithMD5 DISABLED_GetWithMD5
+#endif
+
+TEST(CurlHelperTest, MAYBE_GetWithMD5) {
   base::ScopedTempDir temp_dir;
   ASSERT_TRUE(temp_dir.CreateUniqueTempDir());
 
@@ -21,8 +28,8 @@ TEST(CurlHelperTest, GetWithMD5) {
   CurlHelper curl_helper;
   const std::string klicenseURL =
       "https://raw.githubusercontent.com/zhchbin/DN/master/LICENSE";
-  EXPECT_EQ(curl_helper.Get(klicenseURL, temp_dir.path().AppendASCII("file")),
-            common::GetMd5Digest(license_file_path));
+  EXPECT_EQ(common::GetMd5Digest(license_file_path),
+            curl_helper.Get(klicenseURL, temp_dir.path().AppendASCII("file")));
 }
 
 }  // namespace master
