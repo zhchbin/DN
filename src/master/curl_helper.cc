@@ -48,10 +48,9 @@ std::string CurlHelper::Get(const std::string& url,
 }
 
 size_t CurlHelper::WriteData(void* ptr, size_t size, size_t count) {
-  base::MD5Update(
-      &md5_context_,
-      base::StringPiece(reinterpret_cast<char*>(ptr), size * count));
-  return file_.WriteAtCurrentPos(reinterpret_cast<char*>(ptr), size * count);
+  base::StringPiece data(reinterpret_cast<char*>(ptr), size * count);
+  base::MD5Update(&md5_context_, data);
+  return file_.WriteAtCurrentPos(data.data(), data.size());
 }
 
 }  // namespace master

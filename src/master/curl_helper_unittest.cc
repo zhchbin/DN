@@ -18,11 +18,10 @@ TEST(CurlHelperTest, GetWithMD5) {
   PathService::Get(base::DIR_SOURCE_ROOT, &license_file_path);
   license_file_path = license_file_path.AppendASCII("LICENSE");
 
-  base::FilePath file_path = temp_dir.path().AppendASCII("tmp_file");
   CurlHelper curl_helper;
   const std::string klicenseURL =
       "https://raw.githubusercontent.com/zhchbin/DN/master/LICENSE";
-  EXPECT_EQ(curl_helper.Get(klicenseURL, file_path),
+  EXPECT_EQ(curl_helper.Get(klicenseURL, temp_dir.path().AppendASCII("file")),
             common::GetMd5Digest(license_file_path));
 }
 

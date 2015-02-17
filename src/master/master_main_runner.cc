@@ -270,7 +270,7 @@ void MasterMainRunner::FetchTargetsOnBlockingPool(
     CommandRunner::Result result) {
   bool success = true;
   if (result.success()) {
-    master::CurlHelper curl_helper;
+    CurlHelper curl_helper;
     for (size_t i = 0; i < targets.size(); ++i) {
       base::FilePath filename =
           base::FilePath::FromUTF8Unsafe(targets[i].first);
