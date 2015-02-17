@@ -5,10 +5,18 @@
 #ifndef  COMMON_UTIL_H_
 #define  COMMON_UTIL_H_
 
+#include <string>
+
+namespace base {
+class FilePath;
+}  // namespace base
+
 namespace common {
 
 /// Choose a default value how many jobs can run in parallel.
 int GuessParallelism();
+
+std::string GetMd5Digest(const base::FilePath& file_path);
 
 }  // namespace common
 

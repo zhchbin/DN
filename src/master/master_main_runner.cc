@@ -5,15 +5,11 @@
 #include "master/master_main_runner.h"
 
 #include "base/bind.h"
-#include "base/files/file_util.h"
-#include "base/files/scoped_file.h"
 #include "base/hash.h"
-#include "base/md5.h"
-#include "base/strings/string_piece.h"
 #include "base/sys_info.h"
 #include "base/threading/thread_restrictions.h"
 #include "common/util.h"
-#include "curl/curl.h"
+#include "master/curl_helper.h"
 #include "master/master_rpc.h"
 #include "ninja/dn_builder.h"
 #include "ninja/ninja_main.h"
@@ -22,57 +18,6 @@
 namespace {
 
 const char kHttp[] = "http://";
-
-// Curl helper, with md5 check sum.
-class CurlHelper {
- public:
-  static size_t WriteDataStatic(void* ptr, size_t size, size_t count,
-                                CurlHelper* curl_helper) {
-    return curl_helper->WriteData(ptr, size, count);
-  }
-
-  CurlHelper() : curl_(curl_easy_init()) {
-  }
-
-  ~CurlHelper() {
-    curl_easy_cleanup(curl_);
-  }
-
-  std::string Get(const std::string& url, const base::FilePath& filename) {
-    base::MD5Init(&md5_context_);
-    CHECK(base::CreateDirectory(filename.DirName()));
-    file_.InitializeUnsafe(filename,
-                           base::File::FLAG_CREATE | base::File::FLAG_WRITE);
-    if (!file_.IsValid()) {
-      LOG(ERROR) << filename.value();
-      return "";
-    }
-
-    curl_easy_setopt(curl_, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl_, CURLOPT_WRITEFUNCTION, CurlHelper::WriteDataStatic);
-    curl_easy_setopt(curl_, CURLOPT_WRITEDATA, this);
-    if (curl_easy_perform(curl_) != CURLE_OK)
-      return "";
-
-    file_.Unlock();
-    file_.Close();
-    base::MD5Digest digest;
-    base::MD5Final(&digest, &md5_context_);
-    return MD5DigestToBase16(digest);
-  }
-
-  size_t WriteData(void* ptr, size_t size, size_t count) {
-    base::MD5Update(
-        &md5_context_,
-        base::StringPiece(reinterpret_cast<char*>(ptr), size * count));
-    return file_.WriteAtCurrentPos(reinterpret_cast<char*>(ptr), size * count);
-  }
-
- private:
-  CURL* curl_;
-  base::MD5Context md5_context_;
-  base::File file_;
-};
 
 }  // namespace
 
@@ -325,7 +270,7 @@ void MasterMainRunner::FetchTargetsOnBlockingPool(
     CommandRunner::Result result) {
   bool success = true;
   if (result.success()) {
-    CurlHelper curl_helper;
+    master::CurlHelper curl_helper;
     for (size_t i = 0; i < targets.size(); ++i) {
       base::FilePath filename =
           base::FilePath::FromUTF8Unsafe(targets[i].first);

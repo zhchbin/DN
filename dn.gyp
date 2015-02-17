@@ -13,6 +13,7 @@
       'sources': [
         'src/common/main_runner.cc',
         'src/common/util.cc',
+        'src/master/curl_helper.cc',
         'src/master/master_main_runner.cc',
         'src/master/master_rpc.cc',
         'src/net/address_list.cc',
@@ -112,6 +113,7 @@
       'target_name': 'dn_unittest',
       'type': 'executable',
       'sources': [
+        'src/master/curl_helper_unittest.cc',
         'src/proto/echo_unittest.proto',
         'src/rpc/rpc_socket_unittest.cc',
         'src/run_all_unittest.cc',

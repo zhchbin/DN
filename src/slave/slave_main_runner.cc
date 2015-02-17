@@ -12,6 +12,7 @@
 #include "base/md5.h"
 #include "base/stl_util.h"
 #include "base/threading/thread_restrictions.h"
+#include "common/util.h"
 #include "ninja/dn_builder.h"
 #include "ninja/ninja_main.h"
 #include "proto/slave_services.pb.h"
@@ -20,8 +21,6 @@
 #include "thread/ninja_thread.h"
 
 namespace {
-
-const int kMd5DigestBufferSize = 512 * 1024;  // 512 kB.
 
 slave::RunCommandResponse::ExitStatus TransformExitStatus(ExitStatus status) {
   switch (status) {
@@ -35,37 +34,6 @@ slave::RunCommandResponse::ExitStatus TransformExitStatus(ExitStatus status) {
     NOTREACHED();
     return slave::RunCommandResponse::kExitFailure;
   }
-}
-
-std::string GetMd5Digest(const base::FilePath& file_path) {
-  base::File file(file_path, base::File::FLAG_OPEN | base::File::FLAG_READ);
-  if (!file.IsValid())
-    return std::string();
-
-  base::MD5Context context;
-  base::MD5Init(&context);
-
-  int64 offset = 0;
-  scoped_ptr<char[]> buffer(new char[kMd5DigestBufferSize]);
-  while (true) {
-    int result = file.Read(offset, buffer.get(), kMd5DigestBufferSize);
-    if (result < 0) {
-      // Found an error.
-      return std::string();
-    }
-
-    if (result == 0) {
-      // End of file.
-      break;
-    }
-
-    offset += result;
-    base::MD5Update(&context, base::StringPiece(buffer.get(), result));
-  }
-
-  base::MD5Digest digest;
-  base::MD5Final(&digest, &context);
-  return MD5DigestToBase16(digest);
 }
 
 }  // namespace
@@ -170,7 +138,7 @@ void SlaveMainRunner::MD5OutputsOnBlockingPool(
     for (int i = 0; i < context.request->output_paths_size(); ++i) {
       base::FilePath filename =
           base::FilePath::FromUTF8Unsafe(context.request->output_paths(i));
-      const std::string& md5 = GetMd5Digest(filename);
+      const std::string& md5 = common::GetMd5Digest(filename);
       CHECK(!md5.empty());
       context.response->add_md5()->assign(md5);
     }
