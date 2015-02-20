@@ -138,8 +138,12 @@ void SlaveMainRunner::MD5OutputsOnBlockingPool(
     for (int i = 0; i < context.request->output_paths_size(); ++i) {
       base::FilePath filename =
           base::FilePath::FromUTF8Unsafe(context.request->output_paths(i));
-      const std::string& md5 = common::GetMd5Digest(filename);
-      CHECK(!md5.empty());
+      std::string md5 = "";
+      if (base::PathExists(filename)) {
+        md5 = common::GetMd5Digest(filename);
+        CHECK(!md5.empty());
+      }
+
       context.response->add_md5()->assign(md5);
     }
   }

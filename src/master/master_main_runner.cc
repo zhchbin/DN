@@ -168,6 +168,11 @@ void MasterMainRunner::OnRemoteCommandDone(
     ExitStatus status,
     const std::string& output,
     const std::vector<std::string>& md5s) {
+  // If remote command failed, don't abort the build process since it may
+  // pass locally. We can give it an chance to run.
+  if (status != ExitSuccess)
+    return;
+
   OutstandingEdgeMap::iterator it = outstanding_edges_.find(edge_id);
   DCHECK(it != outstanding_edges_.end());
   CommandRunner::Result result;
@@ -176,10 +181,6 @@ void MasterMainRunner::OnRemoteCommandDone(
   result.output = output;  // The output stream of the command.
   outstanding_edges_.erase(it);
   std::string error;
-  if (status != ExitSuccess) {
-    ninja_main()->builder()->FinishCommand(&result, &error);
-    return;
-  }
 
   DCHECK(result.edge->outputs_.size() == md5s.size());
   TargetVector targets;
