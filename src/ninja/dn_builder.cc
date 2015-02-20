@@ -56,7 +56,6 @@ DNBuilder::DNBuilder(State* state,
 }
 
 DNBuilder::~DNBuilder() {
-  Cleanup();
 }
 
 void DNBuilder::Cleanup() {
@@ -84,6 +83,8 @@ void DNBuilder::Cleanup() {
       if (!depfile.empty())
         disk_interface_->RemoveFile(depfile);
     }
+
+    command_runner_ = NULL;
   }
 }
 
