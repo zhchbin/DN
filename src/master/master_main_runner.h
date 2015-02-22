@@ -17,6 +17,7 @@
 namespace master {
 
 class MasterRPC;
+class WebUIThread;
 
 struct SlaveInfo {
   int32 number_of_processors;
@@ -101,6 +102,8 @@ class MasterMainRunner : public common::MainRunner {
   typedef std::map<uint32, Edge*> OutstandingEdgeMap;
   OutstandingEdgeMap outstanding_edges_;
   int number_of_slave_processors_;
+
+  scoped_ptr<WebUIThread> webui_thread_;
 
   DISALLOW_COPY_AND_ASSIGN(MasterMainRunner);
 };

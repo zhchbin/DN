@@ -16,6 +16,7 @@
         'src/master/curl_helper.cc',
         'src/master/master_main_runner.cc',
         'src/master/master_rpc.cc',
+        'src/master/webui_thread.cc',
         'src/net/address_list.cc',
         'src/net/io_buffer.cc',
         'src/net/ip_endpoint.cc',

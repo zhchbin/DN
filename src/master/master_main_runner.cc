@@ -11,6 +11,7 @@
 #include "common/util.h"
 #include "master/curl_helper.h"
 #include "master/master_rpc.h"
+#include "master/webui_thread.h"
 #include "ninja/dn_builder.h"
 #include "ninja/ninja_main.h"
 #include "thread/ninja_thread.h"
@@ -38,6 +39,8 @@ MasterMainRunner::~MasterMainRunner() {
 
 bool MasterMainRunner::PostCreateThreads() {
   master_rpc_.reset(new MasterRPC(bind_ip_, port_, this));
+  webui_thread_.reset(new WebUIThread());
+
   return true;
 }
 
