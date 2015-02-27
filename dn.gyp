@@ -139,5 +139,46 @@
         'build/protoc.gypi',
       ],
     },
+
+    {
+      'target_name': 'rpc_example_proto',
+      'type': 'static_library',
+      'sources': [
+        'src/proto/echo_example.proto',
+      ],
+      'includes': [
+        'build/protoc.gypi',
+      ],
+    },
+    {
+      'target_name': 'rpc_example_server',
+      'type': 'executable',
+      'sources': [
+        'src/rpc/example/server.cc',
+      ],
+      'dependencies': [
+        'base/base.gyp:base',
+        'libdn',
+        'rpc_example_proto',
+      ],
+      'include_dirs': [
+        'src',
+      ],
+    },
+    {
+      'target_name': 'rpc_example_client',
+      'type': 'executable',
+      'sources': [
+        'src/rpc/example/client.cc',
+      ],
+      'dependencies': [
+        'base/base.gyp:base',
+        'libdn',
+        'rpc_example_proto',
+      ],
+      'include_dirs': [
+        'src',
+      ],
+    },
   ],
 }
