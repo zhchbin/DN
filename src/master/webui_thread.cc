@@ -40,7 +40,7 @@ void WebUIThread::Init() {
   server_ = mg_create_server(this, &WebUIThread::EventHandler);
   base::FilePath path;
   if (PathService::Get(base::DIR_EXE, &path))
-    mg_set_option(server_, "document_root", path.value().c_str());
+    mg_set_option(server_, "document_root", path.AsUTF8Unsafe().c_str());
 
   const int kMinListeningPort = 9000;
   for (size_t i = kMinListeningPort; i < kMinListeningPort + 10; ++i) {
