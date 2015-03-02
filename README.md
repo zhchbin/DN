@@ -3,9 +3,25 @@ Distributed Ninja
 
 [![Build Status](https://travis-ci.org/zhchbin/DN.svg?branch=master)](https://travis-ci.org/zhchbin/DN)
 
-[Ninja][ninja] is a small build system with a focus on speed, it is born from [@martine][martine]'s work on the `Chromium` browser project. And DN, which is short for __Distributed Ninja__, can finish the time consuming compilation job with several machines.
+DN, which is short for __Distributed Ninja__, aims to finish the time consuming compilation job with several machines. Unlike [distcc][distcc] or [icecream][icecream], DN is based on [ninja][ninja], and supports platforms: `Linux` and `Windows`. Ninja is a small build system with a focus on speed, it is born from [@martine][martine]'s work on the `Chromium` browser project.
+
+![](http://ww4.sinaimg.cn/large/7184df6bgw1epjm0z1b21j20bh0a0js3.jpg) 
 
 *NOTE: currently this project is only a proof of concept. It just work, but the performance didn't tested yet.*
+
+## Usage
+
+* Master
+
+    ```bash
+    $ dn --working_dir=/path/to/your/project
+    ```
+
+* Slave
+
+    ```bash
+    $ dn --working_dir=/path/to/your/project --master=<master_ip>
+    ```
 
 ## What I have done?
 
@@ -21,3 +37,5 @@ Distributed Ninja
 [martine]: https://github.com/martine
 [chromium-base]: https://github.com/zhchbin/chromium-base
 [rpc-demo]: https://github.com/zhchbin/DN/tree/master/src/rpc/example
+[distcc]: https://code.google.com/p/distcc/
+[icecream]: https://github.com/icecc/icecream
