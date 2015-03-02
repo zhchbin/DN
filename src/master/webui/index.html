@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>DN WebUI</title>
+  </head>
+  <script type="text/javascript">
+    function post(url, args, callback) {
+      var xmlhttp = new XMLHttpRequest();
+      xmlhttp.onreadystatechange = function() {
+        callback(xmlhttp);
+      };
+      xmlhttp.open("POST", url, true);
+      xmlhttp.setRequestHeader("Content-type",
+                                "application/x-www-form-urlencoded");
+      xmlhttp.send(args);
+    }
+
+    window.onload = function() {
+      var start_btn = document.getElementById('start-btn');
+      start_btn.onclick = function() {
+        post('/api/start', '', function(xmlhttp) {
+          if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
+            console.log(JSON.parse(xmlhttp.responseText));
+          }
+        });
+      }
+
+      var exit_btn = document.getElementById('exit-btn');
+      exit_btn.onclick = function() {
+      }
+    }
+  </script>
+  <body>
+    <h2>WebUI</h2>
+    <div>
+      <button id="start-btn" type="button">Start Build</button>
+      <button id="exit-btn" type="button">Exit</button>
+    </div>
+  </body>
+</html>

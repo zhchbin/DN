@@ -83,11 +83,6 @@ void MasterRPC::OnConnect(rpc::RpcConnection* connection) {
                                     &MasterRPC::OnSlaveSystemInfoAvailable,
                                     connection->id(),
                                     response));
-
-  NinjaThread::PostTask(
-      NinjaThread::MAIN,
-      FROM_HERE,
-      base::Bind(&MasterMainRunner::StartBuild, master_main_runner_));
 }
 
 void MasterRPC::OnClose(rpc::RpcConnection* connection) {

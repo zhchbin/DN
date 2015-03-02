@@ -8,6 +8,7 @@
 #include "base/files/file_path.h"
 #include "base/path_service.h"
 #include "base/strings/string_number_conversions.h"
+#include "master/master_main_runner.h"
 #include "thread/ninja_thread.h"
 
 namespace master {
@@ -18,8 +19,8 @@ int WebUIThread::EventHandler(mg_connection* conn, mg_event ev) {
     case MG_AUTH:
       return MG_TRUE;
     case MG_REQUEST:
-      if (!strcmp(conn->uri, "/api/sum")) {
-        static_cast<WebUIThread*>(conn->server_param)->HandleSum(conn);
+      if (strcmp(conn->uri, "/api/start") == 0) {
+        static_cast<WebUIThread*>(conn->server_param)->HandleStart(conn);
         return MG_TRUE;
       }
 
@@ -28,7 +29,9 @@ int WebUIThread::EventHandler(mg_connection* conn, mg_event ev) {
   }
 }
 
-WebUIThread::WebUIThread() : weak_factory_(this) {
+WebUIThread::WebUIThread(MasterMainRunner* main_runner)
+    : master_main_runner_(main_runner),
+      weak_factory_(this) {
   NinjaThread::SetDelegate(NinjaThread::FILE, this);
 }
 
@@ -39,8 +42,10 @@ WebUIThread::~WebUIThread() {
 void WebUIThread::Init() {
   server_ = mg_create_server(this, &WebUIThread::EventHandler);
   base::FilePath path;
-  if (PathService::Get(base::DIR_EXE, &path))
+  if (PathService::Get(base::DIR_EXE, &path)) {
+    path = path.AppendASCII("webui");
     mg_set_option(server_, "document_root", path.AsUTF8Unsafe().c_str());
+  }
 
   const int kMinListeningPort = 9000;
   for (size_t i = kMinListeningPort; i < kMinListeningPort + 10; ++i) {
@@ -73,15 +78,12 @@ void WebUIThread::PoolMongooseServer() {
                  weak_factory_.GetWeakPtr()));
 }
 
-void WebUIThread::HandleSum(mg_connection* conn) {
-  char n1[100], n2[100];
-
-  // Get form variables
-  mg_get_var(conn, "n1", n1, sizeof(n1));
-  mg_get_var(conn, "n2", n2, sizeof(n2));
-
-  mg_printf_data(conn, "{ \"result\": %lf }",
-                 strtod(n1, NULL) + strtod(n2, NULL));
+void WebUIThread::HandleStart(mg_connection* conn) {
+  NinjaThread::PostTask(
+      NinjaThread::MAIN,
+      FROM_HERE,
+      base::Bind(&MasterMainRunner::StartBuild, master_main_runner_));
+  mg_printf_data(conn, "{ \"result\": \"OK\" }");
 }
 
 }  // namespace master

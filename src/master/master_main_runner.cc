@@ -39,7 +39,7 @@ MasterMainRunner::~MasterMainRunner() {
 
 bool MasterMainRunner::PostCreateThreads() {
   master_rpc_.reset(new MasterRPC(bind_ip_, port_, this));
-  webui_thread_.reset(new WebUIThread());
+  webui_thread_.reset(new WebUIThread(this));
 
   return true;
 }

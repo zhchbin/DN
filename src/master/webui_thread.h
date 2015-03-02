@@ -11,11 +11,13 @@
 
 namespace master {
 
+class MasterMainRunner;
+
 class WebUIThread : public NinjaThreadDelegate {
  public:
   static int EventHandler(mg_connection* conn, mg_event ev);
 
-  WebUIThread();
+  explicit WebUIThread(MasterMainRunner* main_runner);
   ~WebUIThread() override;
 
   // NinjaThreadDelegate implementations.
@@ -26,8 +28,9 @@ class WebUIThread : public NinjaThreadDelegate {
   void PoolMongooseServer();
 
  private:
-  void HandleSum(mg_connection* conn);
+  void HandleStart(mg_connection* conn);
 
+  MasterMainRunner* master_main_runner_;
   mg_server* server_;
   base::WeakPtrFactory<WebUIThread> weak_factory_;
 
