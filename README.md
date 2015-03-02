@@ -20,4 +20,4 @@ Distributed Ninja
 [ninja]: http://martine.github.com/ninja/
 [martine]: https://github.com/martine
 [chromium-base]: https://github.com/zhchbin/chromium-base
-[rpc-demo]: https://github.com/zhchbin/DN/blob/b1890bf0ab1fea87e853454967e995f9a7b0ac8a/src/rpc/rpc_socket_unittest.cc#L138-L154
+[rpc-demo]: https://github.com/zhchbin/DN/tree/master/src/rpc/example

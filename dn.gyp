@@ -144,7 +144,7 @@
       'target_name': 'rpc_example_proto',
       'type': 'static_library',
       'sources': [
-        'src/proto/echo_example.proto',
+        'src/proto/calculator.proto',
       ],
       'includes': [
         'build/protoc.gypi',

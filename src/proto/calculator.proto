@@ -1,0 +1,16 @@
+package example;
+
+option cc_generic_services = true;
+
+message SumRequest {
+  required int32 a = 1;
+  required int32 b = 2;
+};
+
+message SumResponse {
+  required int32 sum = 1;
+};
+
+service CalculatorService {
+  rpc Sum(SumRequest) returns (SumResponse);
+};

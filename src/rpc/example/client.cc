@@ -6,27 +6,28 @@
 #include "base/message_loop/message_loop.h"
 #include "base/run_loop.h"
 #include "net/net_errors.h"
-#include "proto/echo_example.pb.h"
+#include "proto/calculator.pb.h"
 #include "rpc/rpc_socket_client.h"
 #include "rpc/service_manager.h"
 
-void EchoDone(echo::EchoResponse* res) {
-  scoped_ptr<echo::EchoResponse> response(res);
-  LOG(INFO) << "Echo from server: " << response->response();
+void SumDone(example::SumResponse* res) {
+  scoped_ptr<example::SumResponse> response(res);
+  LOG(INFO) << "Sum result from server: " << response->sum();
 
   base::MessageLoop::current()->QuitNow();
 }
 
-void EchoRequest(rpc::RpcSocketClient* client, int rv) {
+void Sum(rpc::RpcSocketClient* client, int rv) {
   if (rv != net::OK)
     return;
 
-  echo::EchoService::Stub stub(client->connection());
-  echo::EchoRequest request;
-  echo::EchoResponse* response = new echo::EchoResponse;
-  request.set_message("hello");
-  stub.Echo(NULL, &request, response,
-            google::protobuf::NewCallback(EchoDone, response));
+  example::CalculatorService::Stub stub(client->connection());
+  example::SumRequest request;
+  request.set_a(19);
+  request.set_b(23);
+  example::SumResponse* response = new example::SumResponse;
+  stub.Sum(NULL, &request, response,
+           google::protobuf::NewCallback(SumDone, response));
 }
 
 int main() {
@@ -34,7 +35,7 @@ int main() {
   base::MessageLoopForIO message_loop;
   base::RunLoop run_loop;
   rpc::RpcSocketClient client("127.0.0.1", 8909);
-  client.Connect(base::Bind(EchoRequest, &client));
+  client.Connect(base::Bind(Sum, &client));
   run_loop.Run();
 
   return 0;
