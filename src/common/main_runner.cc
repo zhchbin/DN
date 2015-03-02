@@ -71,7 +71,7 @@ MainRunner* MainRunner::Create() {
         << "Port should be in range [" << kMinPort << ", " << kMaxPort << "].";
   }
 
-  // Setup whether rpc thread running as master or slave.
+  // Setup whether we are running as master or slave.
   if (command_line->HasSwitch(switches::kMaster)) {
     LOG(INFO) << "Running as slave.";
     std::string master = command_line->GetSwitchValueASCII(switches::kMaster);

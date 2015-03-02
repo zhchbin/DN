@@ -7,7 +7,7 @@ DN, which is short for __Distributed Ninja__, aims to finish the time consuming 
 
 ![](http://ww4.sinaimg.cn/large/7184df6bgw1epjm0z1b21j20bh0a0js3.jpg) 
 
-*NOTE: currently this project is only a proof of concept. It just work, but the performance didn't tested yet.*
+*NOTE: currently this project is only a proof of concept.*
 
 ## Usage
 
