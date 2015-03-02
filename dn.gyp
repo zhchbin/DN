@@ -12,6 +12,7 @@
       'type': 'static_library',
       'sources': [
         'src/common/main_runner.cc',
+        'src/common/options.cc',
         'src/common/util.cc',
         'src/master/curl_helper.cc',
         'src/master/master_main_runner.cc',
@@ -38,7 +39,6 @@
         'src/proto/rpc_message.proto',
         'src/proto/slave_services.proto',
         'src/rpc/rpc_connection.cc',
-        'src/rpc/rpc_options.cc',
         'src/rpc/rpc_socket_client.cc',
         'src/rpc/rpc_socket_server.cc',
         'src/rpc/service_manager.cc',

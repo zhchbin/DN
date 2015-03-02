@@ -2,22 +2,19 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  RPC_RPC_OPTIONS_H_
-#define  RPC_RPC_OPTIONS_H_
+#include "common/options.h"
 
 namespace rpc {
 
-extern const char kDefaultBindIP[];
-extern const int kDefaultPort;
+const char kDefaultBindIP[] = "0.0.0.0";
+const int kDefaultPort = 20015;
 
 }  // namespace rpc
 
 namespace switches {
 
-extern const char kBindIP[];
-extern const char kPort[];
-extern const char kMaster[];
+const char kBindIP[] = "bind_ip";
+const char kPort[] = "port";
+const char kMaster[] = "master";
 
 }  // namespace switches
-
-#endif  // RPC_RPC_OPTIONS_H_
