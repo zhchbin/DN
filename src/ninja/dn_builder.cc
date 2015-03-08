@@ -9,6 +9,8 @@
 #include <vector>
 
 #include "base/bind.h"
+#include "base/values.h"
+#include "base/json/json_writer.h"
 #include "master/master_main_runner.h"
 #include "third_party/ninja/src/build_log.h"
 #include "third_party/ninja/src/depfile_parser.h"
@@ -121,6 +123,26 @@ bool DNBuilder::Build(string* err, master::MasterMainRunner* runner) {
   command_runner_ = runner;
   status_->PlanHasTotalEdges(plan_.command_edge_count());
   should_quit_build_loop_ = false;
+
+  const std::set<Edge*>& command_edge_set = plan_.command_edge_set();
+  scoped_ptr<base::ListValue> commands(new base::ListValue);
+  int last_id = 0;
+  for (std::set<Edge*>::iterator it = command_edge_set.begin();
+       it != command_edge_set.end();
+       ++it) {
+    (*it)->id_ = last_id++;
+    base::DictionaryValue* command_edge = new base::DictionaryValue();
+    command_edge->SetInteger("id", (*it)->id_);
+    std::string content;
+    (*it)->DumpToString(&content);
+    command_edge->SetString("content", content);
+    command_edge->SetString("command", (*it)->EvaluateCommand());
+    commands->Append(command_edge);
+  }
+  std::string json;
+  base::JSONWriter::Write(commands.get(), &json);
+  runner->SetWebUIInitialStatus(json);
+
   return NinjaThread::PostTask(
       NinjaThread::MAIN,
       FROM_HERE,
@@ -221,6 +243,7 @@ bool DNBuilder::StartEdge(Edge* edge, string* err, bool run_in_local) {
 
 bool DNBuilder::FinishCommand(CommandRunner::Result* result, string* err) {
   METRIC_RECORD("FinishCommand");
+  command_runner_->BuildEdgeFinished(result);
 
   if (!result->success()) {
     LOG(ERROR) << "subcommand failed: " << result->output;

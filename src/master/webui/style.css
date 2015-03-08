@@ -1,0 +1,21 @@
+#status-graph {  
+  list-style: none;
+  padding-left: 0;
+}
+
+#status-graph li {
+  background-color: #f9f9f9;
+  border: 1px solid #fff;
+  float: left;
+  height: 20px;
+  width: 20px;
+}
+
+#status-graph li:hover {
+  background-color: #eee;
+  border: 1px solid #000;
+}
+
+#status-graph li.success {
+  background-color: green;
+}

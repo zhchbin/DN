@@ -52,10 +52,12 @@ SlaveMainRunner::~SlaveMainRunner() {
 }
 
 void SlaveMainRunner::OnCommandStarted(const std::string& command) {
+  LOG(INFO) << command << " Started";
 }
 
 void SlaveMainRunner::OnCommandFinished(const std::string& command,
                                         const CommandRunner::Result* result) {
+  LOG(INFO) << command << " Finished";
   uint32 command_hash = base::Hash(command);
   RunCommandContextMap::iterator it =
       run_command_context_map_.find(command_hash);
@@ -91,16 +93,18 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
   std::string command = request->command();
   uint32 command_hash = base::Hash(command);
   response->set_edge_id(request->edge_id());
-  if (!ContainsKey(ninja_command_hash_set_, command_hash)) {
-    response->set_status(RunCommandResponse::kExitFailure);
-    response->set_output("This command is NOT ALLOWED to run.");
-    NinjaThread::PostTask(
-        NinjaThread::RPC, FROM_HERE,
-        base::Bind(&SlaveRPC::OnRunCommandDone,
-                   base::Unretained(slave_rpc_.get()),
-                   done));
-    return;
-  }
+
+  // TODO(zhchbin): Refactor.
+  // if (!ContainsKey(ninja_command_hash_set_, command_hash)) {
+  //   response->set_status(RunCommandResponse::kExitFailure);
+  //   response->set_output("This command is NOT ALLOWED to run.");
+  //   NinjaThread::PostTask(
+  //       NinjaThread::RPC, FROM_HERE,
+  //       base::Bind(&SlaveRPC::OnRunCommandDone,
+  //                  base::Unretained(slave_rpc_.get()),
+  //                  done));
+  //   return;
+  // }
   if (!CreateDirsAndResponseFile(request)) {
     response->set_status(RunCommandResponse::kExitFailure);
     response->set_output("Create directories or response file failed.");
@@ -120,7 +124,9 @@ bool SlaveMainRunner::CreateDirsAndResponseFile(
     const RunCommandRequest* request) {
   base::ThreadRestrictions::AssertIOAllowed();
   for (int i = 0; i < request->output_paths_size(); ++i) {
-    if (!ninja_main()->disk_interface()->MakeDirs(request->output_paths(i)))
+    base::FilePath dir =
+        base::FilePath::FromUTF8Unsafe(request->output_paths(i));
+    if (!base::CreateDirectory(dir.DirName()))
       return false;
   }
   if (request->has_rspfile_name()) {

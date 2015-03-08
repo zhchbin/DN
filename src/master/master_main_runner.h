@@ -74,6 +74,10 @@ class MasterMainRunner : public common::MainRunner {
                            int64 amount_of_available_physical_memory);
   void OnSlaveClose(int connection_id);
 
+  void SetWebUIInitialStatus(const std::string& json);
+  void BuildEdgeStarted(Edge* edge);
+  void BuildEdgeFinished(CommandRunner::Result* result);
+
  private:
   // Map the connection id to slave info.
   typedef std::map<int, SlaveInfo> SlaveInfoIdMap;

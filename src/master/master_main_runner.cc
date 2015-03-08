@@ -6,8 +6,10 @@
 
 #include "base/bind.h"
 #include "base/hash.h"
+#include "base/json/json_writer.h"
 #include "base/sys_info.h"
 #include "base/threading/thread_restrictions.h"
+#include "base/values.h"
 #include "common/util.h"
 #include "master/curl_helper.h"
 #include "master/master_rpc.h"
@@ -46,7 +48,7 @@ bool MasterMainRunner::PostCreateThreads() {
 
 void MasterMainRunner::StartBuild() {
   std::string error;
-  config_.parallelism = common::GuessParallelism();
+  config_.parallelism = common::GuessParallelism() - 1;
   ninja_main()->RunBuild(ninja_main()->state().DefaultNodes(&error), this);
 }
 
@@ -57,12 +59,16 @@ bool MasterMainRunner::LocalCanRunMore() {
 }
 
 bool MasterMainRunner::RemoteCanRunMore() {
+  if (slave_info_id_map_.empty())
+    return false;
+
   return static_cast<int>(outstanding_edges_.size()) <=
       number_of_slave_processors_;
 }
 
 bool MasterMainRunner::StartCommand(Edge* edge, bool run_in_local) {
-  if (run_in_local)
+  // Force command start locally if we didn't have any slave.
+  if (run_in_local || slave_info_id_map_.empty())
     return StartCommandLocally(edge);
   else
     return StartCommandRemotely(edge);
@@ -175,7 +181,6 @@ void MasterMainRunner::OnRemoteCommandDone(
   // pass locally. We can give it an chance to run.
   if (status != ExitSuccess)
     return;
-
   OutstandingEdgeMap::iterator it = outstanding_edges_.find(edge_id);
   DCHECK(it != outstanding_edges_.end());
   CommandRunner::Result result;
@@ -294,6 +299,34 @@ void MasterMainRunner::FetchTargetsOnBlockingPool(
 
   // DO NOT call |MasterMainRunner::OnFetchTargetsDone| if curl is failed,
   // since we will try to start unfinished outstanding edges locally.
+}
+
+void MasterMainRunner::SetWebUIInitialStatus(const std::string& json) {
+  NinjaThread::PostTask(
+      NinjaThread::FILE,
+      FROM_HERE,
+      base::Bind(&WebUIThread::SetInitialStatus,
+                 base::Unretained(webui_thread_.get()),
+                 json));
+}
+
+void MasterMainRunner::BuildEdgeStarted(Edge* edge) {
+}
+
+void MasterMainRunner::BuildEdgeFinished(CommandRunner::Result* result) {
+  scoped_ptr<base::DictionaryValue> command_result(new base::DictionaryValue());
+  command_result->SetInteger("id", result->edge->id_);
+  command_result->SetInteger("result", result->status);
+  command_result->SetString("output", result->output);
+  std::string json;
+  base::JSONWriter::Write(command_result.get(), &json);
+
+  NinjaThread::PostTask(
+      NinjaThread::FILE,
+      FROM_HERE,
+      base::Bind(&WebUIThread::AddCommandResult,
+                 base::Unretained(webui_thread_.get()),
+                 json));
 }
 
 }  // namespace master

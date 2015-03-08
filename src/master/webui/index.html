@@ -2,40 +2,58 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <title>DN WebUI</title>
+    <title>Distributed Ninja</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="style.css">
   </head>
-  <script type="text/javascript">
-    function post(url, args, callback) {
-      var xmlhttp = new XMLHttpRequest();
-      xmlhttp.onreadystatechange = function() {
-        callback(xmlhttp);
-      };
-      xmlhttp.open("POST", url, true);
-      xmlhttp.setRequestHeader("Content-type",
-                                "application/x-www-form-urlencoded");
-      xmlhttp.send(args);
-    }
-
-    window.onload = function() {
-      var start_btn = document.getElementById('start-btn');
-      start_btn.onclick = function() {
-        post('/api/start', '', function(xmlhttp) {
-          if (xmlhttp.readyState == 4 && xmlhttp.status == 200) {
-            console.log(JSON.parse(xmlhttp.responseText));
-          }
-        });
-      }
-
-      var exit_btn = document.getElementById('exit-btn');
-      exit_btn.onclick = function() {
-      }
-    }
-  </script>
   <body>
-    <h2>WebUI</h2>
-    <div>
-      <button id="start-btn" type="button">Start Build</button>
-      <button id="exit-btn" type="button">Exit</button>
+    <nav class="navbar navbar-inverse">
+      <div class="container-fluid">
+        <div class="navbar-header">
+          <a class="navbar-brand" href="javascript:void(0)">
+            Distributed Ninja Dashboard
+          </a>
+        </div>
+        <div class="collapse navbar-collapse">
+        <div class="navbar-form navbar-left">
+          <div class="form-group">
+            <button class="btn" id="start-btn" type="button">Start Build</button>
+          </div>
+        </div>
+        </div><!-- /.navbar-collapse -->
+      </div><!-- /.container-fluid -->
+    </nav>
+
+    <div class="container">
+      <div class="panel panel-default">
+        <div class="panel-heading">
+          <h3 class="panel-title">Master</h3>
+        </div>
+        <div class="panel-body">
+          <dl class="dl-horizontal">
+            <dt>Operating System:<dt>
+            <dd>...</dd>
+            <dt>Architecture:<dt>
+            <dd>...</dd>
+            <dt>Number of Cores:<dt>
+            <dd>...</dd>
+            <dt>Physical Memory:<dt>
+            <dd>...</dd>
+            <dt>Working Directory:<dt>
+            <dd>...</dd>
+          </dl>
+        </div>
+      </div>
+
+      <div class="panel panel-default">
+        <div class="panel-heading">Status</div>
+          <div class="panel-body">
+            <ul id="status-graph"></ul>
+          </div>
+        </div>
+      </div>
     </div>
   </body>
+
+  <script type="text/javascript" src="index.js"></script>
 </html>

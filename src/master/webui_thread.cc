@@ -15,17 +15,25 @@ namespace master {
 
 // static
 int WebUIThread::EventHandler(mg_connection* conn, mg_event ev) {
+  WebUIThread* webui = static_cast<WebUIThread*>(conn->server_param);
   switch (ev) {
     case MG_AUTH:
       return MG_TRUE;
     case MG_REQUEST:
       if (strcmp(conn->uri, "/api/start") == 0) {
-        static_cast<WebUIThread*>(conn->server_param)->HandleStart(conn);
+        webui->HandleStart(conn);
+        return MG_TRUE;
+      } else if (strcmp(conn->uri, "/api/initial_status") == 0) {
+        webui->HandleGetInitialStatus(conn);
+        return MG_TRUE;
+      } else  if (strcmp(conn->uri, "/api/result") == 0) {
+        webui->HandleGetResult(conn);
         return MG_TRUE;
       }
 
       return MG_FALSE;
-    default: return MG_FALSE;
+    default:
+      return MG_FALSE;
   }
 }
 
@@ -84,6 +92,22 @@ void WebUIThread::HandleStart(mg_connection* conn) {
       FROM_HERE,
       base::Bind(&MasterMainRunner::StartBuild, master_main_runner_));
   mg_printf_data(conn, "{ \"result\": \"OK\" }");
+}
+
+void WebUIThread::HandleGetInitialStatus(mg_connection* conn) {
+  mg_printf_data(conn, initial_status_.c_str());
+}
+
+void WebUIThread::HandleGetResult(mg_connection* conn) {
+  mg_printf_data(conn, "[");
+  for (size_t i = 0; i < command_results_.size(); ++i) {
+    mg_printf_data(conn, command_results_[i].c_str());
+    if (i != command_results_.size() - 1)
+      mg_printf_data(conn, ",");
+  }
+  command_results_.clear();
+
+  mg_printf_data(conn, "]");
 }
 
 }  // namespace master
