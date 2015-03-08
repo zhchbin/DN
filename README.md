@@ -23,6 +23,38 @@ DN, which is short for __Distributed Ninja__, aims to finish the time consuming 
     $ dn --working_dir=/path/to/your/project --master=<master_ip>
     ```
 
+## Build
+
+1. Clone the repository and submodule.
+
+    ```bash
+    $ git clone https://github.com/zhchbin/DN.git
+    $ cd DN && git submodule update --init
+    ```
+
+2. Install `gyp`.
+
+    ```bash
+    $ git clone https://github.com/svn2github/gyp
+    $ cd gyp
+    $ echo export PATH='$PATH':`pwd` >> ~/.bashrc && source ~/.bashrc
+    ```bash
+
+3. Install `ninja`.
+
+    ```bash
+    $ sudo apt-get install ninja-build
+    $ echo export GYP_GENERATORS=ninja >> ~/.bashrc && source ~/.bashrc
+    ```
+
+4. Generate ninja build files and build
+
+    ```bash
+    $ sudo apt-get install libcurl4-openssl-dev
+    $ gyp --depth=. -I base/src/build/common.gypi
+    $ ninja -C out/Debug
+    ```
+
 ## What I have done?
 
 0. Pull out useful low-level ("base") routines routines from the Chromium open-source project at http://www.chromium.org, see [chromium-base][chromium-base].
