@@ -45,7 +45,7 @@ void CommandExecutor::StartCommand() {
     subprocss_to_command_.insert(std::make_pair(subproc, command));
   }
 
-  if (!CanRunMore()) {
+  if (!subprocss_to_command_.empty()) {
     CommandRunner::Result result;
     while (!subprocss_to_command_.empty())
       WaitForCommand(&result);
