@@ -38,12 +38,13 @@ DN, which is short for __Distributed Ninja__, aims to finish the time consuming 
     $ git clone https://github.com/svn2github/gyp
     $ cd gyp
     $ echo export PATH='$PATH':`pwd` >> ~/.bashrc && source ~/.bashrc
-    ```bash
+    ```
 
 3. Install `ninja`.
 
     ```bash
-    $ sudo apt-get install ninja-build
+    $ git clone https://chromium.googlesource.com/chromium/tools/depot_tools.git
+    $ echo export PATH=`pwd`/depot_tools:'$PATH' >> ~/.bashrc
     $ echo export GYP_GENERATORS=ninja >> ~/.bashrc && source ~/.bashrc
     ```
 
