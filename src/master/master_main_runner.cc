@@ -5,6 +5,7 @@
 #include "master/master_main_runner.h"
 
 #include "base/bind.h"
+#include "base/files/file_util.h"
 #include "base/hash.h"
 #include "base/json/json_writer.h"
 #include "base/sys_info.h"
@@ -80,7 +81,9 @@ bool MasterMainRunner::StartCommandLocally(Edge* edge) {
   // Create directories necessary for outputs.
   for (vector<Node*>::iterator o = edge->outputs_.begin();
        o != edge->outputs_.end(); ++o) {
-    if (!ninja_main()->disk_interface()->MakeDirs((*o)->path()))
+    base::FilePath dir =
+        base::FilePath::FromUTF8Unsafe((*o)->path());
+    if (!base::CreateDirectory(dir.DirName()))
       return false;
   }
 
@@ -232,7 +235,7 @@ void MasterMainRunner::OnSlaveSystemInfoAvailable(int connection_id,
   }
 
   slave_info_id_map_[connection_id] = info;
-  number_of_slave_processors_ += info.number_of_processors;
+  number_of_slave_processors_ += (info.number_of_processors * 1.5);
 }
 
 void MasterMainRunner::OnSlaveStatusUpdate(
