@@ -37,7 +37,7 @@ window.onload = function() {
           for (var i = 0; i < commands.length; ++i) {
             var li = document.createElement('li');
             li.setAttribute('id', 'command_' + commands[i].id);
-            li.setAttribute('data-command', commands[i].command);
+            li.setAttribute('data-content', commands[i].content);
             status_graph.appendChild(li);
           }
         });

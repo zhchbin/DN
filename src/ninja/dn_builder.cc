@@ -134,9 +134,12 @@ bool DNBuilder::Build(string* err, master::MasterMainRunner* runner) {
     base::DictionaryValue* command_edge = new base::DictionaryValue();
     command_edge->SetInteger("id", (*it)->id_);
     std::string content;
-    (*it)->DumpToString(&content);
+    content = (*it)->rule().name() + " ";
+    for (vector<Node*>::iterator out = (*it)->outputs_.begin();
+         out != (*it)->outputs_.end(); ++out) {
+      content += (*out)->path() + " ";
+    }
     command_edge->SetString("content", content);
-    command_edge->SetString("command", (*it)->EvaluateCommand());
     commands->Append(command_edge);
   }
   std::string json;
