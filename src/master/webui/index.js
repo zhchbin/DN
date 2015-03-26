@@ -34,12 +34,14 @@ window.onload = function() {
             status_graph.removeChild(status_graph.firstChild);
           }
 
+          var fragment = document.createDocumentFragment();
           for (var i = 0; i < commands.length; ++i) {
             var li = document.createElement('li');
             li.setAttribute('id', 'command_' + commands[i].id);
             li.setAttribute('data-content', commands[i].content);
-            status_graph.appendChild(li);
+            fragment.appendChild(li);
           }
+          status_graph.appendChild(fragment);
         });
       }, 1000);
 
