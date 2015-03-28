@@ -17,7 +17,7 @@ namespace switches {
 extern const char kBindIP[];
 extern const char kPort[];
 extern const char kTargets[];
-extern const char kSlaveAmount[];
+extern const char kMaxSlaveAmount[];
 
 extern const char kMaster[];
 

@@ -60,10 +60,10 @@ void ReadSwitchesFromConfig() {
   if (values->GetString(switches::kTargets, &targets))
     command_line->AppendSwitchASCII(switches::kTargets, targets);
 
-  int slave_amount;
-  if (values->GetInteger(switches::kSlaveAmount, &slave_amount)) {
-    command_line->AppendSwitchASCII(switches::kSlaveAmount,
-                                    base::IntToString(slave_amount));
+  int max_slave_amount;
+  if (values->GetInteger(switches::kMaxSlaveAmount, &max_slave_amount)) {
+    command_line->AppendSwitchASCII(switches::kMaxSlaveAmount,
+                                    base::IntToString(max_slave_amount));
   }
 }
 

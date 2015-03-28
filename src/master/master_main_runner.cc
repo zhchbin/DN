@@ -5,12 +5,16 @@
 #include "master/master_main_runner.h"
 
 #include "base/bind.h"
+#include "base/command_line.h"
 #include "base/files/file_util.h"
 #include "base/hash.h"
 #include "base/json/json_writer.h"
+#include "base/strings/string_number_conversions.h"
+#include "base/strings/string_split.h"
 #include "base/sys_info.h"
 #include "base/threading/thread_restrictions.h"
 #include "base/values.h"
+#include "common/options.h"
 #include "common/util.h"
 #include "master/curl_helper.h"
 #include "master/master_rpc.h"
@@ -18,9 +22,6 @@
 #include "ninja/dn_builder.h"
 #include "ninja/ninja_main.h"
 #include "thread/ninja_thread.h"
-#include "base/command_line.h"
-#include "base/strings/string_split.h"
-#include "common/options.h"
 
 namespace {
 
@@ -33,7 +34,9 @@ namespace master {
 MasterMainRunner::MasterMainRunner(const std::string& bind_ip, uint16 port)
     : bind_ip_(bind_ip),
       port_(port),
-      number_of_slave_processors_(0) {
+      number_of_slave_processors_(0),
+      max_slave_amount_(UINT_MAX),
+      is_building_(false) {
   // |curl_global_init| is not thread-safe, following advice in docs of
   // |curl_easy_init|, we call it manually.
   curl_global_init(CURL_GLOBAL_ALL);
@@ -47,10 +50,22 @@ bool MasterMainRunner::PostCreateThreads() {
   master_rpc_.reset(new MasterRPC(bind_ip_, port_, this));
   webui_thread_.reset(new WebUIThread(this));
 
+  const base::CommandLine* command_line =
+      base::CommandLine::ForCurrentProcess();
+  if (command_line->HasSwitch(switches::kMaxSlaveAmount)) {
+    std::string amount =
+        command_line->GetSwitchValueASCII(switches::kMaxSlaveAmount);
+    base::StringToUint(amount, &max_slave_amount_);
+  }
+
   return true;
 }
 
 void MasterMainRunner::StartBuild() {
+  if (is_building_)
+    return;
+
+  is_building_ = true;
   std::string error;
   config_.parallelism = common::GuessParallelism();
 
@@ -265,6 +280,9 @@ void MasterMainRunner::OnSlaveSystemInfoAvailable(int connection_id,
 
   slave_info_id_map_[connection_id] = info;
   number_of_slave_processors_ += (info.number_of_processors * 1.5);
+
+  if (slave_info_id_map_.size() >= max_slave_amount_)
+    StartBuild();
 }
 
 void MasterMainRunner::OnSlaveStatusUpdate(

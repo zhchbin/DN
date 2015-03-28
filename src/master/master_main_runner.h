@@ -109,6 +109,9 @@ class MasterMainRunner : public common::MainRunner {
 
   scoped_ptr<WebUIThread> webui_thread_;
 
+  uint32 max_slave_amount_;
+  bool is_building_;
+
   DISALLOW_COPY_AND_ASSIGN(MasterMainRunner);
 };
 
