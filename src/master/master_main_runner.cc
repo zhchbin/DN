@@ -18,6 +18,9 @@
 #include "ninja/dn_builder.h"
 #include "ninja/ninja_main.h"
 #include "thread/ninja_thread.h"
+#include "base/command_line.h"
+#include "base/strings/string_split.h"
+#include "common/options.h"
 
 namespace {
 
@@ -49,8 +52,34 @@ bool MasterMainRunner::PostCreateThreads() {
 
 void MasterMainRunner::StartBuild() {
   std::string error;
-  config_.parallelism = common::GuessParallelism() - 1;
-  ninja_main()->RunBuild(ninja_main()->state().DefaultNodes(&error), this);
+  config_.parallelism = common::GuessParallelism();
+
+  const base::CommandLine* command_line =
+      base::CommandLine::ForCurrentProcess();
+  std::vector<Node*> targets;
+
+  if (command_line->HasSwitch(switches::kTargets)) {
+    std::string target_value =
+        command_line->GetSwitchValueASCII(switches::kTargets);
+    std::vector<std::string> split_targets;
+    base::SplitString(target_value, ' ', &split_targets);
+    if (split_targets.empty()) {
+      targets = ninja_main()->state().DefaultNodes(&error);
+      CHECK(error.empty()) << error;
+    } else {
+      for (size_t i = 0; i < split_targets.size(); ++i) {
+        targets.push_back(ninja_main()->CollectTarget(split_targets[i].c_str(),
+                                                      &error));
+        CHECK(error.empty()) << error;
+        LOG(INFO) << split_targets[i];
+      }
+    }
+  } else {
+    targets = ninja_main()->state().DefaultNodes(&error);
+    CHECK(error.empty()) << error;
+  }
+
+  ninja_main()->RunBuild(targets, this);
 }
 
 bool MasterMainRunner::LocalCanRunMore() {

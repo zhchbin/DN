@@ -68,6 +68,14 @@ struct NinjaMain : public BuildLogUser {
 
   void GetAllCommands(std::vector<std::string>* commands);
 
+  /// Get the Node for a given command-line path, handling features like
+  /// spell correction.
+  Node* CollectTarget(const char* cpath, string* err);
+
+  /// CollectTarget for all command-line arguments, filling in \a targets.
+  bool CollectTargetsFromArgs(int argc, char* argv[],
+                              vector<Node*>* targets, string* err);
+
   bool RunBuild(std::vector<Node*> targets, master::MasterMainRunner* runner);
 
   ninja::DNBuilder* builder();

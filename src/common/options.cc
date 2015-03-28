@@ -16,5 +16,7 @@ namespace switches {
 const char kBindIP[] = "bind_ip";
 const char kPort[] = "port";
 const char kMaster[] = "master";
+const char kTargets[] = "targets";
+const char kSlaveAmount[] = "slave_amount";
 
 }  // namespace switches

@@ -211,4 +211,65 @@ ninja::DNBuilder* NinjaMain::builder() {
   return builder_.get();
 }
 
+Node* NinjaMain::CollectTarget(const char* cpath, string* err) {
+  string path = cpath;
+  unsigned int slash_bits;  // Unused because this path is only used for lookup.
+  if (!CanonicalizePath(&path, &slash_bits, err))
+    return NULL;
+
+  // Special syntax: "foo.cc^" means "the first output of foo.cc".
+  bool first_dependent = false;
+  if (!path.empty() && path[path.size() - 1] == '^') {
+    path.resize(path.size() - 1);
+    first_dependent = true;
+  }
+
+  Node* node = state_.LookupNode(path);
+  if (node) {
+    if (first_dependent) {
+      if (node->out_edges().empty()) {
+        *err = "'" + path + "' has no out edge";
+        return NULL;
+      }
+      Edge* edge = node->out_edges()[0];
+      if (edge->outputs_.empty()) {
+        edge->Dump();
+        Fatal("edge has no outputs");
+      }
+      node = edge->outputs_[0];
+    }
+    return node;
+  } else {
+    *err = "unknown target '" + path + "'";
+
+    if (path == "clean") {
+      *err += ", did you mean 'ninja -t clean'?";
+    } else if (path == "help") {
+      *err += ", did you mean 'ninja -h'?";
+    } else {
+      Node* suggestion = state_.SpellcheckNode(path);
+      if (suggestion) {
+        *err += ", did you mean '" + suggestion->path() + "'?";
+      }
+    }
+    return NULL;
+  }
+}
+
+bool NinjaMain::CollectTargetsFromArgs(int argc, char* argv[],
+                                       vector<Node*>* targets, string* err) {
+  if (argc == 0) {
+    *targets = state_.DefaultNodes(err);
+    return err->empty();
+  }
+
+  for (int i = 0; i < argc; ++i) {
+    Node* node = CollectTarget(argv[i], err);
+    if (node == NULL)
+      return false;
+    targets->push_back(node);
+  }
+  return true;
+}
+
 }  // namespace ninja
