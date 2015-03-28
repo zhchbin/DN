@@ -45,7 +45,6 @@ void RpcSocketServer::Init() {
   int result =
       server_socket_->ListenWithAddressAndPort(bind_ip_, port_, kBackLog);
   CHECK(result == net::OK) << "Setup TCP server error.";
-  LOG(INFO) << "RPC Socket Server is listening: " << bind_ip_ << ":" << port_;
 
   // Start accepting connections in next run loop in case when delegate is not
   // ready to get callbacks.

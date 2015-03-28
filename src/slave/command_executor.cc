@@ -36,29 +36,27 @@ void CommandExecutor::CleanUp() {
 }
 
 void CommandExecutor::StartCommand() {
-  while (!incoming_command_queue_.empty() && CanRunMore()) {
+  if (incoming_command_queue_.empty() && subprocss_to_command_.empty())
+    return;
+
+  if (CanRunMore() && !incoming_command_queue_.empty()) {
     std::string command = incoming_command_queue_.front();
     incoming_command_queue_.pop();
     Subprocess* subproc = subprocs_.Add(command, false /*use console*/);
     CHECK(subproc != NULL);
     FOR_EACH_OBSERVER(Observer, observer_list_, OnCommandStarted(command));
     subprocss_to_command_.insert(std::make_pair(subproc, command));
-  }
-
-  if (!subprocss_to_command_.empty()) {
-    CommandRunner::Result result;
-    while (!subprocss_to_command_.empty())
+  } else {
+    if (!subprocss_to_command_.empty()) {
+      CommandRunner::Result result;
       WaitForCommand(&result);
+    }
   }
-
-  if (incoming_command_queue_.empty() && subprocss_to_command_.empty())
-    return;
 
   // Start commands in the next message loop if possible.
   base::MessageLoop::current()->PostTask(
       FROM_HERE,
       base::Bind(&CommandExecutor::StartCommand, weak_factory_.GetWeakPtr()));
-  return;
 }
 
 bool CommandExecutor::WaitForCommand(CommandRunner::Result* result) {
