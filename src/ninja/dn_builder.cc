@@ -145,6 +145,7 @@ bool DNBuilder::Build(string* err, master::MasterMainRunner* runner) {
   std::string json;
   base::JSONWriter::Write(commands.get(), &json);
   runner->SetWebUIInitialStatus(json);
+  start_build_time_ = base::Time::Now();
 
   return NinjaThread::PostTask(
       NinjaThread::MAIN,
@@ -167,7 +168,6 @@ bool DNBuilder::HasRemoteCommandRunLocally(Edge* edge) {
 void DNBuilder::BuildLoop() {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   DCHECK(command_runner_ != NULL);
-
   if (should_quit_build_loop_)
     return;
 
@@ -418,6 +418,8 @@ bool DNBuilder::ExtractDeps(CommandRunner::Result* result,
 }
 
 void DNBuilder::BuildFinished() {
+  base::TimeDelta time_between_use = base::Time::Now() - start_build_time_;
+  LOG(INFO) << time_between_use.InSecondsF();
   should_quit_build_loop_ = true;
   Cleanup();
   status_->BuildFinished();

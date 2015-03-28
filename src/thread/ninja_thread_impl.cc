@@ -71,7 +71,7 @@ base::LazyInstance<NinjaThreadProxies>::Leaky
 
 struct NinjaThreadGlobals {
   NinjaThreadGlobals()
-      : blocking_pool(new base::SequencedWorkerPool(3, "NinjaBlocking")) {
+      : blocking_pool(new base::SequencedWorkerPool(5, "NinjaBlocking")) {
     memset(threads, 0, NinjaThread::ID_COUNT * sizeof(threads[0]));
     memset(thread_delegates, 0,
            NinjaThread::ID_COUNT * sizeof(thread_delegates[0]));

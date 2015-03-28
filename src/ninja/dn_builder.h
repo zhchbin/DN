@@ -11,6 +11,7 @@
 
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
+#include "base/time/time.h"
 #include "third_party/ninja/src/build.h"
 
 namespace master {
@@ -75,6 +76,8 @@ class DNBuilder {
 
   // Whether we should quit the |BuildLoop|.
   bool should_quit_build_loop_;
+
+  base::Time start_build_time_;
 
   DISALLOW_COPY_AND_ASSIGN(DNBuilder);
 };

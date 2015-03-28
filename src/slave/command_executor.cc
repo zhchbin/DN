@@ -39,6 +39,7 @@ void CommandExecutor::StartCommand() {
   if (incoming_command_queue_.empty() && subprocss_to_command_.empty())
     return;
 
+  // TODO(zhchbin): Optimize.
   if (CanRunMore() && !incoming_command_queue_.empty()) {
     std::string command = incoming_command_queue_.front();
     incoming_command_queue_.pop();
@@ -46,11 +47,10 @@ void CommandExecutor::StartCommand() {
     CHECK(subproc != NULL);
     FOR_EACH_OBSERVER(Observer, observer_list_, OnCommandStarted(command));
     subprocss_to_command_.insert(std::make_pair(subproc, command));
-  } else {
-    if (!subprocss_to_command_.empty()) {
-      CommandRunner::Result result;
+  } else if (!subprocss_to_command_.empty()) {
+    CommandRunner::Result result;
+    while (!subprocss_to_command_.empty())
       WaitForCommand(&result);
-    }
   }
 
   // Start commands in the next message loop if possible.

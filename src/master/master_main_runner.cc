@@ -86,7 +86,6 @@ void MasterMainRunner::StartBuild() {
         targets.push_back(ninja_main()->CollectTarget(split_targets[i].c_str(),
                                                       &error));
         CHECK(error.empty()) << error;
-        LOG(INFO) << split_targets[i];
       }
     }
   } else {
@@ -335,8 +334,10 @@ void MasterMainRunner::FetchTargetsOnBlockingPool(
           base::FilePath::FromUTF8Unsafe(targets[i].first);
       std::string url = kHttp + host + "/" + targets[i].first;
       success = (curl_helper.Get(url, filename) == targets[i].second);
-      if (!success)
+      if (!success) {
+        LOG(ERROR) << "Curl " << url;
         break;
+      }
     }
   }
 
