@@ -19,6 +19,7 @@ class MasterMainRunner;
 class WebUIThread : public NinjaThreadDelegate {
  public:
   static int EventHandler(mg_connection* conn, mg_event ev);
+  static void QuitPool();
 
   explicit WebUIThread(MasterMainRunner* main_runner);
   ~WebUIThread() override;

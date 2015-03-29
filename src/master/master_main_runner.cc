@@ -4,6 +4,8 @@
 
 #include "master/master_main_runner.h"
 
+#include <algorithm>
+
 #include "base/bind.h"
 #include "base/command_line.h"
 #include "base/files/file_util.h"
@@ -36,7 +38,8 @@ MasterMainRunner::MasterMainRunner(const std::string& bind_ip, uint16 port)
       port_(port),
       number_of_slave_processors_(0),
       max_slave_amount_(UINT_MAX),
-      is_building_(false) {
+      is_building_(false),
+      pending_remote_commands_(0) {
   // |curl_global_init| is not thread-safe, following advice in docs of
   // |curl_easy_init|, we call it manually.
   curl_global_init(CURL_GLOBAL_ALL);
@@ -67,7 +70,8 @@ void MasterMainRunner::StartBuild() {
 
   is_building_ = true;
   std::string error;
-  config_.parallelism = common::GuessParallelism();
+  config_.parallelism = common::GuessParallelism() - 1;
+  pending_remote_commands_ = 0;
 
   const base::CommandLine* command_line =
       base::CommandLine::ForCurrentProcess();
@@ -106,8 +110,9 @@ bool MasterMainRunner::RemoteCanRunMore() {
   if (slave_info_id_map_.empty())
     return false;
 
-  return static_cast<int>(outstanding_edges_.size()) <=
-      number_of_slave_processors_;
+  int size = std::min(static_cast<int>(outstanding_edges_.size()),
+                      pending_remote_commands_);
+  return size <= number_of_slave_processors_;
 }
 
 bool MasterMainRunner::StartCommand(Edge* edge, bool run_in_local) {
@@ -172,6 +177,7 @@ bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
                  edge->GetBinding("rspfile_content"),
                  command,
                  edge_id));
+  ++pending_remote_commands_;
   return true;
 }
 
@@ -210,6 +216,18 @@ bool MasterMainRunner::HasPendingLocalCommands() {
   return !subproc_to_edge_.empty();
 }
 
+void MasterMainRunner::BuildFinished() {
+  NinjaThread::PostTask(
+      NinjaThread::FILE,
+      FROM_HERE,
+      base::Bind(WebUIThread::QuitPool));
+
+  NinjaThread::PostTask(
+      NinjaThread::MAIN,
+      FROM_HERE,
+      base::MessageLoop::current()->QuitClosure());
+}
+
 void MasterMainRunner::OnFetchTargetsDone(CommandRunner::Result result) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   std::string error;
@@ -223,10 +241,12 @@ void MasterMainRunner::OnRemoteCommandDone(
     ExitStatus status,
     const std::string& output,
     const std::vector<std::string>& md5s) {
+  --pending_remote_commands_;
   // If remote command failed, don't abort the build process since it may
   // pass locally. We can give it an chance to run.
   if (status != ExitSuccess)
     return;
+
   OutstandingEdgeMap::iterator it = outstanding_edges_.find(edge_id);
   DCHECK(it != outstanding_edges_.end());
   CommandRunner::Result result;
@@ -326,7 +346,7 @@ void MasterMainRunner::FetchTargetsOnBlockingPool(
     const std::string& host,
     const TargetVector& targets,
     CommandRunner::Result result) {
-  bool success = true;
+  bool success = false;
   if (result.success()) {
     CurlHelper curl_helper;
     for (size_t i = 0; i < targets.size(); ++i) {

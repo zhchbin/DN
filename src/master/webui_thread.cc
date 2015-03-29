@@ -11,6 +11,10 @@
 #include "master/master_main_runner.h"
 #include "thread/ninja_thread.h"
 
+namespace {
+static bool g_should_quit_pool = false;
+}  // namespace
+
 namespace master {
 
 // static
@@ -35,6 +39,12 @@ int WebUIThread::EventHandler(mg_connection* conn, mg_event ev) {
     default:
       return MG_FALSE;
   }
+}
+
+// static
+void WebUIThread::QuitPool() {
+  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::FILE));
+  g_should_quit_pool = true;
 }
 
 WebUIThread::WebUIThread(MasterMainRunner* main_runner)
@@ -78,6 +88,9 @@ void WebUIThread::CleanUp() {
 }
 
 void WebUIThread::PoolMongooseServer() {
+  if (g_should_quit_pool)
+    return;
+
   mg_poll_server(server_, 1000);
   NinjaThread::PostTask(
       NinjaThread::FILE,

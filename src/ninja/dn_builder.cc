@@ -211,8 +211,10 @@ void DNBuilder::BuildLoop() {
   } else {
     // We try to start edge locally, instead of waiting for the remote one.
     if (!outstanding_edge_list_.empty()) {
-      StartEdge(outstanding_edge_list_.back(), &error, true);
-      outstanding_edge_list_.pop_back();
+      while (command_runner_->LocalCanRunMore()) {
+        StartEdge(outstanding_edge_list_.back(), &error, true);
+        outstanding_edge_list_.pop_back();
+      }
     }
   }
 
@@ -423,11 +425,7 @@ void DNBuilder::BuildFinished() {
   should_quit_build_loop_ = true;
   Cleanup();
   status_->BuildFinished();
-
-  NinjaThread::PostTask(
-      NinjaThread::MAIN,
-      FROM_HERE,
-      base::MessageLoop::current()->QuitClosure());
+  command_runner_->BuildFinished();
 }
 
 }  // namespace ninja
