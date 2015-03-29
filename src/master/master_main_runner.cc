@@ -64,7 +64,7 @@ bool MasterMainRunner::PostCreateThreads() {
 void MasterMainRunner::StartBuild() {
   if (is_building_)
     return;
-
+  running_remote_commands_ = 0;
   is_building_ = true;
   std::string error;
   config_.parallelism = common::GuessParallelism();
@@ -106,8 +106,7 @@ bool MasterMainRunner::RemoteCanRunMore() {
   if (slave_info_id_map_.empty())
     return false;
 
-  return static_cast<int>(outstanding_edges_.size()) <=
-      number_of_slave_processors_;
+  return running_remote_commands_ <= number_of_slave_processors_;
 }
 
 bool MasterMainRunner::StartCommand(Edge* edge, bool run_in_local) {
@@ -172,6 +171,7 @@ bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
                  edge->GetBinding("rspfile_content"),
                  command,
                  edge_id));
+  ++running_remote_commands_;
   return true;
 }
 
@@ -225,6 +225,7 @@ void MasterMainRunner::OnRemoteCommandDone(
     const std::vector<std::string>& md5s) {
   // If remote command failed, don't abort the build process since it may
   // pass locally. We can give it an chance to run.
+  --running_remote_commands_;
   if (status != ExitSuccess)
     return;
   OutstandingEdgeMap::iterator it = outstanding_edges_.find(edge_id);
