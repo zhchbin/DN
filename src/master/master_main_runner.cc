@@ -298,7 +298,7 @@ void MasterMainRunner::OnSlaveSystemInfoAvailable(int connection_id,
   }
 
   slave_info_id_map_[connection_id] = info;
-  number_of_slave_processors_ += (info.number_of_processors * 1.5);
+  number_of_slave_processors_ += (info.number_of_processors * 3);
 
   if (slave_info_id_map_.size() >= max_slave_amount_)
     StartBuild();
