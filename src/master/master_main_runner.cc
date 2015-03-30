@@ -353,9 +353,10 @@ void MasterMainRunner::FetchTargetsOnBlockingPool(
       base::FilePath filename =
           base::FilePath::FromUTF8Unsafe(targets[i].first);
       std::string url = kHttp + host + "/" + targets[i].first;
-      success = (curl_helper.Get(url, filename) == targets[i].second);
+      std::string md5 = curl_helper.Get(url, filename);
+      success = (md5 == targets[i].second);
       if (!success) {
-        LOG(ERROR) << "Curl " << url;
+        LOG(ERROR) << "Curl " << url << "|" << md5 << "|" << targets[i].second;
         break;
       }
     }
