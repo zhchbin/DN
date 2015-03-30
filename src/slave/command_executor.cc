@@ -47,22 +47,22 @@ void CommandExecutor::StartCommand() {
     CHECK(subproc != NULL);
     FOR_EACH_OBSERVER(Observer, observer_list_, OnCommandStarted(command));
     subprocss_to_command_.insert(std::make_pair(subproc, command));
-  } else if (!subprocss_to_command_.empty()) {
-    CommandRunner::Result result;
-    while (!subprocss_to_command_.empty()) {
-      WaitForCommand(&result);
-      if (CanRunMore() && !incoming_command_queue_.empty())
-        break;
-    }
+
+    // Start commands in the next message loop if possible.
+    base::MessageLoop::current()->PostTask(
+        FROM_HERE,
+        base::Bind(&CommandExecutor::StartCommand, weak_factory_.GetWeakPtr()));
+    return;
   }
 
-  // Start commands in the next message loop if possible.
-  base::MessageLoop::current()->PostTask(
-      FROM_HERE,
-      base::Bind(&CommandExecutor::StartCommand, weak_factory_.GetWeakPtr()));
+  WaitForCommand();
 }
 
-bool CommandExecutor::WaitForCommand(CommandRunner::Result* result) {
+void CommandExecutor::WaitForCommand() {
+  if (subprocss_to_command_.empty())
+    return;
+
+  scoped_ptr<CommandRunner::Result> result(new CommandRunner::Result);
   Subprocess* subproc;
   while ((subproc = subprocs_.NextFinished()) == NULL)
     subprocs_.DoWork();
@@ -72,10 +72,13 @@ bool CommandExecutor::WaitForCommand(CommandRunner::Result* result) {
   SubprocessToCommand::iterator it = subprocss_to_command_.find(subproc);
   DCHECK(it != subprocss_to_command_.end());
   FOR_EACH_OBSERVER(
-      Observer, observer_list_, OnCommandFinished(it->second, result));
+      Observer, observer_list_, OnCommandFinished(it->second, result.get()));
   subprocss_to_command_.erase(it);
   delete subproc;
-  return true;
+
+  base::MessageLoop::current()->PostTask(
+      FROM_HERE,
+      base::Bind(&CommandExecutor::StartCommand, weak_factory_.GetWeakPtr()));
 }
 
 bool CommandExecutor::CanRunMore() {

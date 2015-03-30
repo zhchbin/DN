@@ -39,7 +39,7 @@ class CommandExecutor {
 
  private:
   void StartCommand();
-  bool WaitForCommand(CommandRunner::Result* result);
+  void WaitForCommand();
   bool CanRunMore();
 
   typedef std::queue<std::string> IncomingCommandQueue;
