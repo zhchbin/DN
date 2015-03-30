@@ -125,6 +125,10 @@ bool MasterMainRunner::StartCommand(Edge* edge, bool run_in_local) {
 
 bool MasterMainRunner::StartCommandLocally(Edge* edge) {
   base::ThreadRestrictions::AssertIOAllowed();
+  if (!LocalCanRunMore()) {
+    pending_local_edge_.push(edge);
+    return true;
+  }
 
   // Create directories necessary for outputs.
   for (vector<Node*>::iterator o = edge->outputs_.begin();
@@ -195,8 +199,14 @@ bool MasterMainRunner::WaitForCommand(CommandRunner::Result* result) {
   SubprocessToEdgeMap::iterator e = subproc_to_edge_.find(subproc);
   result->edge = e->second;
   subproc_to_edge_.erase(e);
-
   delete subproc;
+
+  if (!pending_local_edge_.empty()) {
+    Edge* edge = pending_local_edge_.front();
+    pending_local_edge_.pop();
+    StartCommandLocally(edge);
+  }
+
   return true;
 }
 

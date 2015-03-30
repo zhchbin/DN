@@ -6,6 +6,7 @@
 #define  MASTER_MASTER_MAIN_RUNNER_H_
 
 #include <map>
+#include <queue>
 #include <string>
 #include <utility>
 #include <vector>
@@ -103,6 +104,7 @@ class MasterMainRunner : public common::MainRunner {
   SubprocessSet subprocs_;
   typedef std::map<Subprocess*, Edge*> SubprocessToEdgeMap;
   SubprocessToEdgeMap subproc_to_edge_;
+  std::queue<Edge*> pending_local_edge_;
 
   typedef std::map<uint32, Edge*> OutstandingEdgeMap;
   OutstandingEdgeMap outstanding_edges_;

@@ -178,16 +178,29 @@ void DNBuilder::BuildLoop() {
 
   std::string error;
   bool failed = false;
+  while (command_runner_->LocalCanRunMore()) {
+    Edge* edge = plan_.FindWork();
+    if (edge == NULL)
+      break;
+
+    if (!StartEdge(edge, &error, true)) {
+      failed = true;
+      break;
+    }
+  }
+
   // See if we can start any more commands locally or remotely.
-  while (command_runner_->LocalCanRunMore() ||
-         command_runner_->RemoteCanRunMore()) {
+  int local_edge_counter = 0;
+  while (command_runner_->RemoteCanRunMore()) {
     Edge* edge = plan_.FindWork();
     if (edge == NULL)
       break;
 
     bool run_in_local = command_runner_->LocalCanRunMore();
-    if (EdgeMustStartLocally(edge))
+    if (EdgeMustStartLocally(edge)) {
       run_in_local = true;
+      local_edge_counter++;
+    }
 
     if (!StartEdge(edge, &error, run_in_local)) {
       failed = true;
@@ -196,18 +209,20 @@ void DNBuilder::BuildLoop() {
 
     if (!run_in_local && !edge->is_phony())
       outstanding_edge_list_.push_back(edge);
+
+    static const int kMaxLocalEdgeCounter = 10;
+    if (local_edge_counter > kMaxLocalEdgeCounter)
+      break;
   }
 
   if (command_runner_->HasPendingLocalCommands()) {
     // See if we can reap any finished local commands.
     CommandRunner::Result result;
-    if (!command_runner_->WaitForCommand(&result)) {
+    if (!command_runner_->WaitForCommand(&result))
       failed = true;
-    }
 
-    if (!FinishCommand(&result, &error)) {
+    if (!FinishCommand(&result, &error))
       failed = true;
-    }
   } else {
     // We try to start edge locally, instead of waiting for the remote one.
     if (!outstanding_edge_list_.empty()) {
