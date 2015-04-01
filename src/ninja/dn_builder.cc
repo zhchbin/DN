@@ -189,7 +189,7 @@ void DNBuilder::BuildLoop() {
     }
   }
 
-  // See if we can start any more commands locally or remotely.
+  // See if we can start any more commands remotely.
   int local_edge_counter = 0;
   while (command_runner_->RemoteCanRunMore()) {
     Edge* edge = plan_.FindWork();
