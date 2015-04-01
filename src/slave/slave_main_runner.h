@@ -6,7 +6,6 @@
 #define  SLAVE_SLAVE_MAIN_RUNNER_H_
 
 #include <map>
-#include <set>
 #include <string>
 #include <utility>
 
@@ -69,8 +68,8 @@ class SlaveMainRunner : public CommandExecutor::Observer,
   scoped_ptr<CommandExecutor> command_executor_;
   scoped_ptr<SlaveFileThread> slave_file_thread_;
 
-  typedef std::set<uint32> NinjaCommmandHashSet;
-  NinjaCommmandHashSet ninja_command_hash_set_;
+  typedef std::map<uint32, std::string> NinjaCommmandHashMap;
+  NinjaCommmandHashMap ninja_command_hash_map_;
 
   // RunCommandContextMap is used to hold the context of running a command from
   // master. Key is the hash of |request->command()|.

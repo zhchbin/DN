@@ -46,7 +46,6 @@ class MasterRPC : public NinjaThreadDelegate,
                             const OutputPaths& paths,
                             const std::string& rspfile_name,
                             const std::string& rspfile_content,
-                            const std::string& command,
                             uint32 edge_id);
   void QuitSlave(int connection_id, const std::string& reason);
 

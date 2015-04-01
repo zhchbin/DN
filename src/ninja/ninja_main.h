@@ -5,6 +5,7 @@
 #ifndef  NINJA_NINJA_MAIN_H_
 #define  NINJA_NINJA_MAIN_H_
 
+#include <set>
 #include <string>
 #include <vector>
 
@@ -66,7 +67,7 @@ struct NinjaMain : public BuildLogUser {
   State& state() { return state_; }
   RealDiskInterface*  disk_interface() { return &disk_interface_; }
 
-  void GetAllCommands(std::vector<std::string>* commands);
+  void GetAllEdges(std::set<Edge*>* edges);
 
   /// Get the Node for a given command-line path, handling features like
   /// spell correction.

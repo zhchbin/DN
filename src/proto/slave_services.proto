@@ -3,7 +3,6 @@ package slave;
 option cc_generic_services = true;
 
 message RunCommandRequest {
-  required string command = 1;
   required uint32 edge_id = 2;
 
   // Path for outputs.

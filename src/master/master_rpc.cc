@@ -99,10 +99,8 @@ void MasterRPC::StartCommandRemotely(int connection_id,
                                      const OutputPaths& paths,
                                      const std::string& rspfile_name,
                                      const std::string& rspfile_content,
-                                     const std::string& command,
                                      uint32 edge_id) {
   slave::RunCommandRequest request;
-  request.set_command(command);
   request.set_edge_id(edge_id);
   if (!rspfile_name.empty()) {
     request.set_rspfile_name(rspfile_name);

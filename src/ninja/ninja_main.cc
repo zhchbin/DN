@@ -21,20 +21,15 @@ struct RealFileReader : public ManifestParser::FileReader {
   }
 };
 
-void GetAllCommandsHelper(Edge* edge, set<Edge*>* seen,
-                          std::vector<std::string>* commands) {
+void GetAllEdgesHelper(Edge* edge, set<Edge*>* edges) {
   if (!edge)
     return;
-  if (!seen->insert(edge).second)
+  if (!edges->insert(edge).second)
     return;
 
   for (vector<Node*>::iterator in = edge->inputs_.begin();
        in != edge->inputs_.end(); ++in)
-    GetAllCommandsHelper((*in)->in_edge(), seen, commands);
-
-  if (!edge->is_phony()) {
-    commands->push_back(edge->EvaluateCommand());
-  }
+    GetAllEdgesHelper((*in)->in_edge(), edges);
 }
 
 }  // namespace
@@ -165,13 +160,13 @@ bool NinjaMain::RebuildManifest(const char* input_file, string* err) {
   return builder.Build(err);
 }
 
-void NinjaMain::GetAllCommands(std::vector<std::string>* commands) {
-  commands->clear();
+void NinjaMain::GetAllEdges(std::set<Edge*>* edges) {
+  edges->clear();
   std::string error;
   std::vector<Node*> nodes = state_.DefaultNodes(&error);
   std::set<Edge*> seen;
   for (vector<Node*>::iterator in = nodes.begin(); in != nodes.end(); ++in)
-    GetAllCommandsHelper((*in)->in_edge(), &seen, commands);
+    GetAllEdgesHelper((*in)->in_edge(), edges);
 }
 
 bool NinjaMain::RunBuild(std::vector<Node*> targets,

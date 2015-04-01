@@ -4,7 +4,7 @@
 
 #include "slave/slave_main_runner.h"
 
-#include <vector>
+#include <set>
 
 #include "base/bind.h"
 #include "base/files/file_util.h"
@@ -74,14 +74,12 @@ bool SlaveMainRunner::PostCreateThreads() {
   slave_rpc_.reset(new SlaveRPC(master_, port_, this));
   slave_file_thread_.reset(new SlaveFileThread());
 
-  std::vector<std::string> commands;
-  ninja_main()->GetAllCommands(&commands);
-  for (std::vector<std::string>::iterator it = commands.begin();
-       it != commands.end();
-       ++it) {
-    uint32 data = base::Hash(*it);
-    DCHECK(!ContainsKey(ninja_command_hash_set_, data));
-    ninja_command_hash_set_.insert(data);
+  std::set<Edge*> edges;
+  ninja_main()->GetAllEdges(&edges);
+  for (std::set<Edge*>::iterator it = edges.begin(); it != edges.end(); ++it) {
+    uint32 hash = common::HashEdge(*it);
+    CHECK(ninja_command_hash_map_.find(hash) == ninja_command_hash_map_.end());
+    ninja_command_hash_map_[hash] = (*it)->EvaluateCommand();
   }
 
   return true;
@@ -90,21 +88,19 @@ bool SlaveMainRunner::PostCreateThreads() {
 void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
                                  RunCommandResponse* response,
                                  ::google::protobuf::Closure* done) {
-  std::string command = request->command();
-  uint32 command_hash = base::Hash(command);
-  response->set_edge_id(request->edge_id());
+  uint32 edge_id = request->edge_id();
+  response->set_edge_id(edge_id);
 
-  // TODO(zhchbin): Refactor.
-  // if (!ContainsKey(ninja_command_hash_set_, command_hash)) {
-  //   response->set_status(RunCommandResponse::kExitFailure);
-  //   response->set_output("This command is NOT ALLOWED to run.");
-  //   NinjaThread::PostTask(
-  //       NinjaThread::RPC, FROM_HERE,
-  //       base::Bind(&SlaveRPC::OnRunCommandDone,
-  //                  base::Unretained(slave_rpc_.get()),
-  //                  done));
-  //   return;
-  // }
+  if (!ContainsKey(ninja_command_hash_map_, edge_id)) {
+    response->set_status(RunCommandResponse::kExitFailure);
+    response->set_output("This command is NOT ALLOWED to run.");
+    NinjaThread::PostTask(
+        NinjaThread::RPC, FROM_HERE,
+        base::Bind(&SlaveRPC::OnRunCommandDone,
+                   base::Unretained(slave_rpc_.get()),
+                   done));
+    return;
+  }
   if (!CreateDirsAndResponseFile(request)) {
     response->set_status(RunCommandResponse::kExitFailure);
     response->set_output("Create directories or response file failed.");
@@ -116,7 +112,8 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
     return;
   }
 
-  run_command_context_map_[command_hash] = {request, response, done};
+  std::string& command = ninja_command_hash_map_[edge_id];
+  run_command_context_map_[base::Hash(command)] = {request, response, done};
   command_executor_->AppendCommand(command);
 }
 

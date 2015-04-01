@@ -167,8 +167,7 @@ bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
     output_paths.push_back((*o)->path());
   }
 
-  std::string command = edge->EvaluateCommand();
-  uint32 edge_id = base::Hash(command);
+  uint32 edge_id = common::HashEdge(edge);
   outstanding_edges_[edge_id] = edge;
   NinjaThread::PostTask(
       NinjaThread::RPC,
@@ -179,7 +178,6 @@ bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
                  output_paths,
                  edge->GetUnescapedRspfile(),
                  edge->GetBinding("rspfile_content"),
-                 command,
                  edge_id));
   ++pending_remote_commands_;
   return true;

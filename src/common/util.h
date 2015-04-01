@@ -7,9 +7,13 @@
 
 #include <string>
 
+#include "base/basictypes.h"
+
 namespace base {
 class FilePath;
 }  // namespace base
+
+struct Edge;
 
 namespace common {
 
@@ -17,6 +21,8 @@ namespace common {
 int GuessParallelism();
 
 std::string GetMd5Digest(const base::FilePath& file_path);
+
+uint32 HashEdge(const Edge* edge);
 
 }  // namespace common
 
