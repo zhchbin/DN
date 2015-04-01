@@ -33,7 +33,8 @@ void SlaveFileThread::Init() {
   server_ = mg_create_server(NULL, NULL);
   mg_set_option(server_, "document_root", ".");      // Serve current directory
 
-  CHECK(mg_set_option(server_, "listening_port", options::kMongooseServerPort))
+  CHECK(mg_set_option(server_, "listening_port",
+                      options::kMongooseServerPort) == NULL)
       << "Failed to set listening_port option with value "
       << options::kMongooseServerPort;
 }
