@@ -5,6 +5,7 @@
 #include "slave/slave_file_thread.h"
 
 #include "base/bind.h"
+#include "common/options.h"
 #include "thread/ninja_thread.h"
 
 namespace {
@@ -31,7 +32,10 @@ SlaveFileThread::~SlaveFileThread() {
 void SlaveFileThread::Init() {
   server_ = mg_create_server(NULL, NULL);
   mg_set_option(server_, "document_root", ".");      // Serve current directory
-  mg_set_option(server_, "listening_port", "8080");  // Open port 8080
+
+  CHECK(mg_set_option(server_, "listening_port", options::kMongooseServerPort))
+      << "Failed to set listening_port option with value "
+      << options::kMongooseServerPort;
 }
 
 void SlaveFileThread::InitAsync() {

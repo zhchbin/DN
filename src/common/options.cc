@@ -20,3 +20,7 @@ const char kTargets[] = "targets";
 const char kMaxSlaveAmount[] = "max_slave_amount";
 
 }  // namespace switches
+
+namespace options {
+const char kMongooseServerPort[] = "18080";
+}  // namespace options

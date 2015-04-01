@@ -23,4 +23,8 @@ extern const char kMaster[];
 
 }  // namespace switches
 
+namespace options {
+extern const char kMongooseServerPort[];
+}  // namespace options
+
 #endif  // COMMON_OPTIONS_H_

@@ -272,8 +272,8 @@ void MasterMainRunner::OnRemoteCommandDone(
   }
 
   DCHECK(slave_info_id_map_.find(connection_id) != slave_info_id_map_.end());
-  // TODO(zhchbin): Remove hard code 8080.
-  std::string host = slave_info_id_map_[connection_id].ip + ":" + "8080";
+  std::string host =
+      slave_info_id_map_[connection_id].ip + ":" + options::kMongooseServerPort;
   NinjaThread::PostBlockingPoolTask(
       FROM_HERE,
       base::Bind(&MasterMainRunner::FetchTargetsOnBlockingPool,
