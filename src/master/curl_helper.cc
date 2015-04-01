@@ -26,6 +26,7 @@ std::string CurlHelper::Get(const std::string& url,
                             const base::FilePath& filename) {
   base::MD5Init(&md5_context_);
   CHECK(base::CreateDirectory(filename.DirName()));
+  base::DeleteFile(filename, false);
   file_.InitializeUnsafe(filename,
                          base::File::FLAG_CREATE | base::File::FLAG_WRITE);
   if (!file_.IsValid()) {

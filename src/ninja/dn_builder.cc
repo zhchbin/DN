@@ -154,6 +154,7 @@ bool DNBuilder::Build(string* err, master::MasterMainRunner* runner) {
 }
 
 bool DNBuilder::HasRemoteCommandRunLocally(Edge* edge) {
+  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   for (OutstandingEdgeList::iterator it = outstanding_edge_list_.begin();
        it != outstanding_edge_list_.end();
        ++it) {
@@ -225,11 +226,10 @@ void DNBuilder::BuildLoop() {
       failed = true;
   } else {
     // We try to start edge locally, instead of waiting for the remote one.
-    if (!outstanding_edge_list_.empty()) {
-      while (command_runner_->LocalCanRunMore()) {
-        StartEdge(outstanding_edge_list_.back(), &error, true);
-        outstanding_edge_list_.pop_back();
-      }
+    while (command_runner_->LocalCanRunMore() &&
+           !outstanding_edge_list_.empty()) {
+      StartEdge(outstanding_edge_list_.back(), &error, true);
+      outstanding_edge_list_.pop_back();
     }
   }
 
@@ -262,6 +262,7 @@ bool DNBuilder::StartEdge(Edge* edge, string* err, bool run_in_local) {
 }
 
 bool DNBuilder::FinishCommand(CommandRunner::Result* result, string* err) {
+  DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   METRIC_RECORD("FinishCommand");
   command_runner_->BuildEdgeFinished(result);
 
