@@ -114,7 +114,11 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
 
   std::string& command = ninja_command_hash_map_[edge_id];
   run_command_context_map_[base::Hash(command)] = {request, response, done};
-  command_executor_->AppendCommand(command);
+  command_executor_->RunCommand(command);
+}
+
+void SlaveMainRunner::Wait() {
+  command_executor_->Wait();
 }
 
 bool SlaveMainRunner::CreateDirsAndResponseFile(

@@ -30,19 +30,17 @@ class MockObserver : public CommandExecutor::Observer {
 };
 
 TEST(CommandExecutorTest, RumCommands) {
-  int times = 100;
-  base::MessageLoop message_loop;
+  int times = 5;
   MockObserver observer;
   EXPECT_CALL(observer, OnCommandStarted(Eq(kSimpleCommand))).Times(times);
   EXPECT_CALL(observer, OnCommandFinished(Eq(kSimpleCommand), _)).Times(times);
 
   CommandExecutor command_executor;
   command_executor.AddObserver(&observer);
-  for (int i = 0; i < times; ++i)
-    command_executor.AppendCommand(kSimpleCommand);
-
-  message_loop.PostTask(FROM_HERE, message_loop.QuitWhenIdleClosure());
-  message_loop.Run();
+  for (int i = 0; i < times; ++i) {
+    command_executor.RunCommand(kSimpleCommand);
+    command_executor.Wait();
+  }
 }
 
 }  // namespace slave

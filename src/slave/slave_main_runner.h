@@ -44,6 +44,7 @@ class SlaveMainRunner : public CommandExecutor::Observer,
   void RunCommand(const RunCommandRequest* request,
                   RunCommandResponse* response,
                   google::protobuf::Closure* done);
+  void Wait();
 
  private:
   struct RunCommandContext {

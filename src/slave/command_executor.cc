@@ -11,10 +11,7 @@
 
 namespace slave {
 
-CommandExecutor::CommandExecutor()
-    : weak_factory_(this),
-      parallelism_(common::GuessParallelism()) {
-}
+CommandExecutor::CommandExecutor() {}
 
 CommandExecutor::~CommandExecutor() {}
 
@@ -26,66 +23,37 @@ void CommandExecutor::RemoveObserver(Observer* obs) {
   observer_list_.RemoveObserver(obs);
 }
 
-void CommandExecutor::AppendCommand(const std::string& command) {
-  incoming_command_queue_.push(command);
-  StartCommand();
-}
-
 void CommandExecutor::CleanUp() {
   subprocs_.Clear();
 }
 
-void CommandExecutor::StartCommand() {
-  if (incoming_command_queue_.empty() && subprocss_to_command_.empty())
-    return;
-
-  // TODO(zhchbin): Optimize.
-  if (CanRunMore() && !incoming_command_queue_.empty()) {
-    std::string command = incoming_command_queue_.front();
-    incoming_command_queue_.pop();
-    Subprocess* subproc = subprocs_.Add(command, false /*use console*/);
-    CHECK(subproc != NULL);
-    FOR_EACH_OBSERVER(Observer, observer_list_, OnCommandStarted(command));
-    subprocss_to_command_.insert(std::make_pair(subproc, command));
-
-    // Start commands in the next message loop if possible.
-    base::MessageLoop::current()->PostTask(
-        FROM_HERE,
-        base::Bind(&CommandExecutor::StartCommand, weak_factory_.GetWeakPtr()));
-    return;
-  }
-
-  WaitForCommand();
+void CommandExecutor::RunCommand(const std::string& command) {
+  Subprocess* subproc = subprocs_.Add(command, false /*use console*/);
+  CHECK(subproc != NULL);
+  FOR_EACH_OBSERVER(Observer, observer_list_, OnCommandStarted(command));
+  subprocss_to_command_.insert(std::make_pair(subproc, command));
 }
 
-void CommandExecutor::WaitForCommand() {
+void CommandExecutor::Wait() {
   if (subprocss_to_command_.empty())
     return;
 
-  scoped_ptr<CommandRunner::Result> result(new CommandRunner::Result);
-  Subprocess* subproc;
-  while ((subproc = subprocs_.NextFinished()) == NULL)
+  while (subprocs_.finished_.empty())
     subprocs_.DoWork();
 
-  result->status = subproc->Finish();
-  result->output = subproc->GetOutput();
-  SubprocessToCommand::iterator it = subprocss_to_command_.find(subproc);
-  DCHECK(it != subprocss_to_command_.end());
-  FOR_EACH_OBSERVER(
-      Observer, observer_list_, OnCommandFinished(it->second, result.get()));
-  subprocss_to_command_.erase(it);
-  delete subproc;
-
-  base::MessageLoop::current()->PostTask(
-      FROM_HERE,
-      base::Bind(&CommandExecutor::StartCommand, weak_factory_.GetWeakPtr()));
-}
-
-bool CommandExecutor::CanRunMore() {
-  size_t subproc_number =
-      subprocs_.running_.size() + subprocs_.finished_.size();
-
-  return subproc_number < parallelism_;
+  scoped_ptr<CommandRunner::Result> result(new CommandRunner::Result);
+  Subprocess* subproc = NULL;
+  while ((subproc = subprocs_.NextFinished()) != NULL) {
+    result->status = subproc->Finish();
+    result->output = subproc->GetOutput();
+    SubprocessToCommand::iterator it = subprocss_to_command_.find(subproc);
+    DCHECK(it != subprocss_to_command_.end());
+    FOR_EACH_OBSERVER(
+        Observer, observer_list_, OnCommandFinished(it->second, result.get()));
+    subprocss_to_command_.erase(it);
+    delete subproc;
+    subproc = NULL;
+  }
 }
 
 }  // namespace slave

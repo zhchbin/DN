@@ -60,6 +60,7 @@ class SlaveRPC : public NinjaThreadDelegate, public slave::SlaveService {
   scoped_ptr<rpc::RpcSocketClient> rpc_socket_client_;
   SlaveMainRunner* slave_main_runner_;
   int amount_of_running_commands_;
+  int parallelism_;
 
   DISALLOW_COPY_AND_ASSIGN(SlaveRPC);
 };

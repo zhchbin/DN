@@ -196,7 +196,7 @@ void DNBuilder::BuildLoop() {
     if (edge == NULL)
       break;
 
-    bool run_in_local = command_runner_->LocalCanRunMore();
+    bool run_in_local = false;
     if (EdgeMustStartLocally(edge)) {
       run_in_local = true;
       local_edge_counter++;

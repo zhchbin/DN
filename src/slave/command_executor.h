@@ -34,29 +34,17 @@ class CommandExecutor {
   void AddObserver(Observer* obs);
   void RemoveObserver(Observer* obs);
 
-  void AppendCommand(const std::string& command);
   void CleanUp();
+  void RunCommand(const std::string& command);
+  void Wait();
 
  private:
-  void StartCommand();
-  void WaitForCommand();
-  bool CanRunMore();
-
-  typedef std::queue<std::string> IncomingCommandQueue;
-  IncomingCommandQueue incoming_command_queue_;
-
   typedef std::map<Subprocess*, std::string> SubprocessToCommand;
   SubprocessToCommand subprocss_to_command_;
 
   // A set of async subprocess.
   SubprocessSet subprocs_;
-
   ObserverList<Observer> observer_list_;
-
-  base::WeakPtrFactory<CommandExecutor> weak_factory_;
-
-  // The number of jobs which can run in parallel.
-  uint32 parallelism_;
 
   DISALLOW_COPY_AND_ASSIGN(CommandExecutor);
 };

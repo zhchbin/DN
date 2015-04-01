@@ -8,6 +8,7 @@
 #include "base/message_loop/message_loop.h"
 #include "base/strings/string_util.h"
 #include "base/sys_info.h"
+#include "common/util.h"
 #include "proto/rpc_message.pb.h"
 #include "rpc/rpc_connection.h"
 #include "rpc/rpc_socket_client.h"
@@ -47,7 +48,8 @@ SlaveRPC::SlaveRPC(const std::string& master_ip,
     : master_ip_(master_ip),
       port_(port),
       slave_main_runner_(main_runner),
-      amount_of_running_commands_(0) {
+      amount_of_running_commands_(0),
+      parallelism_(common::GuessParallelism()) {
   NinjaThread::SetDelegate(NinjaThread::RPC, this);
 }
 
@@ -93,6 +95,12 @@ void SlaveRPC::RunCommand(google::protobuf::RpcController* /* controller */,
                           slave::RunCommandResponse* response,
                           google::protobuf::Closure* done) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::RPC));
+  if (amount_of_running_commands_ >= parallelism_) {
+    NinjaThread::PostTask(
+        NinjaThread::MAIN, FROM_HERE,
+        base::Bind(&SlaveMainRunner::Wait, slave_main_runner_));
+  }
+
   ++amount_of_running_commands_;
   NinjaThread::PostTask(
       NinjaThread::MAIN, FROM_HERE,
