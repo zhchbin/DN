@@ -118,7 +118,6 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
 }
 
 void SlaveMainRunner::Wait() {
-  command_executor_->Wait();
 }
 
 bool SlaveMainRunner::CreateDirsAndResponseFile(

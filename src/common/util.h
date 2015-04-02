@@ -24,6 +24,8 @@ std::string GetMd5Digest(const base::FilePath& file_path);
 
 uint32 HashEdge(const Edge* edge);
 
+int SetNonBlocking(int fd);
+
 }  // namespace common
 
 #endif  // COMMON_UTIL_H_

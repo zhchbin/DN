@@ -11,6 +11,8 @@
       'target_name': 'libdn',
       'type': 'static_library',
       'sources': [
+        'src/common/async_subprocess.cc',
+        'src/common/async_subprocess.h',
         'src/common/main_runner.cc',
         'src/common/main_runner.h',
         'src/common/options.cc',
@@ -159,6 +161,7 @@
       'target_name': 'dn_unittest',
       'type': 'executable',
       'sources': [
+        'src/common/async_subprocess_unittest.cc',
         'src/master/curl_helper_unittest.cc',
         'src/proto/echo_unittest.proto',
         'src/rpc/rpc_socket_unittest.cc',

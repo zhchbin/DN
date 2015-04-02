@@ -4,6 +4,8 @@
 
 #include "common/util.h"
 
+#include <fcntl.h>
+
 #include "base/files/file.h"
 #include "base/hash.h"
 #include "base/md5.h"
@@ -72,6 +74,18 @@ uint32 HashEdge(const Edge* edge) {
   }
 
   return base::Hash(base::StringToLowerASCII(rule_and_targets));
+}
+
+int SetNonBlocking(int fd) {
+#if defined(OS_WIN)
+  uint64 no_block = 1;
+  return ioctlsocket(fd, FIONBIO, &no_block);
+#elif defined(OS_POSIX)
+  int flags = fcntl(fd, F_GETFL, 0);
+  if (-1 == flags)
+    return flags;
+  return fcntl(fd, F_SETFL, flags | O_NONBLOCK);
+#endif
 }
 
 }  // namespace common

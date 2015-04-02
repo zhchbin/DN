@@ -12,6 +12,7 @@
 #include "base/basictypes.h"
 #include "base/memory/weak_ptr.h"
 #include "base/observer_list.h"
+#include "common/async_subprocess.h"
 #include "third_party/ninja/src/build.h"
 #include "third_party/ninja/src/subprocess.h"
 
@@ -34,17 +35,20 @@ class CommandExecutor {
   void AddObserver(Observer* obs);
   void RemoveObserver(Observer* obs);
 
-  void CleanUp();
   void RunCommand(const std::string& command);
-  void Wait();
+  void SubprocessExitCallback(common::AsyncSubprocess* subproc);
 
  private:
-  typedef std::map<Subprocess*, std::string> SubprocessToCommand;
+  int parallelism_;
+  int running_commands_;
+
+  typedef std::map<common::AsyncSubprocess*, std::string> SubprocessToCommand;
   SubprocessToCommand subprocss_to_command_;
 
-  // A set of async subprocess.
-  SubprocessSet subprocs_;
   ObserverList<Observer> observer_list_;
+
+  typedef std::queue<std::string> PendingCommandQueue;
+  PendingCommandQueue pending_command_queue_;
 
   DISALLOW_COPY_AND_ASSIGN(CommandExecutor);
 };

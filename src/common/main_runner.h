@@ -44,7 +44,7 @@ class MainRunner : public base::RefCountedThreadSafe<MainRunner> {
   scoped_ptr<NinjaThreadImpl> file_thread_;
   scoped_ptr<ninja::NinjaMain> ninja_main_;
 
-  base::MessageLoop message_loop_;
+  base::MessageLoopForIO message_loop_;
 
   DISALLOW_COPY_AND_ASSIGN(MainRunner);
 };

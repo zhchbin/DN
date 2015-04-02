@@ -11,9 +11,13 @@
 
 namespace slave {
 
-CommandExecutor::CommandExecutor() {}
+CommandExecutor::CommandExecutor()
+  : parallelism_(common::GuessParallelism()),
+    running_commands_(0) {
+}
 
-CommandExecutor::~CommandExecutor() {}
+CommandExecutor::~CommandExecutor() {
+}
 
 void CommandExecutor::AddObserver(Observer* obs) {
   observer_list_.AddObserver(obs);
@@ -23,36 +27,41 @@ void CommandExecutor::RemoveObserver(Observer* obs) {
   observer_list_.RemoveObserver(obs);
 }
 
-void CommandExecutor::CleanUp() {
-  subprocs_.Clear();
-}
-
 void CommandExecutor::RunCommand(const std::string& command) {
-  Subprocess* subproc = subprocs_.Add(command, false /*use console*/);
-  CHECK(subproc != NULL);
-  FOR_EACH_OBSERVER(Observer, observer_list_, OnCommandStarted(command));
-  subprocss_to_command_.insert(std::make_pair(subproc, command));
+  if (running_commands_ <= parallelism_) {
+    // |proc| will be delete when subprocess exists.
+    common::AsyncSubprocess* proc = new common::AsyncSubprocess;
+    CHECK(proc->Start(command,
+                      base::Bind(&CommandExecutor::SubprocessExitCallback,
+                                 base::Unretained(this))));
+    FOR_EACH_OBSERVER(Observer, observer_list_, OnCommandStarted(command));
+    subprocss_to_command_.insert(std::make_pair(proc, command));
+    ++running_commands_;
+  } else {
+    pending_command_queue_.push(command);
+  }
 }
 
-void CommandExecutor::Wait() {
-  if (subprocss_to_command_.empty())
-    return;
+void CommandExecutor::SubprocessExitCallback(common::AsyncSubprocess* subproc) {
+  CommandRunner::Result result;
+  SubprocessToCommand::iterator it = subprocss_to_command_.find(subproc);
+  DCHECK(it != subprocss_to_command_.end());
+  result.status = subproc->Finish();
+  result.output = subproc->GetOutput();
+  FOR_EACH_OBSERVER(
+      Observer, observer_list_, OnCommandFinished(it->second, &result));
 
-  while (subprocs_.finished_.empty())
-    subprocs_.DoWork();
+  subprocss_to_command_.erase(it);
+  delete subproc;
+  --running_commands_;
 
-  scoped_ptr<CommandRunner::Result> result(new CommandRunner::Result);
-  Subprocess* subproc = NULL;
-  while ((subproc = subprocs_.NextFinished()) != NULL) {
-    result->status = subproc->Finish();
-    result->output = subproc->GetOutput();
-    SubprocessToCommand::iterator it = subprocss_to_command_.find(subproc);
-    DCHECK(it != subprocss_to_command_.end());
-    FOR_EACH_OBSERVER(
-        Observer, observer_list_, OnCommandFinished(it->second, result.get()));
-    subprocss_to_command_.erase(it);
-    delete subproc;
-    subproc = NULL;
+  if (!pending_command_queue_.empty()) {
+    // Don't call RunCommand directlly since we are in the callback of libevent.
+    base::MessageLoop::current()->PostTask(FROM_HERE,
+        base::Bind(&CommandExecutor::RunCommand,
+                   base::Unretained(this),
+                   pending_command_queue_.front()));
+    pending_command_queue_.pop();
   }
 }
 
