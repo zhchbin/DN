@@ -6,12 +6,14 @@
 #define  NINJA_DN_BUILDER_H_
 
 #include <list>
+#include <map>
 #include <string>
 #include <vector>
 
 #include "base/memory/scoped_ptr.h"
 #include "base/memory/weak_ptr.h"
 #include "base/time/time.h"
+#include "common/command_executor.h"
 #include "third_party/ninja/src/build.h"
 
 namespace master {
@@ -21,15 +23,12 @@ class MasterMainRunner;
 namespace ninja {
 
 /// DNBuilder wraps the build process: starting commands, updating status.
-class DNBuilder {
+class DNBuilder : public common::CommandExecutor::Observer {
  public:
   DNBuilder(State* state, const BuildConfig& config,
             BuildLog* build_log, DepsLog* deps_log,
             DiskInterface* disk_interface);
   ~DNBuilder();
-
-  /// Clean up after interrupted commands by deleting output files.
-  void Cleanup();
 
   Node* AddTarget(const string& name, string* err);
 
@@ -54,7 +53,14 @@ class DNBuilder {
   void BuildLoop();
   void BuildFinished();
 
+  void OnCommandStarted(const std::string& command) override;
+  void OnCommandFinished(const std::string& command,
+                         const CommandRunner::Result* result) override;
+  void RequestEdge(int connection_id);
+
  private:
+  void InitialalBuild();
+
   bool ExtractDeps(CommandRunner::Result* result, const string& deps_type,
                    const string& deps_prefix, vector<Node*>* deps_nodes,
                    string* err);
@@ -74,10 +80,10 @@ class DNBuilder {
   typedef std::list<Edge*> OutstandingEdgeList;
   OutstandingEdgeList outstanding_edge_list_;
 
-  // Whether we should quit the |BuildLoop|.
-  bool should_quit_build_loop_;
-
   base::Time start_build_time_;
+
+  common::CommandExecutor command_executor_;
+  std::map<std::string, Edge*> command_edge_map_;
 
   DISALLOW_COPY_AND_ASSIGN(DNBuilder);
 };

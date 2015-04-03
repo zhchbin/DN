@@ -36,7 +36,6 @@ namespace master {
 MasterMainRunner::MasterMainRunner(const std::string& bind_ip, uint16 port)
     : bind_ip_(bind_ip),
       port_(port),
-      number_of_slave_processors_(0),
       max_slave_amount_(UINT_MAX),
       is_building_(false),
       pending_remote_commands_(0) {
@@ -100,64 +99,8 @@ void MasterMainRunner::StartBuild() {
   ninja_main()->RunBuild(targets, this);
 }
 
-bool MasterMainRunner::LocalCanRunMore() {
-  size_t subproc_number =
-      subprocs_.running_.size() + subprocs_.finished_.size();
-  return static_cast<int>(subproc_number) < config_.parallelism;
-}
-
-bool MasterMainRunner::RemoteCanRunMore() {
-  if (slave_info_id_map_.empty())
-    return false;
-
-  int size = std::min(static_cast<int>(outstanding_edges_.size()),
-                      pending_remote_commands_);
-  return size <= number_of_slave_processors_;
-}
-
-bool MasterMainRunner::StartCommand(Edge* edge, bool run_in_local) {
-  // Force command start locally if we didn't have any slave.
-  if (run_in_local || slave_info_id_map_.empty())
-    return StartCommandLocally(edge);
-  else
-    return StartCommandRemotely(edge);
-}
-
-bool MasterMainRunner::StartCommandLocally(Edge* edge) {
-  base::ThreadRestrictions::AssertIOAllowed();
-  if (!LocalCanRunMore()) {
-    pending_local_edge_.push(edge);
-    return true;
-  }
-
-  // Create directories necessary for outputs.
-  for (vector<Node*>::iterator o = edge->outputs_.begin();
-       o != edge->outputs_.end(); ++o) {
-    base::FilePath dir =
-        base::FilePath::FromUTF8Unsafe((*o)->path());
-    if (!base::CreateDirectory(dir.DirName()))
-      return false;
-  }
-
-  // Create response file, if needed
-  std::string rspfile = edge->GetUnescapedRspfile();
-  if (!rspfile.empty()) {
-    std::string content = edge->GetBinding("rspfile_content");
-    if (!ninja_main()->disk_interface()->WriteFile(rspfile, content))
-      return false;
-  }
-
-  std::string command = edge->EvaluateCommand();
-  Subprocess* subproc = subprocs_.Add(command, edge->use_console());
-  if (!subproc)
-    return false;
-  subproc_to_edge_.insert(make_pair(subproc, edge));
-  return true;
-}
-
-bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
-  int connection_id = FindMostAvailableSlave();
-  if (connection_id == INT_MIN)
+bool MasterMainRunner::StartEdgeRemotelly(Edge* edge, int connection_id) {
+  if (slave_info_id_map_.find(connection_id) == slave_info_id_map_.end())
     return false;
 
   MasterRPC::OutputPaths output_paths;
@@ -181,47 +124,6 @@ bool MasterMainRunner::StartCommandRemotely(Edge* edge) {
                  edge_id));
   ++pending_remote_commands_;
   return true;
-}
-
-bool MasterMainRunner::WaitForCommand(CommandRunner::Result* result) {
-  Subprocess* subproc;
-  while ((subproc = subprocs_.NextFinished()) == NULL) {
-    bool interrupted = subprocs_.DoWork();
-    if (interrupted)
-      return false;
-  }
-
-  result->status = subproc->Finish();
-  result->output = subproc->GetOutput();
-
-  SubprocessToEdgeMap::iterator e = subproc_to_edge_.find(subproc);
-  result->edge = e->second;
-  subproc_to_edge_.erase(e);
-  delete subproc;
-
-  if (!pending_local_edge_.empty()) {
-    Edge* edge = pending_local_edge_.front();
-    pending_local_edge_.pop();
-    StartCommandLocally(edge);
-  }
-
-  return true;
-}
-
-std::vector<Edge*> MasterMainRunner::GetActiveEdges() {
-  std::vector<Edge*> edges;
-  for (SubprocessToEdgeMap::iterator e = subproc_to_edge_.begin();
-       e != subproc_to_edge_.end(); ++e)
-    edges.push_back(e->second);
-  return edges;
-}
-
-void MasterMainRunner::Abort() {
-  subprocs_.Clear();
-}
-
-bool MasterMainRunner::HasPendingLocalCommands() {
-  return !subproc_to_edge_.empty();
 }
 
 void MasterMainRunner::BuildFinished() {
@@ -250,6 +152,8 @@ void MasterMainRunner::OnRemoteCommandDone(
     const std::string& output,
     const std::vector<std::string>& md5s) {
   --pending_remote_commands_;
+  ninja_main()->builder()->RequestEdge(connection_id);
+
   // If remote command failed, don't abort the build process since it may
   // pass locally. We can give it an chance to run.
   if (status != ExitSuccess)
@@ -306,7 +210,6 @@ void MasterMainRunner::OnSlaveSystemInfoAvailable(int connection_id,
   }
 
   slave_info_id_map_[connection_id] = info;
-  number_of_slave_processors_ += (info.number_of_processors * 3);
 
   if (slave_info_id_map_.size() >= max_slave_amount_)
     StartBuild();
@@ -331,23 +234,6 @@ void MasterMainRunner::OnSlaveStatusUpdate(
 void MasterMainRunner::OnSlaveClose(int connection_id) {
   DCHECK(slave_info_id_map_.find(connection_id) != slave_info_id_map_.end());
   slave_info_id_map_.erase(connection_id);
-}
-
-int MasterMainRunner::FindMostAvailableSlave() {
-  int connection_id = INT_MIN;
-  int max_number_of_available_processors = INT_MIN;
-  for (SlaveInfoIdMap::iterator it = slave_info_id_map_.begin();
-       it != slave_info_id_map_.end();
-       ++it) {
-    int tmp =
-        it->second.number_of_processors - it->second.amount_of_running_commands;
-    if (tmp > max_number_of_available_processors) {
-      tmp = max_number_of_available_processors;
-      connection_id = it->first;
-    }
-  }
-
-  return connection_id;
 }
 
 void MasterMainRunner::FetchTargetsOnBlockingPool(

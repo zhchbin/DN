@@ -38,6 +38,10 @@ class CommandExecutor {
   void RunCommand(const std::string& command);
   void SubprocessExitCallback(common::AsyncSubprocess* subproc);
 
+  bool CanRunMore() const {
+    return running_commands_ <= parallelism_;
+  }
+
  private:
   int parallelism_;
   int running_commands_;

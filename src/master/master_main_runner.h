@@ -41,6 +41,9 @@ class MasterMainRunner : public common::MainRunner {
   typedef std::pair<std::string, std::string> Target;
   typedef std::vector<Target> TargetVector;
 
+  // Map the connection id to slave info.
+  typedef std::map<int, SlaveInfo> SlaveInfoIdMap;
+
   MasterMainRunner(const std::string& bind_ip, uint16 port);
 
   // common::MainRunner implementations.
@@ -48,13 +51,7 @@ class MasterMainRunner : public common::MainRunner {
 
   void StartBuild();
 
-  bool LocalCanRunMore();
-  bool RemoteCanRunMore();
-  bool StartCommand(Edge* edge, bool run_in_local);
-  bool WaitForCommand(CommandRunner::Result* result);
-  std::vector<Edge*> GetActiveEdges();
-  void Abort();
-  bool HasPendingLocalCommands();
+  bool StartEdgeRemotelly(Edge* edge, int connection_id);
   void BuildFinished();
 
   void OnRemoteCommandDone(int connection_id,
@@ -80,35 +77,24 @@ class MasterMainRunner : public common::MainRunner {
   void BuildEdgeStarted(Edge* edge);
   void BuildEdgeFinished(CommandRunner::Result* result);
 
+  const SlaveInfoIdMap& GetSlaves() {
+    return slave_info_id_map_;
+  }
+
  private:
-  // Map the connection id to slave info.
-  typedef std::map<int, SlaveInfo> SlaveInfoIdMap;
   SlaveInfoIdMap slave_info_id_map_;
 
   friend class base::RefCountedThreadSafe<MasterMainRunner>;
   ~MasterMainRunner() override;
-
-  bool StartCommandLocally(Edge* edge);
-  bool StartCommandRemotely(Edge* edge);
-
-  // Return the connection id of the most available slave to dispatch running
-  // command job. Return INT_MIN means there are no slaves available, note that
-  // connection id is counted from 0.
-  int FindMostAvailableSlave();
 
   std::string bind_ip_;
   uint16 port_;
   scoped_ptr<MasterRPC> master_rpc_;
 
   BuildConfig config_;
-  SubprocessSet subprocs_;
-  typedef std::map<Subprocess*, Edge*> SubprocessToEdgeMap;
-  SubprocessToEdgeMap subproc_to_edge_;
-  std::queue<Edge*> pending_local_edge_;
 
   typedef std::map<uint32, Edge*> OutstandingEdgeMap;
   OutstandingEdgeMap outstanding_edges_;
-  int number_of_slave_processors_;
 
   scoped_ptr<WebUIThread> webui_thread_;
 

@@ -4,13 +4,16 @@
 
 #include "ninja/dn_builder.h"
 
+#include <map>
 #include <set>
 #include <string>
 #include <vector>
 
 #include "base/bind.h"
-#include "base/values.h"
+#include "base/files/file_path.h"
+#include "base/files/file_util.h"
 #include "base/json/json_writer.h"
+#include "base/values.h"
 #include "master/master_main_runner.h"
 #include "third_party/ninja/src/build_log.h"
 #include "third_party/ninja/src/depfile_parser.h"
@@ -22,6 +25,8 @@
 #if defined(OS_WIN)
 #include "third_party/ninja/src/msvc_helper.h"
 #endif
+
+using master::MasterMainRunner;
 
 namespace {
 
@@ -55,39 +60,11 @@ DNBuilder::DNBuilder(State* state,
       scan_(state, build_log, deps_log, disk_interface),
       weak_factory_(this) {
   status_.reset(new BuildStatus(config));
+  command_executor_.AddObserver(this);
 }
 
 DNBuilder::~DNBuilder() {
-}
-
-void DNBuilder::Cleanup() {
-  if (command_runner_) {
-    vector<Edge*> active_edges = command_runner_->GetActiveEdges();
-    command_runner_->Abort();
-
-    for (vector<Edge*>::iterator e = active_edges.begin();
-         e != active_edges.end(); ++e) {
-      string depfile = (*e)->GetUnescapedDepfile();
-      for (vector<Node*>::iterator o = (*e)->outputs_.begin();
-           o != (*e)->outputs_.end(); ++o) {
-        // Only delete this output if it was actually modified.  This is
-        // important for things like the generator where we don't want to
-        // delete the manifest file if we can avoid it.  But if the rule
-        // uses a depfile, always delete.  (Consider the case where we
-        // need to rebuild an output because of a modified header file
-        // mentioned in a depfile, and the command touches its depfile
-        // but is interrupted before it touches its output file.)
-        if (!depfile.empty() ||
-            (*o)->mtime() != disk_interface_->Stat((*o)->path())) {
-          disk_interface_->RemoveFile((*o)->path());
-        }
-      }
-      if (!depfile.empty())
-        disk_interface_->RemoveFile(depfile);
-    }
-
-    command_runner_ = NULL;
-  }
+  command_executor_.RemoveObserver(this);
 }
 
 Node* DNBuilder::AddTarget(const string& name, string* err) {
@@ -122,7 +99,6 @@ bool DNBuilder::AlreadyUpToDate() const {
 bool DNBuilder::Build(string* err, master::MasterMainRunner* runner) {
   command_runner_ = runner;
   status_->PlanHasTotalEdges(plan_.command_edge_count());
-  should_quit_build_loop_ = false;
 
   const std::set<Edge*>& command_edge_set = plan_.command_edge_set();
   scoped_ptr<base::ListValue> commands(new base::ListValue);
@@ -147,11 +123,47 @@ bool DNBuilder::Build(string* err, master::MasterMainRunner* runner) {
   runner->SetWebUIInitialStatus(json);
   start_build_time_ = base::Time::Now();
 
-  return NinjaThread::PostTask(
-      NinjaThread::MAIN,
-      FROM_HERE,
-      base::Bind(&DNBuilder::BuildLoop, weak_factory_.GetWeakPtr()));
+  InitialalBuild();
+  return true;
 }
+
+void DNBuilder::InitialalBuild() {
+  DCHECK(!plan_.more_to_do());
+
+  std::string error;
+
+  while (command_executor_.CanRunMore()) {
+    Edge* edge = plan_.FindWork();
+    if (edge == NULL)
+      break;
+
+    if (!StartEdge(edge, &error, true))
+      break;
+  }
+
+  if (!plan_.more_to_do()) {
+    BuildFinished();
+    return;
+  }
+
+  const MasterMainRunner::SlaveInfoIdMap& slaves = command_runner_->GetSlaves();
+  for (MasterMainRunner::SlaveInfoIdMap::const_iterator it = slaves.begin();
+       it != slaves.end();
+       ++it) {
+    int edge_counter = 0;
+    while (edge_counter <= it->second.number_of_processors) {
+      Edge* edge = plan_.FindWork();
+      if (edge == NULL)
+        break;
+
+      status_->BuildEdgeStarted(edge);
+      command_runner_->StartEdgeRemotelly(edge, it->first);
+      outstanding_edge_list_.push_back(edge);
+      edge_counter++;
+    }
+  }
+}
+
 
 bool DNBuilder::HasRemoteCommandRunLocally(Edge* edge) {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
@@ -169,79 +181,32 @@ bool DNBuilder::HasRemoteCommandRunLocally(Edge* edge) {
 void DNBuilder::BuildLoop() {
   DCHECK(NinjaThread::CurrentlyOn(NinjaThread::MAIN));
   DCHECK(command_runner_ != NULL);
-  if (should_quit_build_loop_)
-    return;
-
   if (!plan_.more_to_do()) {
     BuildFinished();
     return;
   }
 
   std::string error;
-  bool failed = false;
-  while (command_runner_->LocalCanRunMore()) {
+  while (command_executor_.CanRunMore()) {
     Edge* edge = plan_.FindWork();
-    if (edge == NULL)
-      break;
+    if (edge == NULL) {
+      if (outstanding_edge_list_.empty())
+        break;
+
+      edge = outstanding_edge_list_.front();
+      outstanding_edge_list_.pop_front();
+    }
 
     if (!StartEdge(edge, &error, true)) {
-      failed = true;
-      break;
+      LOG(ERROR) << "Can not start edge locally. " << error;
+      return;
     }
   }
 
-  // See if we can start any more commands remotely.
-  int local_edge_counter = 0;
-  while (command_runner_->RemoteCanRunMore()) {
-    Edge* edge = plan_.FindWork();
-    if (edge == NULL)
-      break;
-
-    bool run_in_local = false;
-    if (EdgeMustStartLocally(edge)) {
-      run_in_local = true;
-      local_edge_counter++;
-    }
-
-    if (!StartEdge(edge, &error, run_in_local)) {
-      failed = true;
-      break;
-    }
-
-    if (!run_in_local && !edge->is_phony())
-      outstanding_edge_list_.push_back(edge);
-
-    static const int kMaxLocalEdgeCounter = 10;
-    if (local_edge_counter > kMaxLocalEdgeCounter)
-      break;
-  }
-
-  if (command_runner_->HasPendingLocalCommands()) {
-    // See if we can reap any finished local commands.
-    CommandRunner::Result result;
-    if (!command_runner_->WaitForCommand(&result))
-      failed = true;
-
-    if (!FinishCommand(&result, &error))
-      failed = true;
-  } else {
-    // We try to start edge locally, instead of waiting for the remote one.
-    while (command_runner_->LocalCanRunMore() &&
-           !outstanding_edge_list_.empty()) {
-      StartEdge(outstanding_edge_list_.back(), &error, true);
-      outstanding_edge_list_.pop_back();
-    }
-  }
-
-  if (failed) {
+  if (!plan_.more_to_do()) {
     BuildFinished();
     return;
   }
-
-  NinjaThread::PostTask(
-      NinjaThread::MAIN,
-      FROM_HERE,
-      base::Bind(&DNBuilder::BuildLoop, weak_factory_.GetWeakPtr()));
 }
 
 bool DNBuilder::StartEdge(Edge* edge, string* err, bool run_in_local) {
@@ -250,14 +215,28 @@ bool DNBuilder::StartEdge(Edge* edge, string* err, bool run_in_local) {
     plan_.EdgeFinished(edge);
     return true;
   }
-
   status_->BuildEdgeStarted(edge);
 
-  // start command computing and run it
-  if (!command_runner_->StartCommand(edge, run_in_local)) {
-    err->assign("command '" + edge->EvaluateCommand() + "' failed.");
-    return false;
+  // Create directories necessary for outputs.
+  for (vector<Node*>::iterator o = edge->outputs_.begin();
+       o != edge->outputs_.end(); ++o) {
+    base::FilePath dir =
+        base::FilePath::FromUTF8Unsafe((*o)->path());
+    if (!base::CreateDirectory(dir.DirName()))
+      return false;
   }
+
+  // Create response file, if needed
+  std::string rspfile = edge->GetUnescapedRspfile();
+  if (!rspfile.empty()) {
+    std::string content = edge->GetBinding("rspfile_content");
+    if (disk_interface_->WriteFile(rspfile, content))
+      return false;
+  }
+
+  std::string command = edge->EvaluateCommand();
+  command_edge_map_[command] = edge;
+  command_executor_.RunCommand(edge->EvaluateCommand());
   return true;
 }
 
@@ -438,10 +417,37 @@ bool DNBuilder::ExtractDeps(CommandRunner::Result* result,
 void DNBuilder::BuildFinished() {
   base::TimeDelta time_between_use = base::Time::Now() - start_build_time_;
   LOG(INFO) << time_between_use.InSecondsF();
-  should_quit_build_loop_ = true;
-  Cleanup();
   status_->BuildFinished();
   command_runner_->BuildFinished();
+}
+
+void DNBuilder::OnCommandStarted(const std::string& command) {
+}
+
+void DNBuilder::OnCommandFinished(const std::string& command,
+                                  const CommandRunner::Result* result) {
+  std::map<std::string, Edge*>::iterator it = command_edge_map_.find(command);
+  DCHECK(it != command_edge_map_.end());
+  CommandRunner::Result r = *result;
+  r.edge = it->second;
+  std::string error;
+  FinishCommand(&r, &error);
+
+  BuildLoop();
+}
+
+void DNBuilder::RequestEdge(int connection_id) {
+  if (!plan_.more_to_do())
+    return;
+
+  Edge* edge = plan_.FindWork();
+  // TODO(zhchbin): |edge| should be able to run remotelly.
+  if (edge == NULL)
+    return;
+
+  status_->BuildEdgeStarted(edge);
+  command_runner_->StartEdgeRemotelly(edge, connection_id);
+  outstanding_edge_list_.push_back(edge);
 }
 
 }  // namespace ninja
