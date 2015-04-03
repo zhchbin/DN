@@ -6,11 +6,13 @@
 #define  SLAVE_SLAVE_MAIN_RUNNER_H_
 
 #include <map>
+#include <set>
 #include <string>
 #include <utility>
 
 #include "common/main_runner.h"
 #include "common/command_executor.h"
+#include "third_party/ninja/src/build.h"
 
 namespace slave {
 class RunCommandRequest;
@@ -62,6 +64,8 @@ class SlaveMainRunner : public common::CommandExecutor::Observer,
 
   void MD5OutputsOnBlockingPool(const RunCommandContext& context);
 
+  bool StartEdge(Edge* edge);
+
   std::string master_;
   uint16 port_;
 
@@ -69,8 +73,10 @@ class SlaveMainRunner : public common::CommandExecutor::Observer,
   scoped_ptr<common::CommandExecutor> command_executor_;
   scoped_ptr<SlaveFileThread> slave_file_thread_;
 
-  typedef std::map<uint32, std::string> NinjaCommmandHashMap;
-  NinjaCommmandHashMap ninja_command_hash_map_;
+  typedef std::map<uint32, Edge*> HashEdgeMap;
+  HashEdgeMap hash_edge_map_;
+
+  std::set<Edge*> started_edge_set_;
 
   // RunCommandContextMap is used to hold the context of running a command from
   // master. Key is the hash of |request->command()|.

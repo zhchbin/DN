@@ -5,6 +5,7 @@
 #include "slave/slave_main_runner.h"
 
 #include <set>
+#include <vector>
 
 #include "base/bind.h"
 #include "base/files/file_util.h"
@@ -35,6 +36,16 @@ slave::RunCommandResponse::ExitStatus TransformExitStatus(ExitStatus status) {
   }
 }
 
+void FindAllEdges(Edge* e, std::set<Edge*>* seen, std::vector<Edge*>* edges) {
+  if (e == NULL || seen->insert(e).second == false)
+    return;
+
+  for (size_t i = 0; i < e->inputs_.size(); ++i)
+    FindAllEdges(e->inputs_[i]->in_edge(), seen, edges);
+
+  edges->push_back(e);
+}
+
 }  // namespace
 
 namespace slave {
@@ -60,7 +71,9 @@ void SlaveMainRunner::OnCommandFinished(const std::string& command,
   uint32 command_hash = base::Hash(command);
   RunCommandContextMap::iterator it =
       run_command_context_map_.find(command_hash);
-  DCHECK(it != run_command_context_map_.end());
+  if (it == run_command_context_map_.end())
+    return;
+
   it->second.response->set_output(result->output);
   it->second.response->set_status(TransformExitStatus(result->status));
   NinjaThread::PostBlockingPoolTask(
@@ -77,8 +90,8 @@ bool SlaveMainRunner::PostCreateThreads() {
   ninja_main()->GetAllEdges(&edges);
   for (std::set<Edge*>::iterator it = edges.begin(); it != edges.end(); ++it) {
     uint32 hash = common::HashEdge(*it);
-    CHECK(ninja_command_hash_map_.find(hash) == ninja_command_hash_map_.end());
-    ninja_command_hash_map_[hash] = (*it)->EvaluateCommand();
+    CHECK(hash_edge_map_.find(hash) == hash_edge_map_.end());
+    hash_edge_map_[hash] = (*it);
   }
 
   return true;
@@ -90,7 +103,7 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
   uint32 edge_id = request->edge_id();
   response->set_edge_id(edge_id);
 
-  if (!ContainsKey(ninja_command_hash_map_, edge_id)) {
+  if (!ContainsKey(hash_edge_map_, edge_id)) {
     response->set_status(RunCommandResponse::kExitFailure);
     response->set_output("This command is NOT ALLOWED to run.");
     NinjaThread::PostTask(
@@ -100,20 +113,20 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
                    done));
     return;
   }
-  if (!CreateDirsAndResponseFile(request)) {
-    response->set_status(RunCommandResponse::kExitFailure);
-    response->set_output("Create directories or response file failed.");
-    NinjaThread::PostTask(
-        NinjaThread::RPC, FROM_HERE,
-        base::Bind(&SlaveRPC::OnRunCommandDone,
-                   base::Unretained(slave_rpc_.get()),
-                   done));
-    return;
-  }
 
-  std::string& command = ninja_command_hash_map_[edge_id];
+  Edge* edge = hash_edge_map_[edge_id];
+  std::set<Edge*> seen;
+  std::vector<Edge*> edges;
+  FindAllEdges(edge, &seen, &edges);
+
+  const std::string& command = edge->EvaluateCommand();
   run_command_context_map_[base::Hash(command)] = {request, response, done};
-  command_executor_->RunCommand(command);
+  for (size_t i = 0; i < edges.size(); ++i) {
+    if (started_edge_set_.insert(edges[i]).second == false)
+      continue;
+
+    StartEdge(edges[i]);
+  }
 }
 
 void SlaveMainRunner::Wait() {
@@ -159,5 +172,32 @@ void SlaveMainRunner::MD5OutputsOnBlockingPool(
                  base::Unretained(slave_rpc_.get()),
                  context.done));
 }
+
+bool SlaveMainRunner::StartEdge(Edge* edge) {
+  if (edge->is_phony())
+    return true;
+
+  // Create directories necessary for outputs.
+  for (vector<Node*>::iterator o = edge->outputs_.begin();
+       o != edge->outputs_.end(); ++o) {
+    base::FilePath dir =
+        base::FilePath::FromUTF8Unsafe((*o)->path());
+    if (!base::CreateDirectory(dir.DirName()))
+      return false;
+  }
+
+  // Create response file, if needed
+  std::string rspfile = edge->GetUnescapedRspfile();
+  if (!rspfile.empty()) {
+    std::string content = edge->GetBinding("rspfile_content");
+    if (!ninja_main()->disk_interface()->WriteFile(rspfile, content))
+      return false;
+  }
+
+  std::string command = edge->EvaluateCommand();
+  command_executor_->RunCommand(edge->EvaluateCommand());
+  return true;
+}
+
 
 }  // namespace slave

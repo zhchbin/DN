@@ -43,7 +43,7 @@ class DNBuilder : public common::CommandExecutor::Observer {
   /// It is an error to call this function when AlreadyUpToDate() is true.
   bool Build(string* err, master::MasterMainRunner* runner);
 
-  bool StartEdge(Edge* edge, string* err, bool run_in_local);
+  bool StartEdgeLocally(Edge* edge);
 
   /// Update status ninja logs following a command termination.
   /// @return false if the build can not proceed further due to a fatal error.
@@ -56,7 +56,7 @@ class DNBuilder : public common::CommandExecutor::Observer {
   void OnCommandStarted(const std::string& command) override;
   void OnCommandFinished(const std::string& command,
                          const CommandRunner::Result* result) override;
-  void RequestEdge(int connection_id);
+  bool RequestEdge(int connection_id);
 
  private:
   void InitialalBuild();
@@ -84,6 +84,8 @@ class DNBuilder : public common::CommandExecutor::Observer {
 
   common::CommandExecutor command_executor_;
   std::map<std::string, Edge*> command_edge_map_;
+
+  std::map<int, int> pending_edge_request_;
 
   DISALLOW_COPY_AND_ASSIGN(DNBuilder);
 };

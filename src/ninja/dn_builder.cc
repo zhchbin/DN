@@ -13,6 +13,7 @@
 #include "base/files/file_path.h"
 #include "base/files/file_util.h"
 #include "base/json/json_writer.h"
+#include "base/strings/string_util.h"
 #include "base/values.h"
 #include "master/master_main_runner.h"
 #include "third_party/ninja/src/build_log.h"
@@ -27,24 +28,6 @@
 #endif
 
 using master::MasterMainRunner;
-
-namespace {
-
-bool EdgeMustStartLocally(Edge* edge) {
-  for (std::vector<Node*>::iterator it = edge->inputs_.begin();
-       it != edge->inputs_.end();
-       ++it) {
-    if ((*it)->in_edge() == NULL)
-      return false;
-
-    if (!(*it)->in_edge()->inputs_.empty())
-      return true;
-  }
-
-  return false;
-}
-
-}  // namespace
 
 namespace ninja {
 
@@ -130,14 +113,12 @@ bool DNBuilder::Build(string* err, master::MasterMainRunner* runner) {
 void DNBuilder::InitialalBuild() {
   DCHECK(!plan_.more_to_do());
 
-  std::string error;
-
   while (command_executor_.CanRunMore()) {
     Edge* edge = plan_.FindWork();
     if (edge == NULL)
       break;
 
-    if (!StartEdge(edge, &error, true))
+    if (!StartEdgeLocally(edge))
       break;
   }
 
@@ -186,7 +167,6 @@ void DNBuilder::BuildLoop() {
     return;
   }
 
-  std::string error;
   while (command_executor_.CanRunMore()) {
     Edge* edge = plan_.FindWork();
     if (edge == NULL) {
@@ -197,8 +177,8 @@ void DNBuilder::BuildLoop() {
       outstanding_edge_list_.pop_front();
     }
 
-    if (!StartEdge(edge, &error, true)) {
-      LOG(ERROR) << "Can not start edge locally. " << error;
+    if (!StartEdgeLocally(edge)) {
+      LOG(ERROR) << "Can not start edge locally.";
       return;
     }
   }
@@ -209,8 +189,8 @@ void DNBuilder::BuildLoop() {
   }
 }
 
-bool DNBuilder::StartEdge(Edge* edge, string* err, bool run_in_local) {
-  METRIC_RECORD("StartEdge");
+bool DNBuilder::StartEdgeLocally(Edge* edge) {
+  METRIC_RECORD("StartEdgeLocally");
   if (edge->is_phony()) {
     plan_.EdgeFinished(edge);
     return true;
@@ -433,21 +413,37 @@ void DNBuilder::OnCommandFinished(const std::string& command,
   std::string error;
   FinishCommand(&r, &error);
 
+  for (std::map<int, int>::iterator it = pending_edge_request_.begin();
+       it != pending_edge_request_.end();
+       ++it) {
+    if (it->second > 0) {
+      if (RequestEdge(it->first))
+        it->second--;
+    }
+  }
+
   BuildLoop();
 }
 
-void DNBuilder::RequestEdge(int connection_id) {
+bool DNBuilder::RequestEdge(int connection_id) {
   if (!plan_.more_to_do())
-    return;
+    return false;
 
-  Edge* edge = plan_.FindWork();
-  // TODO(zhchbin): |edge| should be able to run remotelly.
-  if (edge == NULL)
-    return;
+  Edge* edge = plan_.FindRemoteWork();
+  if (edge == NULL) {
+    if (pending_edge_request_.find(connection_id) !=
+        pending_edge_request_.end()) {
+      pending_edge_request_[connection_id]++;
+    } else {
+      pending_edge_request_[connection_id] = 1;
+    }
+    return false;
+  }
 
   status_->BuildEdgeStarted(edge);
   command_runner_->StartEdgeRemotelly(edge, connection_id);
   outstanding_edge_list_.push_back(edge);
+  return true;
 }
 
 }  // namespace ninja
