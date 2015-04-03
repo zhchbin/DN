@@ -13,7 +13,6 @@
 #include "base/stl_util.h"
 #include "base/threading/thread_restrictions.h"
 #include "common/util.h"
-#include "ninja/dn_builder.h"
 #include "ninja/ninja_main.h"
 #include "proto/slave_services.pb.h"
 #include "slave/slave_file_thread.h"
