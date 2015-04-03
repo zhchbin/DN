@@ -43,7 +43,7 @@ namespace slave {
 SlaveMainRunner::SlaveMainRunner(const std::string& master, uint16 port)
     : master_(master),
       port_(port),
-      command_executor_(new CommandExecutor()) {
+      command_executor_(new common::CommandExecutor()) {
   command_executor_->AddObserver(this);
 }
 

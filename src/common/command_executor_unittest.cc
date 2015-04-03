@@ -4,7 +4,7 @@
 
 #include "base/message_loop/message_loop.h"
 #include "base/run_loop.h"
-#include "slave/command_executor.h"
+#include "common/command_executor.h"
 #include "testing/gmock/include/gmock/gmock.h"
 #include "testing/gtest/include/gtest/gtest.h"
 
@@ -21,7 +21,7 @@ const char* kSimpleCommand = "ls /";
 
 }  // namespace
 
-namespace slave {
+namespace common {
 
 class MockObserver : public CommandExecutor::Observer {
  public:
@@ -48,4 +48,4 @@ TEST(CommandExecutorTest, RumCommands) {
   run_loop.Run();
 }
 
-}  // namespace slave
+}  // namespace common

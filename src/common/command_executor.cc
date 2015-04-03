@@ -2,14 +2,14 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#include "slave/command_executor.h"
+#include "common/command_executor.h"
 
 #include "base/bind.h"
 #include "base/logging.h"
 #include "base/message_loop/message_loop.h"
 #include "common/util.h"
 
-namespace slave {
+namespace common {
 
 CommandExecutor::CommandExecutor()
   : parallelism_(common::GuessParallelism()),
@@ -65,4 +65,4 @@ void CommandExecutor::SubprocessExitCallback(common::AsyncSubprocess* subproc) {
   }
 }
 
-}  // namespace slave
+}  // namespace common

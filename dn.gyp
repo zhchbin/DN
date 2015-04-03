@@ -13,6 +13,8 @@
       'sources': [
         'src/common/async_subprocess.cc',
         'src/common/async_subprocess.h',
+        'src/common/command_executor.cc',
+        'src/common/command_executor.h',
         'src/common/main_runner.cc',
         'src/common/main_runner.h',
         'src/common/options.cc',
@@ -77,8 +79,6 @@
         'src/rpc/rpc_socket_server.h',
         'src/rpc/service_manager.cc',
         'src/rpc/service_manager.h',
-        'src/slave/command_executor.cc',
-        'src/slave/command_executor.h',
         'src/slave/slave_file_thread.cc',
         'src/slave/slave_file_thread.h',
         'src/slave/slave_main_runner.cc',
@@ -162,11 +162,11 @@
       'type': 'executable',
       'sources': [
         'src/common/async_subprocess_unittest.cc',
+        'src/common/command_executor_unittest.cc',
         'src/master/curl_helper_unittest.cc',
         'src/proto/echo_unittest.proto',
         'src/rpc/rpc_socket_unittest.cc',
         'src/run_all_unittest.cc',
-        'src/slave/command_executor_unittest.cc',
         'src/thread/ninja_thread_unittest.cc',
       ],
       'dependencies': [

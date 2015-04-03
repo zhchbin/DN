@@ -2,8 +2,8 @@
 // Use of this source code is governed by the BSD license that can be
 // found in the LICENSE file.
 
-#ifndef  SLAVE_COMMAND_EXECUTOR_H_
-#define  SLAVE_COMMAND_EXECUTOR_H_
+#ifndef  COMMON_COMMAND_EXECUTOR_H_
+#define  COMMON_COMMAND_EXECUTOR_H_
 
 #include <map>
 #include <queue>
@@ -16,7 +16,7 @@
 #include "third_party/ninja/src/build.h"
 #include "third_party/ninja/src/subprocess.h"
 
-namespace slave {
+namespace common {
 
 class CommandExecutor {
  public:
@@ -53,6 +53,6 @@ class CommandExecutor {
   DISALLOW_COPY_AND_ASSIGN(CommandExecutor);
 };
 
-}  // namespace slave
+}  // namespace common
 
-#endif  // SLAVE_COMMAND_EXECUTOR_H_
+#endif  // COMMON_COMMAND_EXECUTOR_H_

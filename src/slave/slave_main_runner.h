@@ -10,7 +10,7 @@
 #include <utility>
 
 #include "common/main_runner.h"
-#include "slave/command_executor.h"
+#include "common/command_executor.h"
 
 namespace slave {
 class RunCommandRequest;
@@ -28,7 +28,7 @@ namespace slave {
 class SlaveFileThread;
 class SlaveRPC;
 
-class SlaveMainRunner : public CommandExecutor::Observer,
+class SlaveMainRunner : public common::CommandExecutor::Observer,
                         public common::MainRunner {
  public:
   SlaveMainRunner(const std::string& master, uint16 port);
@@ -66,7 +66,7 @@ class SlaveMainRunner : public CommandExecutor::Observer,
   uint16 port_;
 
   scoped_ptr<SlaveRPC> slave_rpc_;
-  scoped_ptr<CommandExecutor> command_executor_;
+  scoped_ptr<common::CommandExecutor> command_executor_;
   scoped_ptr<SlaveFileThread> slave_file_thread_;
 
   typedef std::map<uint32, std::string> NinjaCommmandHashMap;
