@@ -66,6 +66,8 @@ class SlaveMainRunner : public common::CommandExecutor::Observer,
 
   bool StartEdge(Edge* edge);
 
+  void StartReadyEdges();
+
   std::string master_;
   uint16 port_;
 
@@ -82,6 +84,10 @@ class SlaveMainRunner : public common::CommandExecutor::Observer,
   // master. Key is the hash of |request->command()|.
   typedef std::map<uint32, RunCommandContext> RunCommandContextMap;
   RunCommandContextMap run_command_context_map_;
+
+  Plan plan_;
+  typedef std::map<uint32, Edge*> CommandHashEdgeMap;
+  CommandHashEdgeMap command_hash_edge_map_;
 
   DISALLOW_COPY_AND_ASSIGN(SlaveMainRunner);
 };

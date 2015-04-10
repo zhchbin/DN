@@ -202,6 +202,27 @@ bool NinjaMain::RunBuild(std::vector<Node*> targets,
   return true;
 }
 
+void NinjaMain::InitForSlave() {
+  std::string err;
+  std::vector<Node*> targets = state_.DefaultNodes(&err);
+  builder_.reset(new ninja::DNBuilder(&state_, config_, &build_log_,
+                                      &deps_log_, &disk_interface_));
+  disk_interface_.AllowStatCache(true);
+  for (size_t i = 0; i < targets.size(); ++i) {
+    if (!builder_->AddTarget(targets[i], &err)) {
+      if (!err.empty()) {
+        LOG(ERROR) << err.c_str();
+        return;
+      } else {
+        // Added a target that is already up-to-date; not really
+        // an error.
+      }
+    }
+  }
+  disk_interface_.AllowStatCache(false);
+  builder_.reset(NULL);
+}
+
 ninja::DNBuilder* NinjaMain::builder() {
   return builder_.get();
 }

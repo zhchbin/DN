@@ -62,13 +62,16 @@ SlaveMainRunner::~SlaveMainRunner() {
 }
 
 void SlaveMainRunner::OnCommandStarted(const std::string& command) {
-  LOG(INFO) << command << " Started";
 }
 
 void SlaveMainRunner::OnCommandFinished(const std::string& command,
                                         const CommandRunner::Result* result) {
-  LOG(INFO) << command << " Finished";
   uint32 command_hash = base::Hash(command);
+  DCHECK(command_hash_edge_map_.find(command_hash) !=
+         command_hash_edge_map_.end());
+  plan_.EdgeFinished(command_hash_edge_map_[command_hash]);
+  StartReadyEdges();
+
   RunCommandContextMap::iterator it =
       run_command_context_map_.find(command_hash);
   if (it == run_command_context_map_.end())
@@ -94,6 +97,7 @@ bool SlaveMainRunner::PostCreateThreads() {
     hash_edge_map_[hash] = (*it);
   }
 
+  ninja_main()->InitForSlave();
   return true;
 }
 
@@ -115,18 +119,24 @@ void SlaveMainRunner::RunCommand(const RunCommandRequest* request,
   }
 
   Edge* edge = hash_edge_map_[edge_id];
-  std::set<Edge*> seen;
-  std::vector<Edge*> edges;
-  FindAllEdges(edge, &seen, &edges);
-
   const std::string& command = edge->EvaluateCommand();
   run_command_context_map_[base::Hash(command)] = {request, response, done};
-  for (size_t i = 0; i < edges.size(); ++i) {
-    if (started_edge_set_.insert(edges[i]).second == false)
-      continue;
 
-    StartEdge(edges[i]);
+  if (edge->outputs_ready()) {
+    CommandRunner::Result result;
+    result.status = ExitSuccess;
+    OnCommandFinished(edge->EvaluateCommand(), &result);
+    return;
   }
+
+  std::string error;
+  for (size_t i = 0; i < edge->outputs_.size(); ++i) {
+    if (!plan_.AddTarget(edge->outputs_[i], &error)) {
+      LOG(ERROR) << error;
+    }
+  }
+
+  StartReadyEdges();
 }
 
 void SlaveMainRunner::Wait() {
@@ -199,5 +209,13 @@ bool SlaveMainRunner::StartEdge(Edge* edge) {
   return true;
 }
 
+void SlaveMainRunner::StartReadyEdges() {
+  Edge* ready_edge = NULL;
+  while ((ready_edge = plan_.FindWork()) != NULL) {
+    std::string command = ready_edge->EvaluateCommand();
+    command_hash_edge_map_[base::Hash(command)] = ready_edge;
+    StartEdge(ready_edge);
+  }
+}
 
 }  // namespace slave

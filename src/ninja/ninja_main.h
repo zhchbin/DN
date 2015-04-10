@@ -31,6 +31,7 @@ struct NinjaMain : public BuildLogUser {
   bool InitFromManifest(const std::string& input_file,
                         std::string* error,
                         bool rebuild_manifest);
+  void InitForSlave();
 
   /// Open the build log.
   /// @return false on error.
