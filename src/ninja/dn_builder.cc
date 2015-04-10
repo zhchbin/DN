@@ -210,7 +210,7 @@ bool DNBuilder::StartEdgeLocally(Edge* edge) {
   std::string rspfile = edge->GetUnescapedRspfile();
   if (!rspfile.empty()) {
     std::string content = edge->GetBinding("rspfile_content");
-    if (disk_interface_->WriteFile(rspfile, content))
+    if (!disk_interface_->WriteFile(rspfile, content))
       return false;
   }
 
