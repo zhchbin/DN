@@ -100,7 +100,6 @@ class MasterMainRunner : public common::MainRunner {
 
   uint32 max_slave_amount_;
   bool is_building_;
-  int pending_remote_commands_;
 
   DISALLOW_COPY_AND_ASSIGN(MasterMainRunner);
 };

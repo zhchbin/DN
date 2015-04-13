@@ -37,8 +37,7 @@ MasterMainRunner::MasterMainRunner(const std::string& bind_ip, uint16 port)
     : bind_ip_(bind_ip),
       port_(port),
       max_slave_amount_(UINT_MAX),
-      is_building_(false),
-      pending_remote_commands_(0) {
+      is_building_(false) {
   // |curl_global_init| is not thread-safe, following advice in docs of
   // |curl_easy_init|, we call it manually.
   curl_global_init(CURL_GLOBAL_ALL);
@@ -70,7 +69,6 @@ void MasterMainRunner::StartBuild() {
   is_building_ = true;
   std::string error;
   config_.parallelism = common::GuessParallelism() - 1;
-  pending_remote_commands_ = 0;
 
   const base::CommandLine* command_line =
       base::CommandLine::ForCurrentProcess();
@@ -122,7 +120,6 @@ bool MasterMainRunner::StartEdgeRemotelly(Edge* edge, int connection_id) {
                  edge->GetUnescapedRspfile(),
                  edge->GetBinding("rspfile_content"),
                  edge_id));
-  ++pending_remote_commands_;
   return true;
 }
 
@@ -151,7 +148,6 @@ void MasterMainRunner::OnRemoteCommandDone(
     ExitStatus status,
     const std::string& output,
     const std::vector<std::string>& md5s) {
-  --pending_remote_commands_;
   ninja_main()->builder()->RequestEdge(connection_id);
 
   // If remote command failed, don't abort the build process since it may
