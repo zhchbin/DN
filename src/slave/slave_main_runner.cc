@@ -169,7 +169,9 @@ void SlaveMainRunner::MD5OutputsOnBlockingPool(
       std::string md5 = "";
       if (base::PathExists(filename)) {
         md5 = common::GetMd5Digest(filename);
-        CHECK(!md5.empty());
+        if (md5.empty()) {
+          LOG(ERROR) << "GetMd5Digest of " << filename.value();
+        }
       }
 
       context.response->add_md5()->assign(md5);
