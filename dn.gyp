@@ -11,7 +11,8 @@
       'target_name': 'libdn',
       'type': 'static_library',
       'sources': [
-        'src/common/async_subprocess.cc',
+        'src/common/async_subprocess_win.cc',
+        'src/common/async_subprocess_posix.cc',
         'src/common/async_subprocess.h',
         'src/common/command_executor.cc',
         'src/common/command_executor.h',
