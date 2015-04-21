@@ -12,7 +12,12 @@
 
 namespace common {
 
-class AsyncSubprocess : public base::MessageLoopForIO::Watcher {
+class AsyncSubprocess
+#if defined(OS_WIN)
+    : public base::MessageLoopForIO::IOHandler {
+#else
+    : public base::MessageLoopForIO::Watcher {
+#endif
  public:
   AsyncSubprocess();
   ~AsyncSubprocess() override;
@@ -30,21 +35,42 @@ class AsyncSubprocess : public base::MessageLoopForIO::Watcher {
 
   bool Done() const;
   const std::string& GetOutput() const;
+
+#if defined(OS_WIN)
+  // Implementation of IOHandler on Windows.
+  void OnIOCompleted(base::MessageLoopForIO::IOContext* context,
+                     DWORD bytes_transfered,
+                     DWORD error) override;
+#elif defined(OS_POSIX)
   int fd() const { return fd_; }
 
   // Implementation of base::MessageLoopForIO::Watcher.
   void OnFileCanWriteWithoutBlocking(int fd) override {}
   void OnFileCanReadWithoutBlocking(int fd) override;
   void EnsureWatching();
+#endif
 
  private:
   std::string buf_;
-  int fd_;
-  pid_t pid_;
   bool use_console_;
 
+#if defined(OS_WIN)
+  /// Set up pipe_ as the parent-side pipe of the subprocess; return the
+  /// other end of the pipe, usable in the child process.
+  HANDLE SetupPipe();
+  void OnPipeReady();
+
+  HANDLE child_;
+  HANDLE pipe_;
+  base::MessageLoopForIO::IOContext* context_;
+  bool is_reading_;
+  char overlapped_buf_[4 << 10];
+#elif defined(OS_POSIX)
+  int fd_;
+  pid_t pid_;
   base::MessageLoopForIO::FileDescriptorWatcher fd_watcher_;
   bool is_watching_;
+#endif
 
   ExitCallback exit_callback_;
 
