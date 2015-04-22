@@ -78,7 +78,7 @@ uint32 HashEdge(const Edge* edge) {
 
 int SetNonBlocking(int fd) {
 #if defined(OS_WIN)
-  unsigned long no_block = 1;
+  unsigned long no_block = 1;   // NOLINT
   return ioctlsocket(fd, FIONBIO, &no_block);
 #elif defined(OS_POSIX)
   int flags = fcntl(fd, F_GETFL, 0);
